@@ -1,24 +1,61 @@
 import React from 'react';
 import logo from './logo.svg';
+import { promisified } from 'tauri/api/tauri';
 import './App.css';
 
 function App() {
+  const [key, setKey] = React.useState("");
+  const [val, setVal] = React.useState("");
+  const [result, setResult] = React.useState("");
+
+  const handleKeyChange = React.useCallback((event) => {
+    setKey(event.target.value);
+  },[]);
+
+  const handleValChange = React.useCallback((event) => {
+    setVal(event.target.value);
+  },[]);
+
+  const handleClickGet = React.useCallback(async () => {
+    try {
+      const res:any = await promisified({
+        cmd: 'executeDataStore',
+        action: 'get',
+        key,
+        val,
+      });  
+      setResult(res);
+    } catch (e) {
+      setResult(e);
+    }
+  }, [key, val]);
+
+  const handleClickPut = React.useCallback(async () => {
+    try {
+      const res:any = await promisified({
+        cmd: 'executeDataStore',
+        action: 'put',
+        key,
+        val,
+      });  
+      setResult(res);
+    } catch (e) {
+      setResult(e);
+    }  
+  }, [key, val]);
+  
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <input type="text" value={key} onChange={handleKeyChange}/>
+      <input type="text" value={val} onChange={handleValChange}/>
+      <button onClick={handleClickGet}>
+        Get
+      </button>
+      <button onClick={handleClickPut}>
+        Put
+      </button>
+      <br/>
+      {result}
     </div>
   );
 }
