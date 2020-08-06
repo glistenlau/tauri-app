@@ -19,7 +19,7 @@ function App() {
   const handleClickGet = React.useCallback(async () => {
     try {
       const res:any = await promisified({
-        cmd: 'executeDataStore',
+        cmd: 'executeRocksDB',
         action: 'get',
         key,
         val,
@@ -33,7 +33,7 @@ function App() {
   const handleClickPut = React.useCallback(async () => {
     try {
       const res:any = await promisified({
-        cmd: 'executeDataStore',
+        cmd: 'executeRocksDB',
         action: 'put',
         key,
         val,
