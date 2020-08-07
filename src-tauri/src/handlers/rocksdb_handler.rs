@@ -1,4 +1,4 @@
-use crate::datastore;
+use crate::proxies::rocksdb_proxy;
 use anyhow::{anyhow, Result};
 
 pub fn handle_command(action: String, key: String, val: Option<String>) -> Result<String> {
@@ -11,7 +11,7 @@ pub fn handle_command(action: String, key: String, val: Option<String>) -> Resul
 }
 
 fn execute_get(key: String) -> Result<String> {
-  let data_store = datastore::getinstance();
+  let data_store = rocksdb_proxy::get_proxy();
   match data_store.get(key.as_str()) {
     Ok(Some(str_vals)) => Ok(String::from_utf8(str_vals)?),
     Ok(None) => Ok("".to_string()),
@@ -20,7 +20,7 @@ fn execute_get(key: String) -> Result<String> {
 }
 
 fn execte_put(key: String, val: Option<String>) -> Result<String> {
-  let data_store = datastore::getinstance();
+  let data_store = rocksdb_proxy::get_proxy();
   if val.is_none() {
     return Err(anyhow!("RocksDB put miss value."));
   }
@@ -32,7 +32,7 @@ fn execte_put(key: String, val: Option<String>) -> Result<String> {
 }
 
 fn execute_delete(key: String) -> Result<String> {
-  let data_store = datastore::getinstance();
+  let data_store = rocksdb_proxy::get_proxy();
   match data_store.delete(key.as_str()) {
     Ok(()) => Ok(String::default()),
     Err(e) => Err(anyhow!("RocksDB delete error: {}", e)),

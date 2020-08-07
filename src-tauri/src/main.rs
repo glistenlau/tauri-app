@@ -3,11 +3,10 @@
   windows_subsystem = "windows"
 )]
 mod cmd;
-mod datastore;
-mod oracle;
+mod handlers;
+mod proxies;
 
 fn main() {
-  oracle::main();
   tauri::AppBuilder::new()
     .invoke_handler(cmd::dispatch_command)
     .build()

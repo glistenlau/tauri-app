@@ -1,7 +1,9 @@
-import React from 'react';
-import logo from './logo.svg';
-import { promisified } from 'tauri/api/tauri';
-import './App.css';
+import React from "react";
+import logo from "./logo.svg";
+import { promisified } from "tauri/api/tauri";
+import "./App.css";
+
+import Oracle from "./apis/oracle";
 
 function App() {
   const [key, setKey] = React.useState("");
@@ -10,20 +12,20 @@ function App() {
 
   const handleKeyChange = React.useCallback((event) => {
     setKey(event.target.value);
-  },[]);
+  }, []);
 
   const handleValChange = React.useCallback((event) => {
     setVal(event.target.value);
-  },[]);
+  }, []);
 
   const handleClickGet = React.useCallback(async () => {
     try {
-      const res:any = await promisified({
-        cmd: 'executeRocksDB',
-        action: 'get',
+      const res: any = await promisified({
+        cmd: "executeRocksDB",
+        action: "get",
         key,
         val,
-      });  
+      });
       setResult(res);
     } catch (e) {
       setResult(e);
@@ -32,30 +34,37 @@ function App() {
 
   const handleClickPut = React.useCallback(async () => {
     try {
-      const res:any = await promisified({
-        cmd: 'executeRocksDB',
-        action: 'put',
+      const res: any = await promisified({
+        cmd: "executeRocksDB",
+        action: "put",
         key,
         val,
-      });  
+      });
       setResult(res);
     } catch (e) {
       setResult(e);
-    }  
+    }
   }, [key, val]);
-  
+
+  const handleClickExecute = React.useCallback(async () => {
+    try {
+      const res: any = await Oracle.execute(key, [val]);
+      console.log("get rsp:", res);
+      setResult(res);
+    } catch (e) {
+      setResult(e);
+    }
+  }, [key, val]);
+
   return (
     <div className="App">
-      <input type="text" value={key} onChange={handleKeyChange}/>
-      <input type="text" value={val} onChange={handleValChange}/>
-      <button onClick={handleClickGet}>
-        Get
-      </button>
-      <button onClick={handleClickPut}>
-        Put
-      </button>
-      <br/>
-      {result}
+      <input type="text" value={key} onChange={handleKeyChange} />
+      <input type="text" value={val} onChange={handleValChange} />
+      <button onClick={handleClickGet}>Get</button>
+      <button onClick={handleClickPut}>Put</button>
+      <button onClick={handleClickExecute}>Execute</button>
+      <br />
+      {`${result}`}
     </div>
   );
 }

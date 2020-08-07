@@ -16,6 +16,7 @@ tauri = { version = "0.9", features = [ "all-api" ] }
 rocksdb = "0.14.0"
 anyhow = "1.0.32"
 oracle = "0.3.2"
+tokio-postgres = "0.5.5"
 
 [target."cfg(windows)".build-dependencies]
 winres = "0.1"

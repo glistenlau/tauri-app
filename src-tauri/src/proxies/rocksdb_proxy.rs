@@ -34,6 +34,6 @@ impl RocksDataStore {
 
 static DATA_STORE: RocksDataStore = RocksDataStore {};
 
-pub fn getinstance() -> &'static RocksDataStore {
+pub fn get_proxy() -> &'static RocksDataStore {
   &DATA_STORE
 }

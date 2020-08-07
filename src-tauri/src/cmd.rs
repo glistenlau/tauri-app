@@ -1,8 +1,7 @@
-mod rocksdb_handler;
-mod oracle_handler;
-use serde::Deserialize;
 use crate::cmd::Cmd::*;
+use serde::Deserialize;
 use tauri::Webview;
+use crate::handlers::{oracle_handler, rocksdb_handler};
 
 #[derive(Deserialize)]
 #[serde(tag = "cmd", rename_all = "camelCase")]
@@ -16,7 +15,13 @@ pub enum Cmd {
     val: Option<String>,
     callback: String,
     error: String,
-  }
+  },
+  ExecuteOracle {
+    action: oracle_handler::Action,
+    payload: Option<oracle_handler::Payload>,
+    callback: String,
+    error: String,
+  },
 }
 
 pub fn dispatch_command(_webview: &mut Webview, arg: &str) -> Result<(), String> {
@@ -36,6 +41,16 @@ pub fn dispatch_command(_webview: &mut Webview, arg: &str) -> Result<(), String>
           callback,
           error,
         ),
+        ExecuteOracle {
+          action,
+          payload,
+          callback,
+          error,
+        } => tauri::execute_promise(
+          _webview, 
+          move || oracle_handler::handle_command(action, payload), 
+          callback, 
+          error),
       }
       Ok(())
     }
