@@ -1,12 +1,28 @@
 use crate::proxies::rocksdb_proxy;
 use anyhow::{anyhow, Result};
+use serde::{Deserialize};
 
-pub fn handle_command(action: String, key: String, val: Option<String>) -> Result<String> {
-  match action.as_str() {
-    "get" => execute_get(key),
-    "put" => execte_put(key, val),
-    "delete" => execute_delete(key),
-    _ => Err(anyhow!("Invalid RocksDB action: {}", action)),
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Action {
+  Delete,
+  Get,
+  Put,
+}
+
+#[derive(Deserialize)]
+pub struct Payload {
+  key: String,
+  val: Option<String>,
+}
+
+pub fn handle_command(action: Action, payload: Payload) -> Result<String> {
+  let (key, val) = (payload.key, payload.val);
+
+  match action{
+    Action::Get => execute_get(key),
+    Action::Put => execte_put(key, val),
+    Action::Delete => execute_delete(key),
   }
 }
 

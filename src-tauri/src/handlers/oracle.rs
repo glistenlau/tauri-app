@@ -16,17 +16,13 @@ pub struct Payload {
   parameters: Vec<String>,
 }
 
-pub fn handle_command(action: Action, payload: Option<Payload>) -> Result<SQLReponse> {
+pub fn handle_command(action: Action, payload: Payload) -> Result<SQLReponse> {
   let oracle_client = oracle_proxy::get_proxy();
   match action {
     Action::ExecuteStatement => {
-      if payload.is_none() {
-        return Err(anyhow!("Missing payload."));
-      }
-      let pl = payload.unwrap();
-      let params: Vec<&str> = pl.parameters.iter().map(|p| &p[..]).collect();
+      let params: Vec<&str> = payload.parameters.iter().map(|p| &p[..]).collect();
       let params = &params[..];
-      Ok(oracle_client.execute(&pl.statement, params))
+      Ok(oracle_client.execute(&payload.statement, params))
     },
     _ => Err(anyhow!("The action is not supported."))
   }

@@ -1,7 +1,6 @@
-use crate::cmd::Cmd::*;
-use serde::Deserialize;
+use crate::handlers::{dispath_async, oracle, rocksdb, Handler};
+use serde::{Deserialize, Serialize};
 use tauri::Webview;
-use crate::handlers::{oracle_handler, rocksdb_handler};
 
 #[derive(Deserialize)]
 #[serde(tag = "cmd", rename_all = "camelCase")]
@@ -9,16 +8,8 @@ pub enum Cmd {
   // your custom commands
   // multiple arguments are allowed
   // note that rename_all = "camelCase": you need to use "myCustomCommand" on JS
-  ExecuteRocksDB {
-    action: String,
-    key: String,
-    val: Option<String>,
-    callback: String,
-    error: String,
-  },
-  ExecuteOracle {
-    action: oracle_handler::Action,
-    payload: Option<oracle_handler::Payload>,
+  AsyncCommand {
+    handler: Handler,
     callback: String,
     error: String,
   },
@@ -29,28 +20,11 @@ pub fn dispatch_command(_webview: &mut Webview, arg: &str) -> Result<(), String>
     Err(e) => Err(e.to_string()),
     Ok(command) => {
       match command {
-        ExecuteRocksDB {
-          action,
-          key,
-          val,
+        Cmd::AsyncCommand {
+          handler,
           callback,
           error,
-        } => tauri::execute_promise(
-          _webview,
-          move || rocksdb_handler::handle_command(action, key, val),
-          callback,
-          error,
-        ),
-        ExecuteOracle {
-          action,
-          payload,
-          callback,
-          error,
-        } => tauri::execute_promise(
-          _webview, 
-          move || oracle_handler::handle_command(action, payload), 
-          callback, 
-          error),
+        } => dispath_async(_webview, handler, callback, error)
       }
       Ok(())
     }

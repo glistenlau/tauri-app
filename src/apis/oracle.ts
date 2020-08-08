@@ -1,4 +1,4 @@
-import {promisified} from "tauri/api/tauri";
+import {requestAsync} from ".";
 
 enum Action {
   ExecuteStatement = "ExecuteStatement",
@@ -20,7 +20,7 @@ class Oracle {
       args.payload = payload;
     }
 
-    return await promisified(args);
+    return await requestAsync("oracle", action, payload);
   }
 
   execute = async (statement: string, parameters: string[]) => {
