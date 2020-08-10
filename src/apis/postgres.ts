@@ -9,7 +9,7 @@ interface Payload {
   parameters: string[],
 }
 
-class Oracle {
+class Postgres {
   sendRequest = async (action: Action, payload?: Payload) => {
     const args: any = {
       action,
@@ -19,7 +19,7 @@ class Oracle {
       args.payload = payload;
     }
 
-    return await requestAsync("oracle", action, payload);
+    return await requestAsync("postgres", action, payload);
   }
 
   execute = async (statement: string, parameters: string[]) => {
@@ -32,4 +32,4 @@ class Oracle {
   }
 }
 
-export default new Oracle();
+export default new Postgres();

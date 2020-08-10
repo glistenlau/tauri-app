@@ -1,3 +1,4 @@
-pub mod oracle_proxy;
-pub mod rocksdb_proxy;
-pub mod sql_proxy;
+pub mod oracle;
+pub mod postgres;
+pub mod rocksdb;
+pub mod sql_common;

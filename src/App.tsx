@@ -4,6 +4,8 @@ import { promisified } from "tauri/api/tauri";
 import "./App.css";
 
 import Oracle from "./apis/oracle";
+import Postgres from "./apis/postgres";
+import rocksDB from "./apis/dataStore";
 
 function App() {
   const [key, setKey] = React.useState("");
@@ -20,35 +22,38 @@ function App() {
 
   const handleClickGet = React.useCallback(async () => {
     try {
-      const res: any = await promisified({
-        cmd: "executeRocksDB",
-        action: "get",
-        key,
-        val,
-      });
+      const res: any = await rocksDB.getItem(key);
+      console.log("get result: ", res);
       setResult(res);
     } catch (e) {
       setResult(e);
     }
-  }, [key, val]);
+  }, [key]);
 
   const handleClickPut = React.useCallback(async () => {
     try {
-      const res: any = await promisified({
-        cmd: "executeRocksDB",
-        action: "put",
-        key,
-        val,
-      });
+      const res: any = await rocksDB.setItem(key, val);
+      console.log("put result: ", res);
       setResult(res);
     } catch (e) {
       setResult(e);
     }
   }, [key, val]);
 
-  const handleClickExecute = React.useCallback(async () => {
+  const handleClickOracle = React.useCallback(async () => {
     try {
       const res: any = await Oracle.execute(key, [val]);
+      console.log("get rsp:", res);
+      setResult(res);
+    } catch (e) {
+      setResult(e);
+    }
+  }, [key, val]);
+
+  const handleClickPostgres = React.useCallback(async () => {
+    try {
+      const params = val ? [val]: [];
+      const res: any = await Postgres.execute(key, params);
       console.log("get rsp:", res);
       setResult(res);
     } catch (e) {
@@ -62,7 +67,8 @@ function App() {
       <input type="text" value={val} onChange={handleValChange} />
       <button onClick={handleClickGet}>Get</button>
       <button onClick={handleClickPut}>Put</button>
-      <button onClick={handleClickExecute}>Execute</button>
+      <button onClick={handleClickOracle}>Execute Oracle</button>
+      <button onClick={handleClickPostgres}>Execute Postgres</button>
       <br />
       {`${result}`}
     </div>

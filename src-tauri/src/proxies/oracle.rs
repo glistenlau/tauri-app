@@ -1,13 +1,13 @@
 use anyhow::{anyhow, Error, Result};
 use oracle::{sql_type::ToSql, Connection, ResultSet, Row, Statement};
-use super::sql_proxy::{SQLClient, SQLError, SQLReponse, SQLResult, SQLResultSet};
-use std::time::{Duration, Instant};
+use super::sql_common::{SQLClient, SQLError, SQLReponse, SQLResult, SQLResultSet};
+use std::time::{Instant};
 
 struct OracleConfig<'a> {
   host: &'a str,
   port: &'a str,
   sid: &'a str,
-  username: &'a str,
+  user: &'a str,
   password: &'a str,
 }
 
@@ -21,7 +21,7 @@ impl OracleClient<'_> {
       Some(cig) => {
         let connect_string: String = format!("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={})(PORT={}))(CONNECT_DATA=(SERVER=DEDICATED)(SID={})))", cig.host, cig.port, cig.sid);
         Ok(Connection::connect(
-          &cig.username,
+          &cig.user,
           &cig.password,
           connect_string,
         )?)
@@ -87,7 +87,7 @@ static DEFAULT_CONFIG: OracleConfig = OracleConfig {
   host: "localhost", 
   port: "1521", 
   sid: "anaconda", 
-  username: "anaconda", 
+  user: "anaconda", 
   password: "anaconda"
 };
 

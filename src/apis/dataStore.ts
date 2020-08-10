@@ -16,7 +16,10 @@ class DataStore {
       payload.val = val;
     }
 
-    return await requestAsync("rocksDB", action, payload);
+    const rsp = await requestAsync("rocksDB", action, payload);
+    if (rsp.success) {
+      return rsp.value;
+    }
   };
 
   getItem = async (key: string) => {
@@ -24,11 +27,11 @@ class DataStore {
   };
 
   setItem = async (key: string, val: string) => {
-    await this.sendRequest(Action.PUT, key, val);
+    return await this.sendRequest(Action.PUT, key, val);
   };
 
   removeItem = async (key: string) => {
-    await this.sendRequest(Action.DELETE, key);
+    return await this.sendRequest(Action.DELETE, key);
   };
 }
 

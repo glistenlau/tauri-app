@@ -1,4 +1,3 @@
-use anyhow::Result;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
 

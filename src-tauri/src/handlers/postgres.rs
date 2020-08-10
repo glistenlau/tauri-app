@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{anyhow, Result};
 use crate::proxies::sql_common::{SQLClient, SQLReponse};
-use crate::proxies::oracle;
+use crate::proxies::postgres;
 
 #[derive(Serialize, Deserialize)]
 pub enum Action {
@@ -17,12 +17,12 @@ pub struct Payload {
 }
 
 pub fn handle_command(action: Action, payload: Payload) -> Result<SQLReponse> {
-  let oracle_client = oracle::get_proxy();
+  let proxy = postgres::get_proxy();
   match action {
     Action::ExecuteStatement => {
       let params: Vec<&str> = payload.parameters.iter().map(|p| &p[..]).collect();
       let params = &params[..];
-      Ok(oracle_client.execute(&payload.statement, params))
+      Ok(proxy.execute(&payload.statement, params))
     },
     _ => Err(anyhow!("The action is not supported."))
   }
