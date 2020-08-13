@@ -22,7 +22,7 @@ class Oracle {
     return await requestAsync("oracle", action, payload);
   }
 
-  execute = async (statement: string, parameters: string[]) => {
+  execute = async (statement: string, parameters: any[]) => {
     const payload = {
       statement,
       parameters,

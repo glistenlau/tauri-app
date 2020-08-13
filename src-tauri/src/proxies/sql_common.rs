@@ -1,5 +1,6 @@
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Serialize, Deserialize)]
 pub struct SQLResultSet {
@@ -55,5 +56,5 @@ impl SQLReponse {
 }
 
 pub trait SQLClient {
-  fn execute(&self, statement: &str, parameters: &[&str]) -> SQLReponse;
+  fn execute(&self, statement: &str, parameters: &[Value]) -> SQLReponse;
 }

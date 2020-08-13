@@ -1037,6 +1037,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "oracle",
+ "regex",
  "rocksdb",
  "serde",
  "serde_json",

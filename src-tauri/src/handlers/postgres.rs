@@ -15,15 +15,3 @@ pub struct Payload {
   statement: String,
   parameters: Vec<String>,
 }
-
-pub fn handle_command(action: Action, payload: Payload) -> Result<SQLReponse> {
-  let proxy = postgres::get_proxy();
-  match action {
-    Action::ExecuteStatement => {
-      let params: Vec<&str> = payload.parameters.iter().map(|p| &p[..]).collect();
-      let params = &params[..];
-      Ok(proxy.execute(&payload.statement, params))
-    },
-    _ => Err(anyhow!("The action is not supported."))
-  }
-}

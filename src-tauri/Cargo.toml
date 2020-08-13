@@ -16,6 +16,7 @@ tauri = { version = "0.9", features = [ "all-api" ] }
 rocksdb = "0.14.0"
 anyhow = "1.0.32"
 oracle = "0.3.2"
+regex = "1"
 tokio-postgres = { git = "https://github.com/glistenlau/rust-postgres" }
 tokio = { version = "0.2.22", features = [ "full" ] }
 

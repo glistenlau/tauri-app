@@ -8,7 +8,7 @@ import Postgres from "./apis/postgres";
 import rocksDB from "./apis/dataStore";
 
 function App() {
-  const [key, setKey] = React.useState("");
+  const [key, setKey] = React.useState("select * from greenco.account where id in (SELECT * FROM TABLE(CAST(? AS ANACONDA.IDArrayType)))");
   const [val, setVal] = React.useState("");
   const [result, setResult] = React.useState("");
 
@@ -42,7 +42,8 @@ function App() {
 
   const handleClickOracle = React.useCallback(async () => {
     try {
-      const res: any = await Oracle.execute(key, [val]);
+      const params = val ? [[1, 2, 3]]: [];
+      const res: any = await Oracle.execute(key, params);
       console.log("get rsp:", res);
       setResult(res);
     } catch (e) {
@@ -63,8 +64,8 @@ function App() {
 
   return (
     <div className="App">
-      <input type="text" value={key} onChange={handleKeyChange} />
-      <input type="text" value={val} onChange={handleValChange} />
+      <textarea rows={5} value={key} onChange={handleKeyChange} />
+      <textarea rows={5} value={val} onChange={handleValChange} />
       <button onClick={handleClickGet}>Get</button>
       <button onClick={handleClickPut}>Put</button>
       <button onClick={handleClickOracle}>Execute Oracle</button>
