@@ -3,6 +3,11 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import Root from "./containers/Root";
 import { Divider } from "@material-ui/core";
 
+import { initLogger } from "./core/logger";
+
+initLogger();
+window.logger.debug("logger loaded.");
+
 const lightTheme = createMuiTheme({
   palette: {
     type: "light", // Switching the dark mode on is a single property value change.

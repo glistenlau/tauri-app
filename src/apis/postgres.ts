@@ -1,7 +1,7 @@
 import {requestAsync} from ".";
 
 enum Action {
-  ExecuteStatement = "ExecuteStatement",
+  ExecuteStatement = "executeStatement",
 }
 
 interface Payload {

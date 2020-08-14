@@ -1,30 +1,74 @@
-pub mod oracle;
-pub mod postgres;
+pub mod fs;
 pub mod rocksdb;
 pub mod sql;
+pub mod log;
 
 use crate::proxies;
+use std::time::Duration;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use tauri::{execute_promise, Webview};
 
-#[derive(Deserialize)]
-pub struct Endpont<A, P> {
+#[derive(Deserialize, Debug)]
+pub struct Endpoint<A, P> {
     pub action: A,
     pub payload: P,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(tag = "name", rename_all = "camelCase")]
 pub enum Handler {
-    Oracle(Endpont<sql::Action, sql::Payload>),
-    Postgres(Endpont<sql::Action, sql::Payload>),
-    RocksDB(Endpont<rocksdb::Action, rocksdb::Payload>),
+    Oracle(Endpoint<sql::Action, sql::Payload>),
+    Postgres(Endpoint<sql::Action, sql::Payload>),
+    RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
+    File(Endpoint<fs::Action, fs::Payload>),
+    Log(Endpoint<log::Action, log::Payload>),
 }
 
-#[derive(Serialize)]
-pub struct Response<P> {
-    payload: P,
+#[derive(Serialize, Deserialize)]
+pub struct ResponseError {
+  message: String,
+}
+
+impl ResponseError {
+  pub fn new(message: String) -> ResponseError {
+    ResponseError {
+      message
+    }
+  }
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum ResponseResult<T> {
+  Result(T),
+  Error(ResponseError),
+}
+
+impl <T> ResponseResult<T> {
+    fn new_result(result: T) -> ResponseResult<T>{
+        ResponseResult::Result(result)
+    }
+
+    fn new_error(error: ResponseError) -> ResponseResult<T> {
+        ResponseResult::Error(error)
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Response<T> {
+  success: bool,
+  elapsed: Duration,
+  result: ResponseResult<T>,
+}
+
+impl <T>Response<T> {
+    fn new(success: bool, elapsed: Duration, result: ResponseResult<T>) -> Response<T> {
+        Response {
+            success,
+            elapsed,
+            result,
+        }
+    }
 }
 
 pub fn seralizeResponse<T: Serialize>(rsp_obj: T) -> Result<String> {
@@ -51,5 +95,7 @@ fn invoke_handler(handler: Handler) -> Result<String> {
             proxies::postgres::get_proxy(),
         )?),
         Handler::RocksDB(e) => seralizeResponse(rocksdb::handle_command(e.action, e.payload)?),
+        Handler::File(e) => seralizeResponse(fs::handle_command(e)),
+        Handler::Log(e) => seralizeResponse(log::handle_command(e)),
     }
 }

@@ -2,7 +2,7 @@ use crate::proxies::rocksdb;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum Action {
   Delete,
@@ -10,7 +10,7 @@ pub enum Action {
   Put,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Payload {
   key: String,
   val: Option<String>,

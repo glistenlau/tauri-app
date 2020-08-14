@@ -19,6 +19,9 @@ oracle = "0.3.2"
 regex = "1"
 tokio-postgres = { git = "https://github.com/glistenlau/rust-postgres" }
 tokio = { version = "0.2.22", features = [ "full" ] }
+log = "0.4.11"
+fern = "0.6.0"
+chrono = "0.4.13"
 
 [target."cfg(windows)".build-dependencies]
 winres = "0.1"
