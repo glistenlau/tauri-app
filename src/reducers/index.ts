@@ -4,20 +4,44 @@ import {
   Action,
   AnyAction,
 } from "@reduxjs/toolkit";
+import editor from "./editor";
+import search from "./search";
+import queryRunner from "./queryRunner";
+import navigator from "./navigator";
+import settings from "./settings";
+import notification from "./notification";
+
+import dataStore from "../apis/dataStore";
+import { ActionType } from "../actions";
+import transactionControl from "../features/transactionControl/transactionControlSlice";
+import databaseConsole from "../features/databaseConsole/databaseConsoleSlice";
+import runnerControl from "../features/runnerControl/runnerControlSlice";
+import runnerResult from "../features/runnerResult/runnerResultSlice";
+import schemaEditor from "../features/schemaEditor/schemaEditorSlice";
+import editorSettings from "../features/editorSettings/editorSettingsSlice";
 import { persistReducer } from "redux-persist";
 
-import databaseConsole from "../features/databaseConsole";
-import dataStore from "../apis/dataStore";
-import ActionType from "../actionType";
 
 const persistConfig = {
   key: "root",
   storage: dataStore,
   timeout: 0,
-  throttle: 60000,
+  // throttle: 60000,
 };
+
 const appReducer = combineReducers({
-  databaseConsole
+  notification,
+  editor,
+  editorSettings,
+  search,
+  queryRunner,
+  navigator,
+  settings,
+  transactionControl,
+  databaseConsole,
+  runnerControl,
+  runnerResult,
+  schemaEditor,
 });
 
 export type RootState = ReturnType<typeof appReducer>;

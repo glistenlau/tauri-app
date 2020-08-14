@@ -1,0 +1,35 @@
+.deleteMarker {
+  background: rgba(255, 121, 97, 0.3);
+  position: absolute;
+  z-index: 20;
+}
+.insertMarker {
+  background: rgba(128, 226, 126, 0.3);
+  position: absolute;
+  z-index: 20;
+}
+.clickableActiveMarker {
+  border-bottom: 1px solid blue;
+  background: rgba(33, 150, 243, 0.8);
+  border-radius: 0%;
+  cursor: pointer !important;
+  pointer-events: auto;
+}
+.clickableValidMarker {
+  border-bottom: 1px solid blue;
+  background: rgba(128, 226, 126, 0.8);
+  border-radius: 0%;
+  cursor: pointer !important;
+  pointer-events: auto;
+}
+.clickableErrorMarker {
+  border-bottom: 1px solid blue;
+  background: rgba(255, 121, 97, 0.8);
+  border-radius: 0%;
+  cursor: pointer !important;
+  pointer-events: auto;
+}
+.hightlightLine {
+  background: rgba(188, 188, 188, 0.3);
+  z-index: -20;
+}
