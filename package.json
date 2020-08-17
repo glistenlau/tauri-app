@@ -15,6 +15,7 @@
     "@types/react-dom": "^16.9.0",
     "@types/react-redux": "^7.1.9",
     "monaco-editor": "^0.20.0",
+    "monaco-editor-webpack-plugin": "^1.9.0",
     "monaco-themes": "^0.3.3",
     "notistack": "^0.9.17",
     "re-resizable": "^6.5.4",
@@ -36,9 +37,9 @@
     "winston": "^3.3.3"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "tauri": "tauri",
     "dev": "tauri dev",
@@ -58,5 +59,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "customize-cra": "^1.0.0",
+    "react-app-rewired": "^2.1.6"
   }
 }

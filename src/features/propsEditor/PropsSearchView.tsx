@@ -20,8 +20,8 @@ const PropsSearchView = React.memo(() => {
     dispatch(setClassName(className));
   }, [dispatch]);
 
-  const handleSearch = useCallback(() => {
-    dispatch(searchProps({filePath, className}))
+  const handleSearch = useCallback(async () => {
+    await dispatch(searchProps({filePath, className}))
   }, [className, dispatch, filePath]);
 
   return (

@@ -3,10 +3,6 @@ import SearchBar from "../../components/SearchBar";
 import { useSelector, useDispatch, shallowEqual } from "react-redux";
 import { RootState } from "../../reducers";
 import {
-  setClassName,
-  setFilePath,
-  searchProps,
-  setWidth,
   setPropName,
 } from "./propsEditorSlice";
 import { Resizable } from "re-resizable";

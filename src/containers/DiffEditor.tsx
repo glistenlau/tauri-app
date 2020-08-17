@@ -33,6 +33,7 @@ import {
   changeSchema,
 } from "../features/runnerControl/runnerControlSlice";
 import { RootState } from "../reducers";
+import SplitEditorView from "../features/propsEditor/SplitEditorView";
 
 const styles: any = (theme: any) =>
   createStyles({
@@ -469,12 +470,7 @@ class DiffEditor extends React.Component<any, any> {
               open={copyDialogOpen}
               onClose={this.handleCopyDialogClose}
             />
-            <SplitEditor
-              baseValues={values}
-              onBlur={this.handleBlur}
-              onEditorRef={this.handleEditorRef}
-              diff={diffCode}
-            />
+            <SplitEditorView />
           </div>
         </div>
       </div>

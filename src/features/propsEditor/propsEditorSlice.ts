@@ -25,6 +25,8 @@ export interface propsSearchState {
   error: string | null;
   propsMap: PropsMap;
   panelWidth: number;
+  valuePair: [string, string];
+  diffMode: boolean;
 }
 
 const initialState: propsSearchState = {
@@ -38,6 +40,8 @@ const initialState: propsSearchState = {
   propNameList: [],
   propsMap: {},
   panelWidth: 200,
+  valuePair: ["", ""],
+  diffMode: false,
 };
 
 export const searchProps = createAsyncThunk(
@@ -57,23 +61,36 @@ const selectClassName = (
 
   state.selectedClassName = selectedClassName;
 
-  state.propNameList = Object.entries(state.propsMap[selectedClassName]).map(
-    ([key, valuePair]) => ({
+  state.propNameList = Object.entries(state.propsMap[selectedClassName])
+    .filter(([key, valuePair]) => !key.toLowerCase().trim().endsWith("md5"))
+    .map(([key, valuePair]) => ({
       name: key,
       oracle: valuePair[0] != null,
       postgres: valuePair[1] != null,
-    })
-  );
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 };
 
 const selectPropName = (state: propsSearchState, selectPropName: string) => {
   console.log(state, selectPropName);
   const selectedPropsMap = state.propsMap[state.selectedClassName];
-  if (selectedPropsMap && selectedPropsMap[selectPropName]) {
+  if (!selectedPropsMap) {
+    return;
+  }
+  const valuePair = selectedPropsMap[selectPropName];
+  if (!valuePair) {
     return;
   }
 
   state.selectedPropName = selectPropName;
+  updateValuePair(state, valuePair);
+};
+
+const updateValuePair = (
+  state: propsSearchState,
+  valuePair: [string | null, string | null]
+) => {
+  state.valuePair = [valuePair[0] ?? "", valuePair[1] ?? ""];
 };
 
 const propsEditorSlice = createSlice({
@@ -94,6 +111,9 @@ const propsEditorSlice = createSlice({
     },
     setClassPath(state, { payload }: PayloadAction<string>) {
       selectClassName(state, payload);
+    },
+    setValuePair(state, { payload }: PayloadAction<[string, string]>) {
+      updateValuePair(state, payload);
     },
   },
   extraReducers: {
@@ -125,6 +145,7 @@ export const {
   setWidth,
   setPropName,
   setClassPath,
+  setValuePair,
 } = propsEditorSlice.actions;
 
 export default propsEditorSlice.reducer;

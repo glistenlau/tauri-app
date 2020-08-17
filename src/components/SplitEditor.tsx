@@ -46,9 +46,9 @@ const SplitEditor = ({
   onChange,
 }: SplitEditorProps) => {
   const classes = styles();
-  const refOne = React.useRef(null);
-  const refTwo = React.useRef(null);
-  const refDiff = React.useRef(null);
+  const refOne = React.useRef();
+  const refTwo = React.useRef();
+  const refDiff = React.useRef();
 
   const getCurrentEditorPair = React.useCallback(() => {
     let editorOne;
@@ -117,7 +117,6 @@ const SplitEditor = ({
       editorTwo && editorTwo.onDidBlurEditorWidget(handleBlur);
 
     return () => {
-      remote.getCurrentWindow().removeListener("blur", handleBlur);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       disposibleOne && disposibleOne.dispose();
       disposibleTwo && disposibleTwo.dispose();

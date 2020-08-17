@@ -11,10 +11,7 @@ export const requestAsync = async (handlerName: string, action: any, payload: an
     }
   }
 
-  window.logger.debug("send request: %o", args);
-
   const res = JSON.parse(await promisified(args));
 
-  window.logger.debug("Got response: %o", res);
   return res;
 }
