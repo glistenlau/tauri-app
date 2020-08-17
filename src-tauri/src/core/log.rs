@@ -1,5 +1,4 @@
 use chrono;
-use log::{debug, error, info, trace, warn};
 
 fn get_logger_path() -> String {
     match tauri::api::platform::resource_dir() {

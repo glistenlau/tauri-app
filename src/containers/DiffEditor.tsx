@@ -19,7 +19,8 @@ import {
 import ClassSelect from "../components/ClassSelect";
 import EditorToolBar from "../components/EditorToolBar";
 import PropNameList from "../components/PropNameList";
-import SearchBar from "../components/SearchBar";
+import PropsSearchView from "../features/propsEditor/PropsSearchView";
+import PropsEditorView from "../features/propsEditor/PropsEditorView";
 import SplitEditor from "../components/SplitEditor";
 import { format } from "../core/formatter";
 
@@ -417,7 +418,6 @@ class DiffEditor extends React.Component<any, any> {
       selectedClassPath,
       propNameList,
       selectedPropName,
-      search,
       validateResults,
       leftPanelWidth,
       active,
@@ -439,48 +439,7 @@ class DiffEditor extends React.Component<any, any> {
     return (
       <div className={active ? classes.container : classes.containerHide}>
         <div className={classes.editorContainer}>
-          <Resizable
-            className={classes.leftContainer}
-            onResizeStop={this.handleLeftPanelResize}
-            size={{
-              height: "100%",
-              width: leftPanelWidth,
-            }}
-            minWidth={200}
-            maxWidth="40vw"
-            enable={{
-              top: false,
-              right: true,
-              bottom: false,
-              left: false,
-              topRight: false,
-              bottomRight: false,
-              bottomLeft: false,
-              topLeft: false,
-            }}
-          >
-            <SearchBar
-              searchFolderLabel="Search Folder"
-              searchFileLabel="Java Class"
-              filePathValue={search.filePath}
-              fileNameValue={search.className}
-              onFilePathChange={this.handleFilePathChange}
-              onFileNameChange={this.handleClassNameChange}
-              onSearch={this.handleSearch}
-            />
-            <ClassSelect
-              onChange={this.handleSelectClassPath}
-              selected={selectedClassPath}
-              values={classPathList}
-            />
-            <Divider />
-            <PropNameList
-              propNameList={propNameList}
-              selectedProp={selectedPropName}
-              onListItemClick={this.handleSelectPropName}
-              validateResults={propsValidateReults}
-            />
-          </Resizable>
+          <PropsEditorView />
           <Divider orientation="vertical" flexItem />
 
           <div className={classes.rightContainer}>
@@ -525,7 +484,6 @@ class DiffEditor extends React.Component<any, any> {
 const mapStateToProps = (state: RootState, ownProps: any) => {
   return {
     ...ownProps,
-    search: state.search,
     queryRunner: state.queryRunner,
     runnerControl: state.runnerControl,
     ...state.editor,

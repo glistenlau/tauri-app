@@ -19,6 +19,7 @@ import runnerControl from "../features/runnerControl/runnerControlSlice";
 import runnerResult from "../features/runnerResult/runnerResultSlice";
 import schemaEditor from "../features/schemaEditor/schemaEditorSlice";
 import editorSettings from "../features/editorSettings/editorSettingsSlice";
+import propsEditor from "../features/propsEditor/propsEditorSlice";
 import { persistReducer } from "redux-persist";
 
 
@@ -42,6 +43,7 @@ const appReducer = combineReducers({
   runnerControl,
   runnerResult,
   schemaEditor,
+  propsEditor,
 });
 
 export type RootState = ReturnType<typeof appReducer>;

@@ -61,13 +61,13 @@ const PropName = React.memo(
   ({ prop, selectedProp, onClick, validateResults, searchText }: any) => {
     const classes = useStyles();
     const propValidateResult = React.useMemo(
-      () => validateResults && validateResults[prop.propName],
-      [prop.propName, validateResults]
+      () => validateResults && validateResults[prop.name],
+      [prop.name, validateResults]
     );
 
     const handleClick = React.useCallback(() => {
-      onClick(prop.propName);
-    }, [onClick, prop.propName]);
+      onClick(prop.name);
+    }, [onClick, prop.name]);
 
     return (
       <Tooltip
@@ -75,11 +75,11 @@ const PropName = React.memo(
         leaveDelay={500}
         enterNextDelay={500}
         enterDelay={1000}
-        title={prop.propName}
+        title={prop.name}
       >
         <ListItem
           button
-          selected={selectedProp === prop.propName}
+          selected={selectedProp === prop.name}
           onClick={handleClick}
         >
           {propValidateResult && propValidateResult.status === "pass" && (
@@ -114,7 +114,7 @@ const PropName = React.memo(
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <MatchText text={prop.propName} highlightText={searchText} />
+                  <MatchText text={prop.name} highlightText={searchText} />
                 </span>
                 {prop.oracle && (
                   <SVGIcon
@@ -160,8 +160,8 @@ const PropNameList = (props: PropNameListProps) => {
     return propNameList.filter(
       (prop) =>
         prop &&
-        prop.propName &&
-        prop.propName.toLowerCase().indexOf(searchText) !== -1
+        prop.name &&
+        prop.name.toLowerCase().indexOf(searchText) !== -1
     );
   }, [searchText, propNameList]);
 
@@ -186,7 +186,7 @@ const PropNameList = (props: PropNameListProps) => {
       <List className={classes.list} component="div">
         {filteredPropNameList.map((prop) => (
           <PropName
-            key={prop.propName}
+            key={prop.name}
             prop={prop}
             selectedProp={selectedProp}
             onClick={onListItemClick}

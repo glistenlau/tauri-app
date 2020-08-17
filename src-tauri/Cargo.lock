@@ -1047,6 +1047,8 @@ dependencies = [
  "anyhow",
  "chrono",
  "fern",
+ "glob",
+ "lazy_static",
  "log",
  "oracle",
  "regex",
