@@ -28,6 +28,13 @@ const ClassSelectView = React.memo(() => {
   const propNameList = useSelector(
     (rootState: RootState) => rootState.propsEditor.propNameList
   );
+  const propsValidateMap = useSelector(
+    (rootState: RootState) => {
+      if (rootState?.propsEditor?.propsValidateMap) {
+        return rootState?.propsEditor?.propsValidateMap[rootState.propsEditor?.selectedClassName]
+      }
+    }
+  )
 
   const handleClickPropName = useCallback(
     (propName: string) => {
@@ -41,7 +48,7 @@ const ClassSelectView = React.memo(() => {
       propNameList={propNameList}
       selectedProp={selectedPropName}
       onListItemClick={handleClickPropName}
-      validateResults={null}
+      validateResults={propsValidateMap}
     />
   );
 });

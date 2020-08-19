@@ -1,12 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { initApp } from "../../actions";
-import JavaPropsApi from "../../apis/javaProps";
-
-export interface PropsMap {
-  [filePath: string]: {
-    [propKey: string]: [string | null, string | null];
-  };
-}
+import JavaPropsApi, {FilePropsMap, FilePropsValidMap, JavaPropsResponse} from "../../apis/javaProps";
 
 export interface PropName {
   name: string;
@@ -23,7 +17,8 @@ export interface propsSearchState {
   propNameList: Array<PropName>;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
-  propsMap: PropsMap;
+  propsMap: FilePropsMap;
+  propsValidateMap: FilePropsValidMap;
   panelWidth: number;
   valuePair: [string, string];
   diffMode: boolean;
@@ -39,6 +34,7 @@ const initialState: propsSearchState = {
   classNameList: [],
   propNameList: [],
   propsMap: {},
+  propsValidateMap: {},
   panelWidth: 200,
   valuePair: ["", ""],
   diffMode: false,
@@ -47,7 +43,8 @@ const initialState: propsSearchState = {
 export const searchProps = createAsyncThunk(
   "propsSearch/searchProps",
   async ({ filePath, className }: { filePath: string; className: string }) => {
-    return await JavaPropsApi.search(filePath, className);
+    const res = await JavaPropsApi.search(filePath, className);
+    return res;
   }
 );
 
@@ -124,10 +121,11 @@ const propsEditorSlice = createSlice({
       state.status = "loading";
     },
     [searchProps.fulfilled]: (state, action) => {
-      const propsMap: PropsMap = action.payload;
+      const propsMap: JavaPropsResponse = action.payload;
 
       state.status = "succeeded";
-      state.propsMap = propsMap;
+      state.propsMap = propsMap.file_props_map;
+      state.propsValidateMap = propsMap.file_props_valid_map;
       state.classNameList = Object.keys(propsMap).sort();
 
       if (state.classNameList.length === 0) {

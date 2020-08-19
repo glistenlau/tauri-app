@@ -4,12 +4,27 @@ enum Action {
   SEARCH = "search",
 }
 
-interface PropsMap {
+export interface FilePropsMap {
   [filePath: string]: {
-    [propKey: string]: [string|null, string|null],
+    [propKey: string]: [string | null, string | null];
+  };
+}
+
+export interface PropsValidMap {
+  [propKey: string]: {
+    status: "pass" | "warn" | "error",
+    detail?: string,
   }
 }
 
+export interface FilePropsValidMap {
+  [filePath: string]: PropsValidMap
+}
+
+export interface JavaPropsResponse {
+  file_props_map: FilePropsMap,
+  file_props_valid_map: FilePropsValidMap,
+}
 
 class FileSystem {
   sendRequest = async (action: Action, filepath: string, classname: string) => {
@@ -24,7 +39,7 @@ class FileSystem {
     }
   };
 
-  search = async (filePath: string, className: string): Promise<PropsMap> => {
+  search = async (filePath: string, className: string): Promise<JavaPropsResponse> => {
     return await this.sendRequest(Action.SEARCH, filePath, className);
   };
 }

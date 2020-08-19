@@ -211,6 +211,7 @@ const SplitEditor = ({
         width={widthPair[0]}
         height={!activePair || activePair[0] ? size.height : 0}
         language={mode || "sql"}
+        onBlur={() => {}}
         onChange={handleLeftChange}
       />
       {(!activePair || (activePair[0] && activePair[1])) && (

@@ -12,6 +12,7 @@ import WarningIcon from "@material-ui/icons/Warning";
 import Tooltip from "./Tooltip";
 import MatchText from "./MatchText";
 import SVGIcon from "./SVGIcon";
+import { PropsValidMap } from "../apis/javaProps";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -54,7 +55,7 @@ interface PropNameListProps {
   propNameList: Array<any>;
   selectedProp: string;
   onListItemClick: Function;
-  validateResults: any;
+  validateResults?: PropsValidMap;
 }
 
 const PropName = React.memo(
@@ -92,7 +93,7 @@ const PropName = React.memo(
               <ErrorIcon className={classes.redIcon} />
             </ListItemIcon>
           )}
-          {propValidateResult && propValidateResult.status === "warning" && (
+          {propValidateResult && propValidateResult.status === "warn" && (
             <ListItemIcon className={classes.iconContainer}>
               <WarningIcon className={classes.yellowIcon} />
             </ListItemIcon>
@@ -159,9 +160,7 @@ const PropNameList = (props: PropNameListProps) => {
 
     return propNameList.filter(
       (prop) =>
-        prop &&
-        prop.name &&
-        prop.name.toLowerCase().indexOf(searchText) !== -1
+        prop && prop.name && prop.name.toLowerCase().indexOf(searchText) !== -1
     );
   }, [searchText, propNameList]);
 

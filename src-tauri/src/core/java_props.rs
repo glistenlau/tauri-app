@@ -80,7 +80,6 @@ impl Iterator for PropsKeyValue {
             }
             let mut line_value;
             let line_str = line.unwrap();
-            println!("line string: {}", line_str);
             let trimmed_line = line_str.trim();
             if trimmed_line.starts_with('#') || trimmed_line.starts_with('!') {
                 // The comment line, ignore
@@ -95,7 +94,6 @@ impl Iterator for PropsKeyValue {
                         line_value = unescape_value(&cap[2]);
                     }
                     None => {
-                        println!("not matched key: {}", line_str);
                         continue;
                     }
                 };

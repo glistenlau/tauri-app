@@ -60,8 +60,7 @@ pub fn load_props(
 ) -> Result<HashMap<String, HashMap<String, (Option<String>, Option<String>)>>> {
     let oracle_props = search_load_db_props(search_path, classname, ".oracle.properties")?;
     let postgres_props = search_load_db_props(search_path, classname, ".pg.properties")?;
-    println!("oracle props: {:?}", oracle_props);
-    println!("postgres props: {:?}", postgres_props);
+
     let mut combined: HashMap<String, HashMap<String, (Option<String>, Option<String>)>> =
         HashMap::with_capacity(oracle_props.len());
     let mut filename_key_set = HashSet::with_capacity(oracle_props.len());

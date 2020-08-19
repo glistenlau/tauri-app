@@ -1,13 +1,34 @@
 use anyhow::{anyhow, Result};
+use futures::future;
 use serde_json::Value;
 use std::time::Instant;
 use tokio::{pin, spawn, stream::StreamExt};
 use tokio_postgres::{
+    error::DbError,
     types::{ToSql, Type},
     Client, Config, Connection, Error, NoTls, Row,
 };
 
 use super::sql_common::{SQLClient, SQLError, SQLReponse, SQLResult, SQLResultSet};
+
+pub struct QueryVlidationResult {
+    pub pass: bool,
+    pub error: Option<DbError>,
+}
+
+impl QueryVlidationResult {
+    fn new_pass() -> QueryVlidationResult {
+        QueryVlidationResult::new(true, None)
+    }
+
+    fn new_fail_err(error: DbError) -> QueryVlidationResult {
+        QueryVlidationResult::new(false, Some(error))
+    }
+
+    fn new(pass: bool, error: Option<DbError>) -> QueryVlidationResult {
+        QueryVlidationResult { pass, error }
+    }
+}
 
 #[derive(Copy, Clone)]
 pub struct ConnectionConfig<'a> {
@@ -46,11 +67,55 @@ impl PostgresProxy<'_> {
 
         spawn(async move {
             if let Err(e) = connection.await {
-                eprintln!("postgres connection error: {}", e);
+                log::error!("postgres connection error: {}", e);
             }
         });
 
         Ok(client)
+    }
+
+    #[tokio::main]
+    pub async fn validate_stmts(&self, stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
+        let client = self.connect().await?;
+        client.execute("SET search_path TO anaconda", &[]).await?;
+        let pending_tasks = stmts.iter().map(|&s| PostgresProxy::validate_stmt(s, &client));
+        future::try_join_all(pending_tasks).await
+    }
+
+    pub async fn validate_stmt(
+        stmt: &str,
+        client: &Client,
+    ) -> Result<QueryVlidationResult, Error> {
+        let company_stmt = stmt.replace("COMPANY_", "GREENCO.");
+        let split = company_stmt.split("?");
+        let mut mapped_stmt = String::with_capacity(company_stmt.len());
+
+        for (i, part) in split.enumerate() {
+            if i > 0 {
+                mapped_stmt.push_str(&format!("${}", i));
+            }
+            mapped_stmt.push_str(part)
+        }
+
+        match client.prepare(&mapped_stmt).await {
+            Ok(_) => Ok(QueryVlidationResult::new_pass()),
+            Err(e) => {
+                if e.code().is_none() {
+                    // Not a db error, throw it.
+                    return Err(e);
+                }
+
+                let db_err_opt: Option<Result<Box<DbError>, _>> = e
+                    .into_source()
+                    .and_then(|se| Some(se.downcast::<DbError>()));
+
+                if let Some(Ok(db_err)) = db_err_opt {
+                    Ok(QueryVlidationResult::new_fail_err(*db_err))
+                } else {
+                    panic!("expected to get a DbError, but failed, something was wrong...")
+                }
+            }
+        }
     }
 
     async fn execute_statement(&self, stmt: &str) -> Result<SQLResultSet, Error> {
@@ -134,11 +199,13 @@ impl<'a> SQLClient for PostgresProxy<'_> {
             let mut stmt_iter = statement.split("?");
             let mapped_params = match self.map_params(parameters) {
                 Ok(mapped_params) => mapped_params,
-                Err(e) => return SQLReponse::from(
-                    false,
-                    now.elapsed(),
-                    SQLResult::Error(SQLError::from(e.to_string())),
-                ),
+                Err(e) => {
+                    return SQLReponse::from(
+                        false,
+                        now.elapsed(),
+                        SQLResult::Error(SQLError::from(e.to_string())),
+                    )
+                }
             };
             let mut params_iter = mapped_params.iter();
 
