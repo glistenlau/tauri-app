@@ -1,6 +1,6 @@
 use super::{Endpoint, Response, ResponseError, ResponseResult};
-use crate::proxies::fs::append_file;
 use crate::proxies::java_props::load_props;
+use crate::proxies::postgres::get_proxy;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -85,7 +85,7 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<ResponseBod
 
           let stmt_list: Vec<&str> = param_stmt_list.iter().map(|(_, query)| query.as_str()).collect();
           let size = stmt_list.len();
-          let mut validate_results: Vec<ValidateResult> = match crate::proxies::postgres::get_proxy().validate_stmts(stmt_list) {
+          let mut validate_results: Vec<ValidateResult> = match get_proxy().lock().unwrap().validate_stmts(stmt_list) {
             Ok(validate_result) => validate_result.iter().map(|vr| {
               if vr.pass {
                 return ValidateResult::new(Status::Pass, None);

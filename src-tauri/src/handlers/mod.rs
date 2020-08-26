@@ -19,8 +19,8 @@ pub struct Endpoint<A, P> {
 #[derive(Deserialize, Debug)]
 #[serde(tag = "name", rename_all = "camelCase")]
 pub enum Handler {
-    Oracle(Endpoint<sql::Action, sql::Payload>),
-    Postgres(Endpoint<sql::Action, sql::Payload>),
+    Oracle(Endpoint<sql::Action, sql::Payload<proxies::oracle::OracleConfig>>),
+    Postgres(Endpoint<sql::Action, sql::Payload<proxies::postgres::ConnectionConfig>>),
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
     File(Endpoint<fs::Action, fs::Payload>),
     Log(Endpoint<log::Action, log::Payload>),
@@ -72,7 +72,7 @@ impl<T> Response<T> {
     }
 }
 
-pub fn seralizeResponse<T: Serialize>(rsp_obj: T) -> Result<String> {
+pub fn seralize_response<T: Serialize>(rsp_obj: T) -> Result<String> {
     match serde_json::to_string(&rsp_obj) {
         Ok(seralized) => Ok(seralized),
         Err(e) => Err(anyhow!("Seralize response error: {}", e)),
@@ -104,19 +104,19 @@ pub fn dispath_async(_webview: &mut Webview, handler: Handler, callback: String,
 fn invoke_handler(handler: Handler) -> Result<String> {
     let now = Instant::now();
     match handler {
-        Handler::Oracle(e) => seralizeResponse(sql::handle_command(
+        Handler::Oracle(e) => generate_response(sql::handle_command(
             e.action,
             e.payload,
             proxies::oracle::get_proxy(),
-        )?),
-        Handler::Postgres(e) => seralizeResponse(sql::handle_command(
+        ), now.elapsed()),
+        Handler::Postgres(e) => generate_response(sql::handle_command(
             e.action,
             e.payload,
             proxies::postgres::get_proxy(),
-        )?),
-        Handler::RocksDB(e) => seralizeResponse(rocksdb::handle_command(e.action, e.payload)?),
-        Handler::File(e) => seralizeResponse(fs::handle_command(e)),
-        Handler::Log(e) => seralizeResponse(log::handle_command(e)),
+        ), now.elapsed()),
+        Handler::RocksDB(e) => seralize_response(rocksdb::handle_command(e.action, e.payload)?),
+        Handler::File(e) => seralize_response(fs::handle_command(e)),
+        Handler::Log(e) => seralize_response(log::handle_command(e)),
         Handler::JavaProps(e) => generate_response(java_props::handle_command(e), now.elapsed()),
     }
 }

@@ -13,5 +13,7 @@ export const requestAsync = async (handlerName: string, action: any, payload: an
 
   const res = JSON.parse(await promisified(args));
 
+  console.log("got cmd response", res);
+
   return res;
 }

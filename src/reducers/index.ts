@@ -8,7 +8,6 @@ import editor from "./editor";
 import search from "./search";
 import queryRunner from "./queryRunner";
 import navigator from "./navigator";
-import settings from "./settings";
 import notification from "./notification";
 
 import dataStore from "../apis/dataStore";
@@ -18,6 +17,7 @@ import databaseConsole from "../features/databaseConsole/databaseConsoleSlice";
 import runnerControl from "../features/runnerControl/runnerControlSlice";
 import runnerResult from "../features/runnerResult/runnerResultSlice";
 import schemaEditor from "../features/schemaEditor/schemaEditorSlice";
+import settings from "../features/settings/settingsSlice"
 import editorSettings from "../features/editorSettings/editorSettingsSlice";
 import propsEditor from "../features/propsEditor/propsEditorSlice";
 import { persistReducer } from "redux-persist";

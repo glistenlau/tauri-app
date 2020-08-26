@@ -1,35 +1,49 @@
 use super::sql_common::{SQLClient, SQLError, SQLReponse, SQLResult, SQLResultSet};
 use anyhow::{anyhow, Result};
+use lazy_static::lazy_static;
 use oracle::{sql_type::ToSql, Connection};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::time::Instant;
+use std::{sync::{Arc, Mutex}, time::Instant};
 
-struct OracleConfig<'a> {
-    host: &'a str,
-    port: &'a str,
-    sid: &'a str,
-    user: &'a str,
-    password: &'a str,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct OracleConfig {
+    host: String,
+    port: String,
+    sid: String,
+    user: String,
+    password: String,
 }
 
-pub struct OracleClient<'a> {
-    config: Option<&'a OracleConfig<'a>>,
-}
-
-impl OracleClient<'_> {
-    fn get_connection(&self) -> Result<Connection> {
-        match self.config {
-            Some(cig) => {
-                let connect_string: String = format!("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={})(PORT={}))(CONNECT_DATA=(SERVER=DEDICATED)(SID={})))", cig.host, cig.port, cig.sid);
-                Ok(Connection::connect(
-                    &cig.user,
-                    &cig.password,
-                    connect_string,
-                )?)
-            }
-            None => Err(anyhow!("There is not oracle config defined.")),
+impl OracleConfig {
+    fn new(host: &str, port: &str, sid: &str, user: &str, password: &str) -> OracleConfig {
+        OracleConfig {
+            host: String::from(host),
+            port: String::from(port),
+            sid: String::from(sid),
+            user: String::from(user),
+            password: String::from(password),
         }
+    }
+}
+
+pub struct OracleClient {
+    config: OracleConfig,
+}
+
+impl OracleClient {
+    fn set_config(&mut self, config: OracleConfig) {
+        self.config = config;
+    }
+
+    fn get_connection(&self) -> Result<Connection> {
+        let connect_string: String = format!("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={})(PORT={}))(CONNECT_DATA=(SERVER=DEDICATED)(SID={})))", self.config.host, self.config.port, self.config.sid);
+        Ok(Connection::connect(
+            &self.config.user,
+            &self.config.password,
+            connect_string,
+        )?)
     }
 
     fn execute_stmt(&self, stmt: &str, params: &[Value]) -> Result<SQLResultSet> {
@@ -189,33 +203,25 @@ static COLLECTION_PATTERN: &str = r"[^?]*CAST\s*\(\s*\?\s*AS\s*(.*)\s*\)";
 static PARAM_PATTERN: &str = r"(?:[^?]*\?[^?]*)";
 static START_PATTERN: &str = r"(?i)^\s*";
 
-impl SQLClient for OracleClient<'_> {
-    fn execute(&self, statement: &str, parameters: &[Value]) -> SQLReponse {
-        let now = Instant::now();
+impl SQLClient<OracleConfig> for OracleClient {
+    fn execute(&self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
+        let result_set = self.execute_stmt(statement, parameters)?;
+        Ok(SQLResult::new_result(Some(result_set)))
+    }
 
-        match self.execute_stmt(statement, parameters) {
-            Ok(result_set) => SQLReponse::from(true, now.elapsed(), SQLResult::Result(result_set)),
-            Err(e) => SQLReponse::from(
-                false,
-                now.elapsed(),
-                SQLResult::Error(SQLError::from(e.to_string())),
-            ),
-        }
+    fn set_config(&mut self, config: OracleConfig) -> Result<SQLResult> {
+        self.config = config;
+        self.get_connection()?;
+        Ok(SQLResult::new_result(None))
     }
 }
 
-static DEFAULT_CONFIG: OracleConfig = OracleConfig {
-    host: "localhost",
-    port: "1521",
-    sid: "anaconda",
-    user: "anaconda",
-    password: "anaconda",
-};
+lazy_static! {
+    static ref INSTANCE: Arc<Mutex<OracleClient>> = Arc::new(Mutex::new(OracleClient {
+        config: OracleConfig::new("localhost", "1521", "anaconda", "anaconda", "anaconda"),
+    }));
+}
 
-static INSTANCE: OracleClient = OracleClient {
-    config: Some(&DEFAULT_CONFIG),
-};
-
-pub fn get_proxy() -> &'static OracleClient<'static> {
-    &INSTANCE
+pub fn get_proxy() -> Arc<Mutex<OracleClient>> {
+    Arc::clone(&INSTANCE)
 }

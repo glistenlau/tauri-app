@@ -13,6 +13,7 @@ import Button from "@material-ui/core/Button";
 
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
+import { OracleSettings, PostgreSettings, isOracleSettings } from "../features/settings/settingsSlice";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -37,15 +38,26 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
-const DBSettings = (props: any) => {
+interface DBSettingsProps {
+    onChange: (config: OracleSettings | PostgreSettings) => void,
+    title: string;
+    value: OracleSettings | PostgreSettings,
+}
+
+const extractData = (config: OracleSettings | PostgreSettings) => {
+    if ('sid' in config) {
+        return [config.sid, "SID", "sid"];
+    } else {
+        return [config.dbname, "DBname", "dbname"];
+    }
+}
+
+const DBSettings = ({onChange, title, value}: DBSettingsProps) => {
   const classes = useStyles();
-  const { value, onChange, title } = props;
   const [localValue, setLocalValue] = React.useState(Object.assign({}, value));
   const [disabled, setDisabled] = React.useState(true);
-  const isOracle = localValue.sid !== undefined;
-  const sidLabel = isOracle ? "SID" : "Database";
-  const sidValue = isOracle ? localValue.sid : localValue.database;
-  const sidId = isOracle ? "sid" : "database";
+  const [sidValue, sidLabel, sidId] = extractData(value);
+  const isOracle = isOracleSettings(value);
 
   const handleChange = React.useCallback(
     (key: string, val: string) => {

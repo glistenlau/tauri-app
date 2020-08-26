@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -34,27 +35,38 @@ impl SQLError {
 
 #[derive(Serialize, Deserialize)]
 pub enum SQLResult {
-  Result(SQLResultSet),
+  Result(Option<SQLResultSet>),
   Error(SQLError),
+}
+
+impl SQLResult {
+  pub fn new_result(result:Option<SQLResultSet>) -> SQLResult {
+    SQLResult::Result(result)
+  }
+
+  pub fn new_error(error: SQLError) -> SQLResult {
+    SQLResult::Error(error)
+  }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SQLReponse {
   success: bool,
   elapsed: Duration,
-  result: SQLResult,
+  result: Option<SQLResult>,
 }
 
 impl SQLReponse {
-  pub fn from(success: bool, elapsed: Duration, result: SQLResult) -> SQLReponse {
+  pub fn new(success: bool, elapsed: Duration, result: SQLResult) -> SQLReponse {
     SQLReponse {
       success,
       elapsed,
-      result
+      result: Some(result),
     }
   }
 }
 
-pub trait SQLClient {
-  fn execute(&self, statement: &str, parameters: &[Value]) -> SQLReponse;
+pub trait SQLClient<C> {
+  fn execute(&self, statement: &str, parameters: &[Value]) -> Result<SQLResult>;
+  fn set_config(&mut self, config:C) -> Result<SQLResult>;
 }

@@ -5,6 +5,7 @@ import { persistStore } from "redux-persist";
 import { configureStore } from "@reduxjs/toolkit";
 import { PersistGate } from "redux-persist/integration/react";
 import thunk from "redux-thunk";
+import logger from 'redux-logger';
 import { SnackbarProvider } from "notistack";
 import "typeface-roboto";
 
@@ -13,7 +14,7 @@ import "./index.css";
 import App from "./App";
 
 
-const middleware = [thunk].filter(Boolean);
+const middleware = [thunk, logger].filter(Boolean);
 const store = configureStore({
   reducer: rootReducer,
   middleware: middleware,

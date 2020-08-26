@@ -60,9 +60,7 @@ struct PropsKeyValue {
 
 impl PropsKeyValue {
     fn new(lines_iter: Lines<BufReader<File>>) -> PropsKeyValue {
-        PropsKeyValue {
-            lines_iter
-        }
+        PropsKeyValue { lines_iter }
     }
 }
 
@@ -72,21 +70,21 @@ impl Iterator for PropsKeyValue {
     fn next(&mut self) -> Option<(String, String)> {
         let mut key = String::new();
         let mut value: String = String::new();
-    
+
         for line in &mut self.lines_iter {
             if let Err(e) = line {
                 log::error!("iterate props file lines failed: {}", e);
                 return None;
             }
-            let mut line_value;
+            let line_value;
             let line_str = line.unwrap();
             let trimmed_line = line_str.trim();
             if trimmed_line.starts_with('#') || trimmed_line.starts_with('!') {
                 // The comment line, ignore
                 continue;
             }
-    
-            let mut line_str = line_str.trim_end();
+
+            let line_str = line_str.trim_end();
             if key.len() == 0 {
                 match KEY_PATTERN.captures(line_str) {
                     Some(cap) => {
@@ -108,7 +106,7 @@ impl Iterator for PropsKeyValue {
                 break;
             }
         }
-    
+
         if key.len() > 0 {
             Some((key, unescape_value(&value)))
         } else {

@@ -113,14 +113,14 @@ const propsEditorSlice = createSlice({
       updateValuePair(state, payload);
     },
   },
-  extraReducers: {
-    [initApp]: (state) => {
+  extraReducers: builder => {
+    builder.addCase(initApp, (state) => {
       return Object.assign({}, initialState, state);
-    },
-    [searchProps.pending]: (state, action) => {
+    });
+    builder.addCase((searchProps.pending), (state, action) => {
       state.status = "loading";
-    },
-    [searchProps.fulfilled]: (state, action) => {
+    });
+    builder.addCase((searchProps.fulfilled), (state, action) => {
       const propsMap: JavaPropsResponse = action.payload;
 
       state.status = "succeeded";
@@ -132,8 +132,13 @@ const propsEditorSlice = createSlice({
         return;
       }
 
-      selectClassName(state, state.classNameList[0]);
-    },
+      let classNameToSelect = state.classNameList[0];
+      if (state.classNameList.indexOf(state.selectedClassName) !== -1) {
+        classNameToSelect = state.selectedClassName
+      }
+
+      selectClassName(state, classNameToSelect);
+    });
   },
 });
 

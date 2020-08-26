@@ -8,27 +8,15 @@ import DiffEditor from "./DiffEditor";
 import QueryRunner from "./QueryRunner";
 import Navigator from "./Navigator";
 import Notification from "./Notification";
-import SettingsContainer from "./SettingsContainer";
-import {
-  initialState,
-  connectToOracle,
-  connectToPostgres,
-  showNotification,
-  initApp,
-} from "../actions";
-import DatabaseConsole, { EVENTS } from "../core/databaseConsole";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
 import RunnerResultPanel from "../features/runnerResult/RunnerResultPanel";
 import SchemaEditorView from "../features/schemaEditor/SchemaEditorView";
-import { changeIsRunning } from "../features/runnerControl/runnerControlSlice";
-import { persistor } from "../index";
 import Divider from "@material-ui/core/Divider";
-import oracleClient from "../core/oracle";
-import postgresClient from "../core/postgres";
 import { RootState } from "../reducers";
+import SettingsPanel from "../features/settings/SettingsPanel";
 
-const styles: any = (theme: any) =>
+const styles: any = () =>
   createStyles({
     rootContainer: {
       height: "100vh",
@@ -67,7 +55,7 @@ class Root extends React.Component<any, any> {
           <DatabaseConsolePage active={activeView === 1} />
           <RunnerResultPanel active={activeView === 0 || activeView === 1} />
           <SchemaEditorView active={activeView === 2} />
-          <SettingsContainer active={activeView === 3} />
+          <SettingsPanel active={activeView === 3} />
         </div>
         <QueryRunner />
         <Notification />
