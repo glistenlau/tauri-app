@@ -7,7 +7,7 @@ import { createStyles, makeStyles } from "@material-ui/core/styles";
 import { MenuItem, ListSubheader } from "@material-ui/core";
 
 import databaseConsole from "../../core/databaseConsole";
-import ProcessIconButton from "../../components/ProcessIconButton";
+import ProcessIconButton from "../../components/ProgressIconButton";
 import SVGIcon from "../../components/SVGIcon";
 import { useDispatch, useSelector } from "react-redux";
 import {

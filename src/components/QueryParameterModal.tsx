@@ -20,7 +20,7 @@ import Typography from "@material-ui/core/Typography";
 import SVGIcon from "./SVGIcon";
 import Tooltip from "./Tooltip";
 import { updateArrayElement } from "../util";
-import ProcessIconButton from "./ProcessIconButton";
+import ProcessIconButton from "./ProgressIconButton";
 
 const useStyles = makeStyles((theme: any) =>
   createStyles({

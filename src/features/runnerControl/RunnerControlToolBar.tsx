@@ -2,16 +2,17 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import clsx from "clsx";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
 import TextField from "@material-ui/core/TextField";
 import { green } from "@material-ui/core/colors";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
 
-import ProcessIconButton from "../../components/ProcessIconButton";
 import { RootState } from "../../reducers";
 import { changeSchema } from "./runnerControlSlice";
 import databaseConsole from "../../core/databaseConsole";
 import { showNotification } from "../../actions";
+import { Typography } from "@material-ui/core";
+import ProgressSplitIconButton from "../../components/ProgressSplitIconButton";
+import SVGIcon from "../../components/SVGIcon";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -20,6 +21,7 @@ const useStyles = makeStyles((theme) =>
       backgroundColor: theme.palette.background.default,
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
     },
     inputSchema: {
       backgroundColor: theme.palette.background.paper,
@@ -29,11 +31,25 @@ const useStyles = makeStyles((theme) =>
     play: {
       color: green[500],
     },
+    grouped: {
+      minWidth: 0,
+    },
   })
 );
 
+export enum RunMode {
+    DUAL,
+    ORACLE,
+    POSTGRES,
+}
+
+export interface RunOptions {
+    mode: RunMode,
+    sortResult?: boolean,
+}
+
 export interface RunnerControlToolBarProps {
-  onClickRun: Function;
+  onClickRun: (options: RunOptions) => void; 
   className?: any;
 }
 
@@ -45,9 +61,6 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
   const schema = useSelector((state: RootState) => state.runnerControl.schema);
   const isRunning = useSelector(
     (state: RootState) => state.runnerControl.isRunning
-  );
-  const sortResults = useSelector(
-    (state: RootState) => state.runnerControl.sortResults
   );
   const [schemaValue, setSchemaValue] = React.useState(schema);
 
@@ -72,13 +85,56 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
     }
   }, [dispatch, schemaValue]);
 
-  const handleClickRun = React.useCallback(() => {
-    onClickRun(false);
+  const handleClickRun = React.useCallback(async () => {
+    await onClickRun({mode: RunMode.DUAL});
   }, [onClickRun]);
 
-  const handleClickSortRun = React.useCallback(() => {
-    onClickRun(true);
+  const handleSelectMenu = React.useCallback(async (index) => {
+      if (index === 0) {
+          await onClickRun({mode: RunMode.ORACLE});
+      } else {
+          await onClickRun({mode: RunMode.POSTGRES});
+      }
   }, [onClickRun]);
+
+  const runOracleOption = React.useMemo(() => (
+    <div
+    style={{
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+    }}
+  >
+    <SVGIcon
+      width={20}
+      height={20}
+      name="database"
+      style={{ marginRight: 10 }}
+    />
+    <Typography>{"Run Oracle"}</Typography>
+  </div>
+  ), []);
+
+  const runPostgresOption = React.useMemo(() => (
+    <div
+    style={{
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+    }}
+  >
+    <SVGIcon
+      width={20}
+      height={20}
+      name="postgres"
+      fill="#9ba0a6"
+      style={{ marginRight: 10 }}
+    />
+    <Typography>{"Run Postgres"}</Typography>
+  </div>
+  ), []);
+
+  const runOptions = React.useMemo(() => [runOracleOption, runPostgresOption], [runOracleOption, runPostgresOption]);
 
   return (
     <div className={clsx(classes.runnerContainer, className)} {...others}>
@@ -95,28 +151,22 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
         value={schemaValue}
       />
 
-      <ProcessIconButton
-        title="Run query"
+      <ProgressSplitIconButton
         onClick={handleClickRun}
-        loading={isRunning && !sortResults}
+        loading={isRunning}
         disabled={isRunning}
+        onSelectItem={handleSelectMenu}
+        options={runOptions}
+        containerStyle={{
+            marginLeft: 10,
+            marginRight: 10,
+        }}
       >
         <PlayArrowIcon
           className={isRunning ? undefined : classes.play}
           color={isRunning ? "disabled" : undefined}
         />
-      </ProcessIconButton>
-      <ProcessIconButton
-        title="Run query and sort results"
-        onClick={handleClickSortRun}
-        loading={isRunning && sortResults}
-        disabled={isRunning}
-      >
-        <PlayCircleOutlineIcon
-          className={isRunning ? undefined : classes.play}
-          color={isRunning ? "disabled" : undefined}
-        />
-      </ProcessIconButton>
+      </ProgressSplitIconButton>
     </div>
   );
 });

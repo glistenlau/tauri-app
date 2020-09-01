@@ -1,6 +1,8 @@
-import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, createAsyncThunk, combineReducers } from "@reduxjs/toolkit";
 import { initApp } from "../../actions";
 import JavaPropsApi, {FilePropsMap, FilePropsValidMap, JavaPropsResponse} from "../../apis/javaProps";
+import dataStore from "../../apis/dataStore";
+import { persistReducer } from "redux-persist";
 
 export interface PropName {
   name: string;
@@ -69,7 +71,6 @@ const selectClassName = (
 };
 
 const selectPropName = (state: propsSearchState, selectPropName: string) => {
-  console.log(state, selectPropName);
   const selectedPropsMap = state.propsMap[state.selectedClassName];
   if (!selectedPropsMap) {
     return;
@@ -112,6 +113,13 @@ const propsEditorSlice = createSlice({
     setValuePair(state, { payload }: PayloadAction<[string, string]>) {
       updateValuePair(state, payload);
     },
+    updateParamValuePair(state, {payload}: PayloadAction<[string, string]>) {
+      const {propsMap, selectedClassName, selectedPropName} = state;
+      const propsList = propsMap[selectedClassName] ?? {}
+      if (propsList[selectedPropName]) {
+        propsList[selectedPropName] = payload;
+      }
+    }
   },
   extraReducers: builder => {
     builder.addCase(initApp, (state) => {
@@ -126,7 +134,7 @@ const propsEditorSlice = createSlice({
       state.status = "succeeded";
       state.propsMap = propsMap.file_props_map;
       state.propsValidateMap = propsMap.file_props_valid_map;
-      state.classNameList = Object.keys(propsMap).sort();
+      state.classNameList = Object.keys(state.propsMap).sort();
 
       if (state.classNameList.length === 0) {
         return;
@@ -149,6 +157,7 @@ export const {
   setPropName,
   setClassPath,
   setValuePair,
+  updateParamValuePair,
 } = propsEditorSlice.actions;
 
 export default propsEditorSlice.reducer;

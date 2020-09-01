@@ -1,12 +1,12 @@
 use super::{Endpoint, Response, ResponseError, ResponseResult};
 use crate::proxies::java_props::load_props;
-use crate::proxies::postgres::get_proxy;
+use crate::proxies::postgres::{PostgresProxy, get_proxy};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
-use tokio_postgres::error::{SqlState, DbError};
+use std::{sync::Arc, time::{Duration, Instant}};
+use tokio_postgres::{Error, error::{SqlState, DbError}, Client};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -85,24 +85,7 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<ResponseBod
 
           let stmt_list: Vec<&str> = param_stmt_list.iter().map(|(_, query)| query.as_str()).collect();
           let size = stmt_list.len();
-          let mut validate_results: Vec<ValidateResult> = match get_proxy().lock().unwrap().validate_stmts(stmt_list) {
-            Ok(validate_result) => validate_result.iter().map(|vr| {
-              if vr.pass {
-                return ValidateResult::new(Status::Pass, None);
-              }
-
-              let db_err = vr.error.as_ref().unwrap();
-              let (code, detail) = (db_err.code(), db_err.message());
-
-              if code == &SqlState::SYNTAX_ERROR || code == &SqlState::SYNTAX_ERROR_OR_ACCESS_RULE_VIOLATION {
-                ValidateResult::new(Status::Error, Some(String::from(detail)))
-              } else {
-                ValidateResult::new(Status::Warn, Some(String::from(detail)))
-              }
-            }).collect(),
-            Err(e) => vec![ValidateResult::new(Status::Warn, Some(e.to_string())); size]
-          };
-
+          let mut validate_results: Vec<ValidateResult> = generate_stmts_results(stmt_list);
           for (i, validate_result) in validate_results.drain(..).enumerate() {
             let (param, _) = param_stmt_list.get(i).unwrap(); 
 
@@ -117,5 +100,26 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<ResponseBod
         file_props_valid_map: queries_to_validate,
       })
     }
+  }
+}
+
+fn generate_stmts_results(stmt_list: Vec<&str>) -> Vec<ValidateResult> {
+  let size = stmt_list.len();
+  match PostgresProxy::validate_stmts(stmt_list) {
+    Ok(validate_result) => validate_result.iter().map(|vr| {
+      if vr.pass {
+        return ValidateResult::new(Status::Pass, None);
+      }
+
+      let db_err = vr.error.as_ref().unwrap();
+      let (code, detail) = (db_err.code(), db_err.message());
+
+      if code == &SqlState::SYNTAX_ERROR || code == &SqlState::SYNTAX_ERROR_OR_ACCESS_RULE_VIOLATION {
+        ValidateResult::new(Status::Error, Some(String::from(detail)))
+      } else {
+        ValidateResult::new(Status::Warn, Some(String::from(detail)))
+      }
+    }).collect(),
+    Err(e) => vec![ValidateResult::new(Status::Warn, Some(e.to_string())); size]
   }
 }

@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useImperativeHandle, RefForwardingComponent } from "react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import {editor} from "monaco-editor";
 import MonacoEditor, { MonacoEditorProps } from "react-monaco-editor";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";
+import { getEffectiveValueFromEditor } from "../util/monaco";
 
 export const themeList: string[] = [];
 const themeDataMap: any = require("monaco-themes/themes/themelist.json");
@@ -13,14 +15,19 @@ Object.keys(themeDataMap).forEach((themeName) => {
   themeList.push(themeName);
 });
 
-interface EditorProps extends MonacoEditorProps {
-  decorations?: monaco.editor.IModelDeltaDecoration[];
+interface EditorHandle {
+  getEffectiveValue(): string;
 }
 
-const Editor = React.forwardRef(
-  ({ decorations, options, ...otherProps }: EditorProps, ref: any) => {
-    const innerRef = React.useRef(null);
-    const oldDecorations = React.useRef([]);
+interface EditorProps extends MonacoEditorProps {
+  decorations?: monaco.editor.IModelDeltaDecoration[];
+  onBlur?: any;
+}
+
+const Editor: RefForwardingComponent<EditorHandle, EditorProps> = 
+  ({ decorations, onBlur, options, ...otherProps }: EditorProps, ref: any) => {
+    const innerRef = React.useRef(null as {editor: editor.ICodeEditor} | null);
+    const oldDecorations = React.useRef([] as string[]);
     const theme = useSelector((state: RootState) => state.editorSettings.theme);
     const fontSize = useSelector(
       (state: RootState) => state.editorSettings.fontSize
@@ -58,11 +65,29 @@ const Editor = React.forwardRef(
         return;
       }
 
-      oldDecorations.current = innerRef.current.editor.deltaDecorations(
+      oldDecorations.current = innerRef.current?.editor.deltaDecorations(
         oldDecorations.current,
         decorations
       );
     }, [decorations]);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        getEffectiveValue: () =>
+          getEffectiveValueFromEditor(innerRef.current?.editor),
+      }),
+      []
+    );
+
+    React.useEffect(() => {
+      const disposible =
+        innerRef.current?.editor.onDidBlurEditorWidget(onBlur);
+  
+      return () => {
+        disposible?.dispose();
+      };
+    }, [onBlur]);
 
     return (
       <MonacoEditor
@@ -73,6 +98,5 @@ const Editor = React.forwardRef(
       />
     );
   }
-);
 
-export default React.memo(Editor);
+export default React.memo(React.forwardRef(Editor));

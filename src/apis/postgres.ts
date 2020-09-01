@@ -6,5 +6,4 @@ export class Postgres extends SqlCommon<PostgreSettings>{
     super("postgres");
   }
 }
-
 export default new Postgres();

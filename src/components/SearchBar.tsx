@@ -2,7 +2,7 @@ import React from "react";
 import TextField from "@material-ui/core/TextField";
 import SearchIcon from "@material-ui/icons/Search";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import ProcessIconButton from "./ProcessIconButton";
+import ProcessIconButton from "./ProgressIconButton";
 
 const useStyles = makeStyles((theme) =>
   createStyles({

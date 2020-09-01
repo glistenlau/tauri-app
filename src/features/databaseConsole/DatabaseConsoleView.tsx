@@ -1,17 +1,27 @@
-import React from "react";
+import React, { useCallback, useRef, RefObject} from "react";
 import { useSelector, useDispatch } from "react-redux";
 import clsx from "clsx";
 import { makeStyles, createStyles, Divider } from "@material-ui/core";
 
 import DatabaseConsoleToolBar from "./DatabaseConsoleToolBar";
 
-import SplitEditor from "../../components/SplitEditor";
+import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
 import { RootState } from "../../reducers";
 import { changeConsleValuePair } from "./databaseConsoleSlice";
 import { getParameterMarkerPosition } from "../../util";
 import { evaluateParamsPair } from "../../core/parameterEvaluator";
 import { changeSortResults } from "../runnerControl/runnerControlSlice";
 import { openParameterModal, scanRunQuery } from "../../actions";
+import { RunOptions, RunMode } from "../runnerControl/RunnerControlToolBar";
+import Oracle from "../../apis/oracle";
+import Postgres from "../../apis/postgres";
+
+setInterval(async () => {
+  console.log("start postgres test.")
+  const res = await Postgres.execute("select 1", []);
+  console.log(res);
+}, 10000);
+
 
 interface DatabaseConsolePageProps {
   active: boolean;
@@ -37,6 +47,7 @@ const useStyles = makeStyles((theme) =>
 
 const DatabaseConsolePage = React.memo(
   ({ active }: DatabaseConsolePageProps) => {
+    const splitEditorRef = useRef(null as SplitEditorHandle | null);
     const editorRefPair = React.useMemo(() => [null, null], []);
     const dispatch = useDispatch();
     const schema = useSelector(
@@ -47,6 +58,30 @@ const DatabaseConsolePage = React.memo(
     );
 
     const classes = useStyles();
+
+    const handleClick = useCallback(async (runOptions: RunOptions) => {
+      console.log("click", runOptions, splitEditorRef.current);
+      const valuePair = splitEditorRef.current?.getEffectiveValue() || ["", ""];
+      console.log("valuePair", valuePair, runOptions);
+
+      const mode = runOptions.mode;
+
+      switch(mode) {
+        case RunMode.ORACLE: {
+
+        }
+        case RunMode.POSTGRES: {
+
+        }
+        case RunMode.DUAL: {
+
+        }
+        default: {
+
+        }
+      }
+
+    }, [])
 
     const handleClickRun = React.useCallback(
       async (sortResults) => {
@@ -144,12 +179,12 @@ const DatabaseConsolePage = React.memo(
       [consoleValuePair, dispatch, editorRefPair, schema]
     );
 
-    const handleBlur = React.useCallback(
+    const handleValuePairChange = useCallback(
       (valuePair: [string, string]) => {
         dispatch(changeConsleValuePair(valuePair));
       },
-      [dispatch]
-    );
+      [dispatch],
+    )
 
     const handleEditorRef = React.useCallback(
       (e: any, index: number) => {
@@ -165,13 +200,13 @@ const DatabaseConsolePage = React.memo(
           active ? undefined : classes.hideContainer
         )}
       >
-        <DatabaseConsoleToolBar onClickRun={handleClickRun} />
+        <DatabaseConsoleToolBar onClickRun={handleClick} />
         <Divider />
         <SplitEditor
-          defaultValues={consoleValuePair}
-          onBlur={handleBlur}
-          onEditorRef={handleEditorRef}
+          ref={splitEditorRef}
           diff={false}
+          valuePair={consoleValuePair}
+          onChange={handleValuePairChange}
         />
       </div>
     );

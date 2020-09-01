@@ -1,11 +1,17 @@
-import React from "react";
-import { withSize, SizeMeProps } from "react-sizeme";
+import React, {
+  useImperativeHandle,
+  forwardRef,
+  useCallback,
+  RefForwardingComponent,
+} from "react";
+import { SizeMe, SizeMeProps } from "react-sizeme";
 import { makeStyles } from "@material-ui/core/styles";
 import "./SplitEditor.css";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import { editor } from "monaco-editor";
 import { Divider } from "@material-ui/core";
 import DiffEditor from "./DiffEditor";
 import Editor from "./Editor";
+import { getEffectiveValueFromEditor } from "../util/monaco";
 
 const styles = makeStyles((theme) => ({
   container: {
@@ -20,6 +26,10 @@ const styles = makeStyles((theme) => ({
   },
 }));
 
+export interface SplitEditorHandle {
+  getEffectiveValue(): [string, string];
+}
+
 interface SplitEditorProps {
   baseValues?: [string, string];
   defaultValues?: [string, string];
@@ -29,99 +39,42 @@ interface SplitEditorProps {
   onEditorRef?: Function;
   diff: boolean;
   mode?: "sql" | "xml";
-  size: SizeMeProps["size"];
   activePair?: [boolean, boolean];
 }
 
-const SplitEditor = ({
-  baseValues,
-  defaultValues,
-  onBlur,
-  diff,
-  size,
-  onEditorRef,
-  mode,
-  activePair,
-  valuePair,
-  onChange,
-}: SplitEditorProps) => {
+const SplitEditor: RefForwardingComponent<
+  SplitEditorHandle,
+  SplitEditorProps
+> = (
+  {
+    baseValues,
+    defaultValues,
+    onBlur,
+    diff,
+    onEditorRef,
+    mode,
+    activePair,
+    valuePair,
+    onChange,
+  }: SplitEditorProps,
+  ref
+) => {
   const classes = styles();
-  const refOne = React.useRef();
-  const refTwo = React.useRef();
-  const refDiff = React.useRef();
+  const refOne = React.useRef(null as any);
+  const refTwo = React.useRef(null as any);
+  const refDiff = React.useRef(null as { editor: editor.ICodeEditor } | null);
 
-  const getCurrentEditorPair = React.useCallback(() => {
+  const getDiffEditorPair = React.useCallback(() => {
     let editorOne;
     let editorTwo;
     if (diff) {
       const diffRefEditor: any = refDiff?.current?.editor;
       editorOne = diffRefEditor?.getOriginalEditor();
       editorTwo = diffRefEditor?.getModifiedEditor();
-    } else {
-      editorOne = refOne?.current?.editor;
-      editorTwo = refTwo?.current?.editor;
     }
+
     return [editorOne, editorTwo];
   }, [diff]);
-
-  React.useEffect(() => {
-    if (!baseValues) {
-      return;
-    }
-
-    const [editorOne, editorTwo] = getCurrentEditorPair();
-
-    if (editorOne && editorOne.getValue() !== baseValues[0]) {
-      editorOne.setValue(baseValues[0]);
-      editorOne.setScrollTop(0);
-      editorOne.setPosition(new monaco.Position(1, 1));
-    }
-    if (editorTwo && editorTwo.getValue() !== baseValues[1]) {
-      editorTwo.setValue(baseValues[1]);
-      editorTwo.setScrollTop(0);
-      editorTwo.setPosition(new monaco.Position(1, 1));
-    }
-  }, [baseValues, getCurrentEditorPair]);
-
-  const handleBlur = React.useCallback(() => {
-    if (!onBlur) {
-      return;
-    }
-
-    if (diff && !refDiff.current) {
-      return;
-    }
-
-    if (!diff && (!refOne || !refTwo)) {
-      return;
-    }
-
-    const [editorOne, editorTwo] = getCurrentEditorPair();
-
-    const valueOne = (editorOne && editorOne.getValue()) || "";
-    const valueTwo = (editorTwo && editorTwo.getValue()) || "";
-
-    onBlur([valueOne, valueTwo]);
-  }, [onBlur, diff, getCurrentEditorPair]);
-
-  const handleBeforeUnload = React.useCallback(() => {
-    handleBlur();
-  }, [handleBlur]);
-
-  React.useEffect(() => {
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    const [editorOne, editorTwo] = getCurrentEditorPair();
-    const disposibleOne =
-      editorOne && editorOne.onDidBlurEditorWidget(handleBlur);
-    const disposibleTwo =
-      editorTwo && editorTwo.onDidBlurEditorWidget(handleBlur);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      disposibleOne && disposibleOne.dispose();
-      disposibleTwo && disposibleTwo.dispose();
-    };
-  }, [handleBlur, handleBeforeUnload, getCurrentEditorPair]);
 
   const handleDiffRef = React.useCallback(
     (e) => {
@@ -170,67 +123,122 @@ const SplitEditor = ({
     [onChange, valuePair]
   );
 
-  const width = React.useMemo(() => {
-    if (!activePair || activePair.reduce((pre, cur) => pre && cur)) {
-      return `${Math.floor((size.width - 1) / 2)}px`;
-    } else {
-      return size.width;
-    }
-  }, [size.width, activePair]);
+  const getWidth = useCallback(
+    (size) => {
+      if (!activePair || activePair.reduce((pre, cur) => pre && cur)) {
+        return `${Math.floor((size.width - 1) / 2)}px`;
+      } else {
+        return size.width;
+      }
+    },
+    [activePair]
+  );
 
-  const widthPair = React.useMemo(() => {
-    if (!activePair) {
-      return [width, width];
-    }
-    return activePair.map((active) => (active ? width : 0));
-  }, [activePair, width]);
+  const getWidthPair = useCallback(
+    (size) => {
+      const width = getWidth(size);
+      if (!activePair) {
+        return [width, width];
+      }
+      return activePair.map((active) => (active ? width : 0));
+    },
+    [activePair, getWidth]
+  );
 
-  if (diff) {
-    return (
+  useImperativeHandle(ref, () => ({
+    getEffectiveValue: () => {
+      if (diff) {
+        return getDiffEditorPair().map(getEffectiveValueFromEditor) as [
+          string,
+          string
+        ];
+      } else {
+        return [
+          refOne.current?.getEffectiveValue() || "",
+          refTwo.current?.getEffectiveValue() || "",
+        ];
+      }
+    },
+  }));
+
+  const splitEditorRenderer = useCallback(
+    ({ size }: {size: SizeMeProps["size"]}) => {
+      const widthPair = getWidthPair(size);
+      return (
+        <div className={classes.container}>
+          <Editor
+            ref={handleOraRef}
+            value={valuePair && valuePair[0]}
+            defaultValue={defaultValues && defaultValues[0]}
+            key="oracleEditor"
+            width={widthPair[0]}
+            height={!activePair || activePair[0] ? (size.height || undefined) : 0}
+            language={mode || "sql"}
+            onBlur={onBlur}
+            onChange={handleLeftChange}
+          />
+          {(!activePair || (activePair[0] && activePair[1])) && (
+            <Divider orientation="vertical" flexItem />
+          )}
+          <Editor
+            ref={handlePgRef}
+            value={valuePair && valuePair[1]}
+            defaultValue={defaultValues && defaultValues[1]}
+            key="postgresEditor"
+            width={widthPair[1]}
+            height={!activePair || activePair[1] ? (size.height || undefined) : 0}
+            language={mode || "sql"}
+            onBlur={onBlur}
+            onChange={handleRightChange}
+          />
+        </div>
+      );
+    },
+    [
+      activePair,
+      classes.container,
+      defaultValues,
+      getWidthPair,
+      handleLeftChange,
+      handleOraRef,
+      handlePgRef,
+      handleRightChange,
+      mode,
+      onBlur,
+      valuePair,
+    ]
+  );
+
+  const diffEditorRenderer = useCallback(
+    ({ size }: {size: SizeMeProps["size"]}) => (
       <div className={classes.container}>
         <DiffEditor
           original={valuePair && valuePair[0]}
           value={valuePair && valuePair[1]}
           onChange={handleRightChange}
           ref={handleDiffRef}
-          width={size.width}
-          height={size.height}
+          width={size.width || undefined}
+          height={size.height || undefined}
           language={mode || "sql"}
         />
       </div>
+    ),
+    [classes.container, handleDiffRef, handleRightChange, mode, valuePair]
+  );
+
+  if (diff) {
+    return (
+      <SizeMe monitorHeight monitorWidth>
+        {diffEditorRenderer}
+      </SizeMe>
     );
   }
 
   return (
-    <div className={classes.container}>
-      <Editor
-        ref={handleOraRef}
-        value={valuePair && valuePair[0]}
-        defaultValue={defaultValues && defaultValues[0]}
-        key="oracleEditor"
-        width={widthPair[0]}
-        height={!activePair || activePair[0] ? size.height : 0}
-        language={mode || "sql"}
-        onBlur={() => {}}
-        onChange={handleLeftChange}
-      />
-      {(!activePair || (activePair[0] && activePair[1])) && (
-        <Divider orientation="vertical" flexItem />
-      )}
-      <Editor
-        ref={handlePgRef}
-        value={valuePair && valuePair[1]}
-        defaultValue={defaultValues && defaultValues[1]}
-        key="postgresEditor"
-        width={widthPair[1]}
-        height={!activePair || activePair[1] ? size.height : 0}
-        language={mode || "sql"}
-        onChange={handleRightChange}
-      />
-    </div>
+    <SizeMe monitorHeight monitorWidth>
+      {splitEditorRenderer}
+    </SizeMe>
   );
 };
 
-export default React.memo(
-  withSize({ monitorHeight: true, monitorWidth: true })(SplitEditor)
-);
+export default React.memo(forwardRef(SplitEditor));

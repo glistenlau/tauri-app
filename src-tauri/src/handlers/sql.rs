@@ -30,6 +30,7 @@ pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<d
         return Err(anyhow!("missing parameters..."))
       }
 
+      log::debug!("dispatch sql execute statement...");
       proxy.lock().unwrap().execute(&payload.statement.unwrap(), &payload.parameters.unwrap())
     },
     Action::SetConfig => {

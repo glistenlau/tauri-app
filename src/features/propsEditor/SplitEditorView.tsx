@@ -1,43 +1,56 @@
-import React, { useCallback } from "react";
-import SearchBar from "../../components/SearchBar";
-import { useSelector, useDispatch, shallowEqual } from "react-redux";
+import React, { useCallback, useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../reducers";
-import { setPropName, setValuePair } from "./propsEditorSlice";
-import { Resizable } from "re-resizable";
-import { Divider, makeStyles, createStyles } from "@material-ui/core";
+import { updateParamValuePair } from "./propsEditorSlice";
+import { makeStyles, createStyles } from "@material-ui/core";
 import SplitEditor from "../../components/SplitEditor";
 
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    leftContainer: {
-      display: "flex",
-      flexDirection: "column",
-      height: "100%",
-      width: "100%",
-    },
-  })
-);
 
 const SplitEditorView = React.memo(() => {
   const dispatch = useDispatch();
-  const valuePair = useSelector(
-    (rootState: RootState) => rootState.propsEditor.valuePair
+  const [valuePair, setValuePair] = useState(["", ""] as [string, string]);
+  const propsMap = useSelector(
+    (rootState: RootState) => rootState.propsEditor.propsMap
+  );
+  const selectedClassName = useSelector(
+    (rootState: RootState) => rootState.propsEditor.selectedClassName
+  );
+  const selectedPropName = useSelector(
+    (rootState: RootState) => rootState.propsEditor.selectedPropName
   );
   const diffMode = useSelector(
     (rootState: RootState) => rootState.propsEditor.diffMode
   );
 
-  const handleBlur = useCallback(
+  useEffect(() => {
+    if (!propsMap || !selectedClassName || !selectedPropName) {
+      return;
+    }
+
+    const propNameMap = propsMap[selectedClassName] ?? {};
+    if (!propNameMap[selectedPropName]) {
+      return;
+    }
+
+    setValuePair(propNameMap[selectedPropName]);
+  },[propsMap, selectedClassName, selectedPropName])
+
+  const handleChange = useCallback(
     (valuePair: [string, string]) => {
-      dispatch(setValuePair(valuePair));
+      setValuePair(valuePair);
     },
-    [dispatch]
+    []
   );
+
+  const handleBlur = useCallback(() => {
+    dispatch(updateParamValuePair(valuePair));
+  },[dispatch, valuePair]);
 
   return (
     <SplitEditor
-      baseValues={valuePair}
+      valuePair={valuePair}
       onBlur={handleBlur}
+      onChange={handleChange}
       diff={diffMode}
     />
   );

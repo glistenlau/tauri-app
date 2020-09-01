@@ -17,7 +17,7 @@ import {
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 
-import ProcessIconButton from "./ProcessIconButton";
+import ProcessIconButton from "./ProgressIconButton";
 import RunnerControlToolBar from "../features/runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../features/transactionControl/TransactionControlToolBar";
 

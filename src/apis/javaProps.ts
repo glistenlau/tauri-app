@@ -6,7 +6,7 @@ enum Action {
 
 export interface FilePropsMap {
   [filePath: string]: {
-    [propKey: string]: [string | null, string | null];
+    [propKey: string]: [string, string];
   };
 }
 

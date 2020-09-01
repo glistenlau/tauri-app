@@ -67,6 +67,6 @@ impl SQLReponse {
 }
 
 pub trait SQLClient<C> {
-  fn execute(&self, statement: &str, parameters: &[Value]) -> Result<SQLResult>;
+  fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult>;
   fn set_config(&mut self, config:C) -> Result<SQLResult>;
 }

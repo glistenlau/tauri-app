@@ -3,13 +3,9 @@ use futures::future;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{sync::{Arc, Mutex}, time::Instant};
-use tokio::{pin, spawn, stream::StreamExt};
-use tokio_postgres::{
-    error::DbError,
-    types::{ToSql, Type},
-    Client, Config, Connection, Error, NoTls, Row,
-};
+use std::sync::{Arc, Mutex};
+use tokio::{runtime::Runtime, spawn};
+use tokio_postgres::{error::DbError, Client, Error, NoTls};
 
 use super::sql_common::{SQLClient, SQLResult, SQLResultSet};
 
@@ -62,7 +58,7 @@ impl ConnectionConfig {
 
 pub struct PostgresProxy {
     config: ConnectionConfig,
-    client: Option<Client>,
+    client: Option<Arc<Mutex<Client>>>,
 }
 
 impl PostgresProxy {
@@ -73,6 +69,22 @@ impl PostgresProxy {
         }
     }
 
+    pub async fn get_connection(&mut self) -> Result<Arc<Mutex<Client>>, Error> {
+        if self.client.is_none() || self.client.as_ref().unwrap().lock().unwrap().is_closed() {
+            log::debug!("try to obtain a new postgres connection, is the connection present: {}, thread id: {:?}", self.client.is_some(), std::thread::current().id());
+            if self.client.is_some() {
+                log::debug!(
+                    "current connection has {} strong ref",
+                    Arc::strong_count(self.client.as_ref().unwrap())
+                );
+            }
+            let conn_res = self.connect().await?;
+            self.client = Some(Arc::new(Mutex::new(conn_res)));
+        }
+
+        Ok(Arc::clone(self.client.as_ref().unwrap()))
+    }
+
     async fn connect(&self) -> Result<Client, Error> {
         let (client, connection) =
             tokio_postgres::connect(&self.config.to_key_value_string(), NoTls).await?;
@@ -81,22 +93,22 @@ impl PostgresProxy {
             if let Err(e) = connection.await {
                 log::error!("postgres connection error: {}", e);
             }
+            log::debug!("postgres connection closed.");
         });
 
         Ok(client)
     }
 
-    #[tokio::main]
-    pub async fn validate_stmts(
-        &self,
-        stmts: Vec<&str>,
-    ) -> Result<Vec<QueryVlidationResult>, Error> {
-        let client = self.connect().await?;
-        client.execute("SET search_path TO anaconda", &[]).await?;
-        let pending_tasks = stmts
-            .iter()
-            .map(|&s| PostgresProxy::validate_stmt(s, &client));
-        future::try_join_all(pending_tasks).await
+    pub fn validate_stmts(stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
+        POSTGRES_RUNTIME.lock().unwrap().block_on(async {
+            // use a new connection to do the query validation
+            let client = get_proxy().lock().unwrap().connect().await?;
+            client.execute("SET search_path TO anaconda", &[]).await?;
+            let pending_tasks = stmts
+                .iter()
+                .map(|&s| PostgresProxy::validate_stmt(s, &client));
+            future::try_join_all(pending_tasks).await
+        })
     }
 
     pub async fn validate_stmt(stmt: &str, client: &Client) -> Result<QueryVlidationResult, Error> {
@@ -132,9 +144,7 @@ impl PostgresProxy {
         }
     }
 
-    async fn execute_statement(&self, stmt: &str) -> Result<SQLResultSet, Error> {
-        let client = self.connect().await?;
-
+    async fn execute_statement(stmt: &str, client: &Client) -> Result<SQLResultSet, Error> {
         let rsp = client.simple_query(stmt).await?;
         let mut row_count = 0;
 
@@ -167,16 +177,16 @@ impl PostgresProxy {
         ))
     }
 
-    fn map_params(&self, params: &[Value]) -> Result<Vec<String>> {
+    fn map_params(params: &[Value]) -> Result<Vec<String>> {
         let mut mapped_params = Vec::with_capacity(params.len());
         for param in params {
-            mapped_params.push(self.map_param(param)?);
+            mapped_params.push(Self::map_param(param)?);
         }
 
         Ok(mapped_params)
     }
 
-    fn map_param(&self, param: &Value) -> Result<String> {
+    fn map_param(param: &Value) -> Result<String> {
         let mapped_param = match param {
             Value::Null => String::from("null"),
             Value::Bool(val) => val.to_string(),
@@ -191,7 +201,7 @@ impl PostgresProxy {
             Value::Array(arr) => {
                 let mut mapped_arr = Vec::with_capacity(arr.len());
                 for val in arr {
-                    mapped_arr.push(self.map_param(val)?);
+                    mapped_arr.push(Self::map_param(val)?);
                 }
 
                 mapped_arr.join(",")
@@ -204,14 +214,13 @@ impl PostgresProxy {
 }
 
 impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
-    #[tokio::main]
-    async fn execute<'b>(&self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
-        let now = Instant::now();
+    fn execute<'b>(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
+        log::debug!("start executing postgres statement...");
         let stmt;
         if parameters.len() > 0 {
             let mut filled_stmt = String::with_capacity(statement.len());
             let mut stmt_iter = statement.split("?");
-            let mapped_params = match self.map_params(parameters) {
+            let mapped_params = match Self::map_params(parameters) {
                 Ok(mapped_params) => mapped_params,
                 Err(e) => {
                     return Err(anyhow!("map parameters error: {}", e));
@@ -226,36 +235,41 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
                 filled_stmt.push_str(part);
             }
             if (stmt_iter.next(), params_iter.next()) != (None, None) {
-                return Err(anyhow!("parameters are not matched with the statement...")); 
+                return Err(anyhow!("parameters are not matched with the statement..."));
             }
             stmt = String::from(filled_stmt);
         } else {
             stmt = String::from(statement);
         }
 
-        match self.execute_statement(&stmt).await {
-            Ok(rs) => Ok(SQLResult::new_result(Some(rs))),
-            Err(e) => {
-                Err(anyhow!("postgres error: {}", e))
+        POSTGRES_RUNTIME.lock().unwrap().block_on(async {
+            let client = self.get_connection().await?;
+            let client_lock = client.lock().unwrap();
+
+            match Self::execute_statement(&stmt, &client_lock).await {
+                Ok(rs) => Ok(SQLResult::new_result(Some(rs))),
+                Err(e) => Err(anyhow!("postgres error: {}", e)),
             }
-        }
+        })
     }
 
-    #[tokio::main]
-    async fn set_config(&mut self, config: ConnectionConfig) -> Result<SQLResult> {
-        self.config = config;
-        match self.connect().await {
-            Ok(_) => Ok(SQLResult::new_result(None)),
-            Err(e) => Err(anyhow!(e.to_string())),
-        }
+    fn set_config(&mut self, config: ConnectionConfig) -> Result<SQLResult> {
+        POSTGRES_RUNTIME.lock().unwrap().block_on(async {
+            self.config = config;
+            match self.get_connection().await {
+                Ok(_) => Ok(SQLResult::new_result(None)),
+                Err(e) => Err(anyhow!(e.to_string())),
+            }
+        })
     }
 }
 
 lazy_static! {
-    static ref INSTANCE: Arc<Mutex<PostgresProxy>> = Arc::new(Mutex::new(PostgresProxy {
-        config: ConnectionConfig::new("localhost", "5432", "postgres", "#postgres#", "planning"),
-        client: None,
-    }));
+    static ref INSTANCE: Arc<Mutex<PostgresProxy>> = Arc::new(Mutex::new(PostgresProxy::new(
+        ConnectionConfig::new("localhost", "5432", "postgres", "#postgres#", "planning")
+    )));
+    static ref POSTGRES_RUNTIME: Arc<Mutex<Runtime>> =
+        Arc::new(Mutex::new(Runtime::new().unwrap()));
 }
 
 pub fn get_proxy() -> Arc<Mutex<PostgresProxy>> {

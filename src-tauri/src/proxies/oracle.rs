@@ -5,7 +5,10 @@ use oracle::{sql_type::ToSql, Connection};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{sync::{Arc, Mutex}, time::Instant};
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OracleConfig {
@@ -30,6 +33,7 @@ impl OracleConfig {
 
 pub struct OracleClient {
     config: OracleConfig,
+    conn: Option<Arc<Mutex<Connection>>>,
 }
 
 impl OracleClient {
@@ -37,7 +41,19 @@ impl OracleClient {
         self.config = config;
     }
 
-    fn get_connection(&self) -> Result<Connection> {
+    pub fn get_connection(&mut self) -> Result<Arc<Mutex<Connection>>> {
+        if self.conn.is_none() || self.conn.as_ref().unwrap().lock().unwrap().ping().is_err() {
+            log::debug!(
+                "try to obtain a new oracle connection, conn was present: {}",
+                self.conn.is_some()
+            );
+            self.conn = Some(Arc::new(Mutex::new(self.connect()?)));
+        }
+
+        Ok(Arc::clone(self.conn.as_ref().unwrap()))
+    }
+
+    fn connect(&self) -> Result<Connection> {
         let connect_string: String = format!("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={})(PORT={}))(CONNECT_DATA=(SERVER=DEDICATED)(SID={})))", self.config.host, self.config.port, self.config.sid);
         Ok(Connection::connect(
             &self.config.user,
@@ -46,17 +62,17 @@ impl OracleClient {
         )?)
     }
 
-    fn execute_stmt(&self, stmt: &str, params: &[Value]) -> Result<SQLResultSet> {
-        let conn = self.get_connection()?;
-        println!("execute stmt {:?}", params);
+    fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet> {
+        let conn_wrap = self.get_connection()?;
+        let conn = conn_wrap.lock().unwrap();
         let mapped_params = self.map_params(Some(stmt), params, &conn)?;
         let mut unboxed_params = Vec::with_capacity(mapped_params.len());
         for b in &mapped_params {
             unboxed_params.push(b.as_ref());
         }
 
-        let mut replaced_stmt = String::with_capacity(stmt.len());
         if mapped_params.len() > 0 {
+            let mut replaced_stmt = String::with_capacity(stmt.len());
             let (mut stmt_parts, mut i) = (stmt.split("?"), 1);
 
             replaced_stmt.push_str(stmt_parts.next().unwrap());
@@ -65,12 +81,17 @@ impl OracleClient {
                 replaced_stmt.push_str(part);
                 i += 1;
             }
+            self.execute_stmt_mapped(
+                &replaced_stmt,
+                &unboxed_params,
+                &conn,
+            )
+        } else {
+            self.execute_stmt_mapped(stmt, &unboxed_params, &conn)
         }
-
-        self.execute(&replaced_stmt, &unboxed_params, &conn)
     }
 
-    fn execute(
+    fn execute_stmt_mapped(
         &self,
         stmt_str: &str,
         params: &[&dyn ToSql],
@@ -204,7 +225,8 @@ static PARAM_PATTERN: &str = r"(?:[^?]*\?[^?]*)";
 static START_PATTERN: &str = r"(?i)^\s*";
 
 impl SQLClient<OracleConfig> for OracleClient {
-    fn execute(&self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
+    fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
+        log::debug!("execute oracle statement {}, parameters {:?}", statement, parameters);
         let result_set = self.execute_stmt(statement, parameters)?;
         Ok(SQLResult::new_result(Some(result_set)))
     }
@@ -219,6 +241,7 @@ impl SQLClient<OracleConfig> for OracleClient {
 lazy_static! {
     static ref INSTANCE: Arc<Mutex<OracleClient>> = Arc::new(Mutex::new(OracleClient {
         config: OracleConfig::new("localhost", "1521", "anaconda", "anaconda", "anaconda"),
+        conn: None,
     }));
 }
 
