@@ -1,7 +1,7 @@
 use super::sql_common::{SQLClient, SQLError, SQLReponse, SQLResult, SQLResultSet};
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
-use oracle::{sql_type::ToSql, Connection};
+use oracle::{sql_type::ToSql, Connection, Error};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -41,7 +41,7 @@ impl OracleClient {
         self.config = config;
     }
 
-    pub fn get_connection(&mut self) -> Result<Arc<Mutex<Connection>>> {
+    pub fn get_connection(&mut self) -> Result<Arc<Mutex<Connection>>, SQLError> {
         if self.conn.is_none() || self.conn.as_ref().unwrap().lock().unwrap().ping().is_err() {
             log::debug!(
                 "try to obtain a new oracle connection, conn was present: {}",
@@ -53,7 +53,7 @@ impl OracleClient {
         Ok(Arc::clone(self.conn.as_ref().unwrap()))
     }
 
-    fn connect(&self) -> Result<Connection> {
+    fn connect(&self) -> Result<Connection, SQLError> {
         let connect_string: String = format!("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={})(PORT={}))(CONNECT_DATA=(SERVER=DEDICATED)(SID={})))", self.config.host, self.config.port, self.config.sid);
         Ok(Connection::connect(
             &self.config.user,
@@ -62,7 +62,7 @@ impl OracleClient {
         )?)
     }
 
-    fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet> {
+    fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet, SQLError> {
         let conn_wrap = self.get_connection()?;
         let conn = conn_wrap.lock().unwrap();
         let mapped_params = self.map_params(Some(stmt), params, &conn)?;
@@ -81,22 +81,18 @@ impl OracleClient {
                 replaced_stmt.push_str(part);
                 i += 1;
             }
-            self.execute_stmt_mapped(
-                &replaced_stmt,
-                &unboxed_params,
-                &conn,
-            )
+            self.execute_stmt_mapped(&replaced_stmt, &unboxed_params, &conn)
         } else {
             self.execute_stmt_mapped(stmt, &unboxed_params, &conn)
         }
     }
 
-    fn execute_stmt_mapped(
+    pub fn execute_stmt_mapped(
         &self,
         stmt_str: &str,
         params: &[&dyn ToSql],
         conn: &Connection,
-    ) -> Result<SQLResultSet> {
+    ) -> Result<SQLResultSet, SQLError> {
         let mut prepared_stmt = conn.prepare(stmt_str, &[])?;
         let res;
 
@@ -128,12 +124,12 @@ impl OracleClient {
         Ok(res)
     }
 
-    fn map_params(
+    pub fn map_params(
         &self,
         statement: Option<&str>,
         parameters: &[Value],
         conn: &Connection,
-    ) -> Result<Vec<Box<dyn ToSql>>> {
+    ) -> Result<Vec<Box<dyn ToSql>>, SQLError> {
         let mut mapped_params = Vec::with_capacity(parameters.len());
         let params_iter = parameters.iter().enumerate();
         let mut mapped_param;
@@ -146,13 +142,13 @@ impl OracleClient {
         Ok(mapped_params)
     }
 
-    fn map_param(
+    pub fn map_param(
         &self,
         statement: Option<&str>,
         pos: Option<usize>,
         param: &Value,
         conn: &Connection,
-    ) -> Result<Box<dyn ToSql>> {
+    ) -> Result<Box<dyn ToSql>, SQLError> {
         println!("map param {}", param);
         let parsed_val = match param {
             Value::Number(val) => {
@@ -168,34 +164,31 @@ impl OracleClient {
             Value::Bool(val) => Box::new(*val) as Box<dyn ToSql>,
             Value::String(val) => Box::new(val.to_string()) as Box<dyn ToSql>,
             Value::Array(arr) => {
-                println!("map array {:?}", &arr);
                 let collection_name = extract_collection_name(statement, pos)?;
                 let collection_type = conn.object_type(&collection_name)?;
                 let mut collection = collection_type.new_collection()?;
                 let mapped_arr = self.map_params(None, &arr, conn)?;
 
                 for val in mapped_arr {
-                    if let Err(e) = collection.push(val.as_ref()) {
-                        return Err(anyhow!(
-                            "failed to push data into collection for paramter: {}",
-                            e
-                        ));
-                    }
+                    collection.push(val.as_ref())?
                 }
 
                 Box::new(collection) as Box<dyn ToSql>
             }
-            Value::Object(_) => return Err(anyhow!("not support object param for oracle.")),
+
+            Value::Object(_) => {
+                return Err(SQLError::new_str("not support object param for oracle."))
+            }
         };
 
         Ok(parsed_val)
     }
 }
 
-fn extract_collection_name(stmt: Option<&str>, pos: Option<usize>) -> Result<String> {
+fn extract_collection_name(stmt: Option<&str>, pos: Option<usize>) -> Result<String, SQLError> {
     if None == stmt || None == pos {
-        return Err(anyhow!(
-            "missing info to retrieve name of the collection type."
+        return Err(SQLError::new_str(
+            "missing info to retrieve name of the collection type.",
         ));
     }
 
@@ -211,13 +204,21 @@ fn extract_collection_name(stmt: Option<&str>, pos: Option<usize>) -> Result<Str
     println!("collection regex pattern: {}", &pattern);
     let re = match Regex::new(&pattern) {
         Ok(r) => r,
-        Err(e) => return Err(anyhow!("collection regex pattern error: {}", e)),
+        Err(e) => {
+            return Err(SQLError::new(format!(
+                "collection regex pattern error: {}",
+                e
+            )))
+        }
     };
 
     if let Some(cap) = re.captures(stmt) {
         return Ok(String::from(&cap[1]));
     }
-    Err(anyhow!("No collection found for parameter {}", pos))
+    Err(SQLError::new(format!(
+        "No collection found for parameter {}",
+        pos
+    )))
 }
 
 static COLLECTION_PATTERN: &str = r"[^?]*CAST\s*\(\s*\?\s*AS\s*(.*)\s*\)";
@@ -226,15 +227,23 @@ static START_PATTERN: &str = r"(?i)^\s*";
 
 impl SQLClient<OracleConfig> for OracleClient {
     fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
-        log::debug!("execute oracle statement {}, parameters {:?}", statement, parameters);
-        let result_set = self.execute_stmt(statement, parameters)?;
-        Ok(SQLResult::new_result(Some(result_set)))
+        log::debug!(
+            "execute oracle statement {}, parameters {:?}",
+            statement,
+            parameters
+        );
+        match self.execute_stmt(statement, parameters) {
+            Ok(result_set) => Ok(SQLResult::new_result(Some(result_set))),
+            Err(e) => Ok(SQLResult::new_error(e)),
+        }
     }
 
     fn set_config(&mut self, config: OracleConfig) -> Result<SQLResult> {
         self.config = config;
-        self.get_connection()?;
-        Ok(SQLResult::new_result(None))
+        match self.get_connection() {
+            Ok(_) => Ok(SQLResult::new_result(None)),
+            Err(e) => Ok(SQLResult::new_error(e)),
+        }
     }
 }
 

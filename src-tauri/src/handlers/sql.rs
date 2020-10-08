@@ -38,7 +38,15 @@ pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<d
         return Err(anyhow!("missing config..."));
       }
 
-      proxy.lock().unwrap().set_config(payload.config.unwrap())
+      match proxy.lock().unwrap().set_config(payload.config.unwrap()) {
+          Ok(sql_result) => {
+            match sql_result {
+                SQLResult::Result(sr) => Ok(SQLResult::new_result(sr)),
+                SQLResult::Error(err) => {return Err(anyhow!(err.message()))}
+            }
+          }
+          Err(err) => Err(err)
+      }
     }
     _ => Err(anyhow!("The action is not supported."))
   }

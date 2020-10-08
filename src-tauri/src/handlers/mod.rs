@@ -1,13 +1,14 @@
 pub mod fs;
 pub mod java_props;
 pub mod log;
+pub mod query_runner;
 pub mod rocksdb;
 pub mod sql;
 
 use crate::proxies;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use tauri::{execute_promise, Webview};
 
 #[derive(Deserialize, Debug)]
@@ -21,6 +22,7 @@ pub struct Endpoint<A, P> {
 pub enum Handler {
     Oracle(Endpoint<sql::Action, sql::Payload<proxies::oracle::OracleConfig>>),
     Postgres(Endpoint<sql::Action, sql::Payload<proxies::postgres::ConnectionConfig>>),
+    QueryRunner(Endpoint<query_runner::Action, query_runner::Payload>),
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
     File(Endpoint<fs::Action, fs::Payload>),
     Log(Endpoint<log::Action, log::Payload>),
@@ -82,13 +84,11 @@ pub fn seralize_response<T: Serialize>(rsp_obj: T) -> Result<String> {
 pub fn generate_response<T: Serialize>(res: Result<T>, elapsed: Duration) -> Result<String> {
     let rsp: Response<T> = match res {
         Ok(r) => Response::new(true, elapsed, ResponseResult::new_result(r)),
-        Err(e) => {
-            Response::new(
-                false,
-                elapsed,
-                ResponseResult::new_error(ResponseError::new(e.to_string())),
-            )
-        }
+        Err(e) => Response::new(
+            false,
+            elapsed,
+            ResponseResult::new_error(ResponseError::new(e.to_string())),
+        ),
     };
 
     match serde_json::to_string(&rsp) {
@@ -104,19 +104,18 @@ pub fn dispath_async(_webview: &mut Webview, handler: Handler, callback: String,
 fn invoke_handler(handler: Handler) -> Result<String> {
     let now = Instant::now();
     match handler {
-        Handler::Oracle(e) => generate_response(sql::handle_command(
-            e.action,
-            e.payload,
-            proxies::oracle::get_proxy(),
-        ), now.elapsed()),
-        Handler::Postgres(e) => generate_response(sql::handle_command(
-            e.action,
-            e.payload,
-            proxies::postgres::get_proxy(),
-        ), now.elapsed()),
+        Handler::Oracle(e) => generate_response(
+            sql::handle_command(e.action, e.payload, proxies::oracle::get_proxy()),
+            now.elapsed(),
+        ),
+        Handler::Postgres(e) => generate_response(
+            sql::handle_command(e.action, e.payload, proxies::postgres::get_proxy()),
+            now.elapsed(),
+        ),
         Handler::RocksDB(e) => seralize_response(rocksdb::handle_command(e.action, e.payload)?),
         Handler::File(e) => seralize_response(fs::handle_command(e)),
         Handler::Log(e) => seralize_response(log::handle_command(e)),
         Handler::JavaProps(e) => generate_response(java_props::handle_command(e), now.elapsed()),
+        Handler::QueryRunner(e) => generate_response(query_runner::handle_command(e.action, e.payload), now.elapsed()),
     }
 }

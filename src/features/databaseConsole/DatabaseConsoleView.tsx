@@ -1,27 +1,16 @@
-import React, { useCallback, useRef, RefObject} from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import clsx from "clsx";
-import { makeStyles, createStyles, Divider } from "@material-ui/core";
-
-import DatabaseConsoleToolBar from "./DatabaseConsoleToolBar";
-
-import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
-import { RootState } from "../../reducers";
-import { changeConsleValuePair } from "./databaseConsoleSlice";
-import { getParameterMarkerPosition } from "../../util";
-import { evaluateParamsPair } from "../../core/parameterEvaluator";
-import { changeSortResults } from "../runnerControl/runnerControlSlice";
+import React, { useCallback, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { openParameterModal, scanRunQuery } from "../../actions";
-import { RunOptions, RunMode } from "../runnerControl/RunnerControlToolBar";
-import Oracle from "../../apis/oracle";
-import Postgres from "../../apis/postgres";
-
-setInterval(async () => {
-  console.log("start postgres test.")
-  const res = await Postgres.execute("select 1", []);
-  console.log(res);
-}, 10000);
-
+import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
+import { evaluateParamsPair } from "../../core/parameterEvaluator";
+import { RootState } from "../../reducers";
+import { getParameterMarkerPosition } from "../../util";
+import { changeSortResults } from "../runnerControl/runnerControlSlice";
+import { RunMode, RunOptions } from "../runnerControl/RunnerControlToolBar";
+import { changeConsleValuePair } from "./databaseConsoleSlice";
+import DatabaseConsoleToolBar from "./DatabaseConsoleToolBar";
 
 interface DatabaseConsolePageProps {
   active: boolean;

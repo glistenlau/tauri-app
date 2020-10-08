@@ -1,17 +1,17 @@
+import { Divider } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
+import { editor } from "monaco-editor";
 import React, {
-  useImperativeHandle,
   forwardRef,
-  useCallback,
   RefForwardingComponent,
+  useCallback,
+  useImperativeHandle,
 } from "react";
 import { SizeMe, SizeMeProps } from "react-sizeme";
-import { makeStyles } from "@material-ui/core/styles";
-import "./SplitEditor.css";
-import { editor } from "monaco-editor";
-import { Divider } from "@material-ui/core";
+import { getEffectiveValueFromEditor } from "../util/monaco";
 import DiffEditor from "./DiffEditor";
 import Editor from "./Editor";
-import { getEffectiveValueFromEditor } from "../util/monaco";
+import "./SplitEditor.css";
 
 const styles = makeStyles((theme) => ({
   container: {
@@ -162,17 +162,17 @@ const SplitEditor: RefForwardingComponent<
   }));
 
   const splitEditorRenderer = useCallback(
-    ({ size }: {size: SizeMeProps["size"]}) => {
+    ({ size }: { size: SizeMeProps["size"] }) => {
       const widthPair = getWidthPair(size);
       return (
         <div className={classes.container}>
           <Editor
             ref={handleOraRef}
-            value={valuePair && valuePair[0]}
+            value={(valuePair && valuePair[0]) ?? ""}
             defaultValue={defaultValues && defaultValues[0]}
             key="oracleEditor"
             width={widthPair[0]}
-            height={!activePair || activePair[0] ? (size.height || undefined) : 0}
+            height={!activePair || activePair[0] ? size.height || undefined : 0}
             language={mode || "sql"}
             onBlur={onBlur}
             onChange={handleLeftChange}
@@ -182,11 +182,11 @@ const SplitEditor: RefForwardingComponent<
           )}
           <Editor
             ref={handlePgRef}
-            value={valuePair && valuePair[1]}
+            value={(valuePair && valuePair[1]) ?? ""}
             defaultValue={defaultValues && defaultValues[1]}
             key="postgresEditor"
             width={widthPair[1]}
-            height={!activePair || activePair[1] ? (size.height || undefined) : 0}
+            height={!activePair || activePair[1] ? size.height || undefined : 0}
             language={mode || "sql"}
             onBlur={onBlur}
             onChange={handleRightChange}
@@ -210,7 +210,7 @@ const SplitEditor: RefForwardingComponent<
   );
 
   const diffEditorRenderer = useCallback(
-    ({ size }: {size: SizeMeProps["size"]}) => (
+    ({ size }: { size: SizeMeProps["size"] }) => (
       <div className={classes.container}>
         <DiffEditor
           original={valuePair && valuePair[0]}

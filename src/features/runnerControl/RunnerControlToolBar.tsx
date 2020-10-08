@@ -1,18 +1,17 @@
-import React from "react";
-import { useSelector, useDispatch } from "react-redux";
-import clsx from "clsx";
-import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import TextField from "@material-ui/core/TextField";
+import { Typography } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-
-import { RootState } from "../../reducers";
-import { changeSchema } from "./runnerControlSlice";
-import databaseConsole from "../../core/databaseConsole";
+import TextField from "@material-ui/core/TextField";
+import PlayArrowIcon from "@material-ui/icons/PlayArrow";
+import clsx from "clsx";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { showNotification } from "../../actions";
-import { Typography } from "@material-ui/core";
 import ProgressSplitIconButton from "../../components/ProgressSplitIconButton";
 import SVGIcon from "../../components/SVGIcon";
+import databaseConsole from "../../core/databaseConsole";
+import { RootState } from "../../reducers";
+import { changeSchema } from "./runnerControlSlice";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -38,18 +37,18 @@ const useStyles = makeStyles((theme) =>
 );
 
 export enum RunMode {
-    DUAL,
-    ORACLE,
-    POSTGRES,
+  DUAL,
+  ORACLE,
+  POSTGRES,
 }
 
 export interface RunOptions {
-    mode: RunMode,
-    sortResult?: boolean,
+  mode: RunMode;
+  sortResult?: boolean;
 }
 
 export interface RunnerControlToolBarProps {
-  onClickRun: (options: RunOptions) => void; 
+  onClickRun: (options: RunOptions) => void;
   className?: any;
 }
 
@@ -86,55 +85,71 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
   }, [dispatch, schemaValue]);
 
   const handleClickRun = React.useCallback(async () => {
-    await onClickRun({mode: RunMode.DUAL});
+    try {
+      await onClickRun({ mode: RunMode.DUAL });
+    } catch (e) {
+      console.log("run errror: ", e);
+    }
   }, [onClickRun]);
 
-  const handleSelectMenu = React.useCallback(async (index) => {
+  const handleSelectMenu = React.useCallback(
+    async (index) => {
       if (index === 0) {
-          await onClickRun({mode: RunMode.ORACLE});
+        await onClickRun({ mode: RunMode.ORACLE });
       } else {
-          await onClickRun({mode: RunMode.POSTGRES});
+        await onClickRun({ mode: RunMode.POSTGRES });
       }
-  }, [onClickRun]);
+    },
+    [onClickRun]
+  );
 
-  const runOracleOption = React.useMemo(() => (
-    <div
-    style={{
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-    }}
-  >
-    <SVGIcon
-      width={20}
-      height={20}
-      name="database"
-      style={{ marginRight: 10 }}
-    />
-    <Typography>{"Run Oracle"}</Typography>
-  </div>
-  ), []);
+  const runOracleOption = React.useMemo(
+    () => (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <SVGIcon
+          width={20}
+          height={20}
+          name="database"
+          style={{ marginRight: 10 }}
+        />
+        <Typography>{"Run Oracle"}</Typography>
+      </div>
+    ),
+    []
+  );
 
-  const runPostgresOption = React.useMemo(() => (
-    <div
-    style={{
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-    }}
-  >
-    <SVGIcon
-      width={20}
-      height={20}
-      name="postgres"
-      fill="#9ba0a6"
-      style={{ marginRight: 10 }}
-    />
-    <Typography>{"Run Postgres"}</Typography>
-  </div>
-  ), []);
+  const runPostgresOption = React.useMemo(
+    () => (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <SVGIcon
+          width={20}
+          height={20}
+          name="postgres"
+          fill="#9ba0a6"
+          style={{ marginRight: 10 }}
+        />
+        <Typography>{"Run Postgres"}</Typography>
+      </div>
+    ),
+    []
+  );
 
-  const runOptions = React.useMemo(() => [runOracleOption, runPostgresOption], [runOracleOption, runPostgresOption]);
+  const runOptions = React.useMemo(() => [runOracleOption, runPostgresOption], [
+    runOracleOption,
+    runPostgresOption,
+  ]);
 
   return (
     <div className={clsx(classes.runnerContainer, className)} {...others}>
@@ -158,8 +173,8 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
         onSelectItem={handleSelectMenu}
         options={runOptions}
         containerStyle={{
-            marginLeft: 10,
-            marginRight: 10,
+          marginLeft: 10,
+          marginRight: 10,
         }}
       >
         <PlayArrowIcon

@@ -1,72 +1,285 @@
 use anyhow::Result;
-use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::time::Duration;
+use std::{error::Error, fmt};
 
-#[derive(Serialize, Deserialize)]
+use crate::utilities::find_position_line;
+
+use super::postgres::PostgresProxy;
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum DBType {
+    Oracle,
+    Postgres,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SQLResultSet {
-  row_count: usize,
-  columns: Option<Vec<String>>,
-  rows: Option<Vec<Vec<String>>>,
+    row_count: usize,
+    columns: Option<Vec<String>>,
+    rows: Option<Vec<Vec<String>>>,
 }
 
 impl SQLResultSet {
-  pub fn new(row_count: usize, columns: Option<Vec<String>>, rows: Option<Vec<Vec<String>>>) -> SQLResultSet {
-    SQLResultSet {
-      row_count,
-      columns,
-      rows,
+    pub fn new(
+        row_count: usize,
+        columns: Option<Vec<String>>,
+        rows: Option<Vec<Vec<String>>>,
+    ) -> SQLResultSet {
+        SQLResultSet {
+            row_count,
+            columns,
+            rows,
+        }
     }
-  }
+}
+#[derive(Clone, Serialize, Debug, Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum QueryErrorPoisition {
+    Original {
+        position: u32,
+        line: u32,
+    },
+    Internal {
+        position: u32,
+        query: String,
+        line: u32,
+    },
 }
 
-#[derive(Serialize, Deserialize)]
+impl From<&tokio_postgres::error::ErrorPosition> for QueryErrorPoisition {
+    fn from(err: &tokio_postgres::error::ErrorPosition) -> Self {
+        match err {
+            tokio_postgres::error::ErrorPosition::Original(position) => {
+                QueryErrorPoisition::Original {
+                    position: *position,
+                    line: 0,
+                }
+            }
+            tokio_postgres::error::ErrorPosition::Internal { position, query } => {
+                QueryErrorPoisition::Internal {
+                    position: *position,
+                    query: String::from(query),
+                    line: 0,
+                }
+            }
+        }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Default, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SQLError {
-  message: String,
+    action: Option<String>,
+    code: Option<String>,
+    column: Option<String>,
+    constraint: Option<String>,
+    data_type: Option<String>,
+    detail: Option<String>,
+    file: Option<String>,
+    fn_name: Option<String>,
+    hint: Option<String>,
+    line: Option<u32>,
+    message: String,
+    offset: Option<u16>,
+    position: Option<QueryErrorPoisition>,
+    routine: Option<String>,
+    schema: Option<String>,
+    severity: Option<String>,
+    table: Option<String>,
+    #[serde(rename = "where")]
+    where_: Option<String>,
+}
+
+impl fmt::Display for SQLError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SQL Error {}", &self.message)
+    }
+}
+
+impl Error for SQLError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
 }
 
 impl SQLError {
-  pub fn from(message: String) -> SQLError {
-    SQLError {
-      message
+    pub fn new(message: String) -> SQLError {
+        SQLError {
+            message,
+            ..Default::default()
+        }
     }
-  }
+
+    pub fn new_str(message: &str) -> Self {
+        SQLError {
+            message: String::from(message),
+            ..Default::default()
+        }
+    }
+
+    pub fn new_postgres_error(error: tokio_postgres::Error, statement: &str) -> Self {
+        let mut instance = SQLError::from(error);
+        match instance.position {
+            Some(QueryErrorPoisition::Original { position, line: _ }) => {
+                if !statement.is_empty() {
+                    let position_line = find_position_line(statement, position);
+                    instance.position = Some(QueryErrorPoisition::Original {
+                        position,
+                        line: position_line,
+                    });
+                }
+            }
+            Some(QueryErrorPoisition::Internal {
+                position,
+                query,
+                line: _,
+            }) => {
+                let position_line = find_position_line(&query, position);
+                instance.position = Some(QueryErrorPoisition::Internal {
+                    position,
+                    query,
+                    line: position_line,
+                })
+            }
+            None => {}
+        };
+        instance
+    }
+
+    pub fn get_code(&self) -> &Option<String> {
+        &self.code
+    }
+
+    pub fn message(&self) -> String {
+        self.message.clone()
+    }
 }
 
-#[derive(Serialize, Deserialize)]
+impl From<oracle::Error> for SQLError {
+    fn from(error: oracle::Error) -> Self {
+        match error {
+            oracle::Error::OciError(e) | oracle::Error::DpiError(e) => {
+                let message = String::from(e.message());
+                let action = if e.action().is_empty() {
+                    None
+                } else {
+                    Some(String::from(e.action()))
+                };
+                let code = if e.code() == 0 {
+                    None
+                } else {
+                    Some(e.code().to_string())
+                };
+                let fn_name = if e.fn_name().is_empty() {
+                    None
+                } else {
+                    Some(String::from(e.fn_name()))
+                };
+                let offset = if e.offset() == 0 {
+                    None
+                } else {
+                    Some(e.offset())
+                };
+
+                SQLError {
+                    message,
+                    action,
+                    code,
+                    fn_name,
+                    offset,
+                    ..Default::default()
+                }
+            }
+            _ => SQLError::new(error.to_string()),
+        }
+    }
+}
+
+fn opt_str_to_opt_string(opt_str: Option<&str>) -> Option<String> {
+    opt_str.map(|s| s.to_string())
+}
+
+impl From<tokio_postgres::Error> for SQLError {
+    fn from(error: tokio_postgres::Error) -> Self {
+        match PostgresProxy::map_to_db_error(error) {
+            Ok(db_err) => {
+                let code = Some(String::from(db_err.code().code()));
+                let column = opt_str_to_opt_string(db_err.column());
+                let constraint = opt_str_to_opt_string(db_err.constraint());
+                let data_type = opt_str_to_opt_string(db_err.datatype());
+                let detail = opt_str_to_opt_string(db_err.detail());
+                let file = opt_str_to_opt_string(db_err.file());
+                let hint = opt_str_to_opt_string(db_err.hint());
+                let line = db_err.line();
+                let message = db_err.message().to_string();
+                let position = db_err.position().map(|ep| QueryErrorPoisition::from(ep));
+                let routine = opt_str_to_opt_string(db_err.routine());
+                let schema = opt_str_to_opt_string(db_err.schema());
+                let severity = Some(db_err.severity().to_string());
+                let table = opt_str_to_opt_string(db_err.table());
+                let where_ = opt_str_to_opt_string(db_err.where_());
+
+                SQLError {
+                    code,
+                    column,
+                    constraint,
+                    data_type,
+                    detail,
+                    file,
+                    hint,
+                    line,
+                    message,
+                    position,
+                    routine,
+                    schema,
+                    severity,
+                    table,
+                    where_,
+                    ..Default::default()
+                }
+            }
+            Err(err) => SQLError::new(err.to_string()),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub enum SQLResult {
-  Result(Option<SQLResultSet>),
-  Error(SQLError),
+    Result(Option<SQLResultSet>),
+    Error(SQLError),
 }
 
 impl SQLResult {
-  pub fn new_result(result:Option<SQLResultSet>) -> SQLResult {
-    SQLResult::Result(result)
-  }
+    pub fn new_result(result: Option<SQLResultSet>) -> SQLResult {
+        SQLResult::Result(result)
+    }
 
-  pub fn new_error(error: SQLError) -> SQLResult {
-    SQLResult::Error(error)
-  }
+    pub fn new_error(error: SQLError) -> SQLResult {
+        SQLResult::Error(error)
+    }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SQLReponse {
-  success: bool,
-  elapsed: Duration,
-  result: Option<SQLResult>,
+    success: bool,
+    elapsed: Duration,
+    result: Option<SQLResult>,
 }
 
 impl SQLReponse {
-  pub fn new(success: bool, elapsed: Duration, result: SQLResult) -> SQLReponse {
-    SQLReponse {
-      success,
-      elapsed,
-      result: Some(result),
+    pub fn new(success: bool, elapsed: Duration, result: SQLResult) -> SQLReponse {
+        SQLReponse {
+            success,
+            elapsed,
+            result: Some(result),
+        }
     }
-  }
 }
 
 pub trait SQLClient<C> {
-  fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult>;
-  fn set_config(&mut self, config:C) -> Result<SQLResult>;
+    fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult>;
+    fn set_config(&mut self, config: C) -> Result<SQLResult>;
 }

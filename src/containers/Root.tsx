@@ -1,25 +1,24 @@
 /* eslint-disable import/no-webpack-loader-syntax */
-import React from "react";
 import CssBaseline from "@material-ui/core/CssBaseline";
+import Divider from "@material-ui/core/Divider";
 import { createStyles, withStyles } from "@material-ui/styles";
+import React from "react";
 import { connect } from "react-redux";
-
-import DiffEditor from "./DiffEditor";
-import QueryRunner from "./QueryRunner";
-import Navigator from "./Navigator";
-import Notification from "./Notification";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
 import RunnerResultPanel from "../features/runnerResult/RunnerResultPanel";
 import SchemaEditorView from "../features/schemaEditor/SchemaEditorView";
-import Divider from "@material-ui/core/Divider";
-import { RootState } from "../reducers";
 import SettingsPanel from "../features/settings/SettingsPanel";
+import { RootState } from "../reducers";
+import DiffEditor from "./DiffEditor";
+import Navigator from "./Navigator";
+import Notification from "./Notification";
+import QueryRunner from "./QueryRunner";
 
 const styles: any = () =>
   createStyles({
     rootContainer: {
-      height: "100vh",
+      height: "calc(100vh - 1px)",
       width: "100vw",
       display: "flex",
       flexDirection: "row",
@@ -27,7 +26,7 @@ const styles: any = () =>
     rightContainer: {
       display: "flex",
       flexDirection: "column",
-      height: "100vh",
+      height: "calc(100vh - 2px)",
       width: "80%",
       flex: 1,
     },

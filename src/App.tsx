@@ -1,8 +1,7 @@
-import React from "react";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
-import Root from "./containers/Root";
 import { Divider } from "@material-ui/core";
-
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import React from "react";
+import Root from "./containers/Root";
 import { initLogger } from "./core/logger";
 
 initLogger();

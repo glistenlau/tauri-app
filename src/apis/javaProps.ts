@@ -1,4 +1,5 @@
 import { requestAsync } from ".";
+import { SQLError } from "./sqlCommon";
 
 enum Action {
   SEARCH = "search",
@@ -10,20 +11,22 @@ export interface FilePropsMap {
   };
 }
 
+export interface ValidateResult {
+  status: "pass" | "warn" | "error";
+  error?: SQLError;
+}
+
 export interface PropsValidMap {
-  [propKey: string]: {
-    status: "pass" | "warn" | "error",
-    detail?: string,
-  }
+  [propKey: string]: ValidateResult;
 }
 
 export interface FilePropsValidMap {
-  [filePath: string]: PropsValidMap
+  [filePath: string]: PropsValidMap;
 }
 
 export interface JavaPropsResponse {
-  file_props_map: FilePropsMap,
-  file_props_valid_map: FilePropsValidMap,
+  file_props_map: FilePropsMap;
+  file_props_valid_map: FilePropsValidMap;
 }
 
 class FileSystem {
@@ -39,7 +42,10 @@ class FileSystem {
     }
   };
 
-  search = async (filePath: string, className: string): Promise<JavaPropsResponse> => {
+  search = async (
+    filePath: string,
+    className: string
+  ): Promise<JavaPropsResponse> => {
     return await this.sendRequest(Action.SEARCH, filePath, className);
   };
 }

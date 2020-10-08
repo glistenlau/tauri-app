@@ -1,13 +1,12 @@
+import { createStyles, makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import SideBarIcon from "./SideBarIcon";
-
-import { makeStyles, createStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
     sideBar: {
       width: 48,
-      height: "100vh",
+      height: "calc(100vh - 1px)",
       backgroundColor: "#424242",
       display: "flex",
       flexDirection: "column",

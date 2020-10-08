@@ -1,25 +1,25 @@
-import React from "react";
-import CodeIcon from "@material-ui/icons/Code";
-import SaveIcon from "@material-ui/icons/Save";
-import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
-import MTooltip from "@material-ui/core/Tooltip";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
+import { green, orange, purple } from "@material-ui/core/colors";
 import Divider from "@material-ui/core/Divider";
-import { green, purple, orange } from "@material-ui/core/colors";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
   makeStyles,
-  withStyles,
   Theme,
+  withStyles,
 } from "@material-ui/core/styles";
-import IconButton from "@material-ui/core/IconButton";
+import Switch from "@material-ui/core/Switch";
+import MTooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
-
-import ProcessIconButton from "./ProgressIconButton";
+import CodeIcon from "@material-ui/icons/Code";
+import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
+import SaveIcon from "@material-ui/icons/Save";
+import React, { useMemo } from "react";
+import { ValidateResult } from "../apis/javaProps";
 import RunnerControlToolBar from "../features/runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../features/transactionControl/TransactionControlToolBar";
+import ProcessIconButton from "./ProgressIconButton";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -97,7 +97,7 @@ export interface EditorToolBarPropsType {
   onClickFormat: any;
   onClickRun: any;
   onClickSave: any;
-  validateResult: any;
+  validateResult?: ValidateResult;
 }
 
 function EditorToolBar(props: EditorToolBarPropsType) {
@@ -112,8 +112,29 @@ function EditorToolBar(props: EditorToolBarPropsType) {
   } = props;
 
   const classes = useStyles();
-  const validateMessage =
-    validateResult && validateResult.error && validateResult.error.message;
+  const validateMessage = useMemo(() => {
+    if (
+      !validateResult ||
+      validateResult.status === "pass" ||
+      !validateResult.error
+    ) {
+      return null;
+    }
+
+    const errorParts = [];
+
+    for (const [key, value] of Object.entries(validateResult.error)) {
+      if (value == null) {
+        continue;
+      }
+
+      const value_str =
+        typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      errorParts.push(`${key}: ${value_str}`);
+    }
+
+    return errorParts.join("\r\n\r\n");
+  }, [validateResult]);
 
   return (
     <div className={classes.buttonContainer}>

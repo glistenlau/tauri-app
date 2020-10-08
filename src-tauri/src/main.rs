@@ -6,6 +6,7 @@ mod cmd;
 mod handlers;
 mod proxies;
 mod core;
+mod utilities;
 
 fn main() {
   match core::log::setup_logger() {

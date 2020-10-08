@@ -4,14 +4,15 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
+use std::ops::{Deref, DerefMut};
 use tokio::{runtime::Runtime, spawn};
 use tokio_postgres::{error::DbError, Client, Error, NoTls};
 
-use super::sql_common::{SQLClient, SQLResult, SQLResultSet};
+use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
 
 pub struct QueryVlidationResult {
     pub pass: bool,
-    pub error: Option<DbError>,
+    pub error: Option<SQLError>,
 }
 
 impl QueryVlidationResult {
@@ -19,11 +20,11 @@ impl QueryVlidationResult {
         QueryVlidationResult::new(true, None)
     }
 
-    fn new_fail_err(error: DbError) -> QueryVlidationResult {
+    fn new_fail_err(error: SQLError) -> QueryVlidationResult {
         QueryVlidationResult::new(false, Some(error))
     }
 
-    fn new(pass: bool, error: Option<DbError>) -> QueryVlidationResult {
+    fn new(pass: bool, error: Option<SQLError>) -> QueryVlidationResult {
         QueryVlidationResult { pass, error }
     }
 }
@@ -60,6 +61,21 @@ pub struct PostgresProxy {
     config: ConnectionConfig,
     client: Option<Arc<Mutex<Client>>>,
 }
+
+// impl Deref for PostgresProxy {
+//     type Target = Self;
+
+//     fn deref(&self) -> &Self::Target {
+//         &self
+//     }
+// }
+
+// impl DerefMut for PostgresProxy {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         &mut self
+//     }
+// }
+
 
 impl PostgresProxy {
     const fn new(config: ConnectionConfig) -> PostgresProxy {
@@ -126,25 +142,13 @@ impl PostgresProxy {
         match client.prepare(&mapped_stmt).await {
             Ok(_) => Ok(QueryVlidationResult::new_pass()),
             Err(e) => {
-                if e.code().is_none() {
-                    // Not a db error, throw it.
-                    return Err(e);
-                }
-
-                let db_err_opt: Option<Result<Box<DbError>, _>> = e
-                    .into_source()
-                    .and_then(|se| Some(se.downcast::<DbError>()));
-
-                if let Some(Ok(db_err)) = db_err_opt {
-                    Ok(QueryVlidationResult::new_fail_err(*db_err))
-                } else {
-                    panic!("expected to get a DbError, but failed, something was wrong...")
-                }
+                let sql_error = SQLError::new_postgres_error(e, &mapped_stmt);
+                Ok(QueryVlidationResult::new_fail_err(sql_error))
             }
         }
     }
 
-    async fn execute_statement(stmt: &str, client: &Client) -> Result<SQLResultSet, Error> {
+    async fn execute(stmt: &str, client: &Client) -> Result<SQLResultSet, Error> {
         let rsp = client.simple_query(stmt).await?;
         let mut row_count = 0;
 
@@ -177,6 +181,60 @@ impl PostgresProxy {
         ))
     }
 
+    async fn execute_wrap(stmt: &str, client: &Client) -> Result<SQLResultSet, SQLError> {
+        match Self::execute(stmt, client).await {
+            Ok(rs) => Ok(rs),
+            Err(err) => Err(SQLError::new_postgres_error(err, stmt)),
+        }
+    }
+
+    pub async fn execute_mapped_statement(
+        stmt: &str,
+        params: Option<&[&String]>,
+        client: &Client,
+    ) -> Result<SQLResultSet, SQLError> {
+        let s = match params {
+            Some(ps) => {
+                let mut filled_stmt = String::with_capacity(stmt.len());
+                let mut stmt_iter = stmt.split("?");
+                let mut params_iter = ps.iter();
+
+                filled_stmt.push_str(stmt_iter.next().unwrap_or_default());
+
+                while let (Some(part), Some(param)) = (stmt_iter.next(), params_iter.next()) {
+                    filled_stmt.push_str(param);
+                    filled_stmt.push_str(part);
+                }
+                if (stmt_iter.next(), params_iter.next()) != (None, None) {
+                    return Err(SQLError::new(
+                        "parameters are not matched with the statement...".to_string(),
+                    ));
+                }
+                String::from(filled_stmt)
+            }
+            None => String::from(stmt),
+        };
+        
+        Self::execute_wrap(&s, client).await
+    }
+
+    pub fn map_to_db_error(error: Error) -> Result<DbError, Error> {
+        if error.code().is_none() {
+            // Not a db error, throw it.
+            return Err(error);
+        }
+
+        let db_err_opt: Option<Result<Box<DbError>, _>> = error
+            .into_source()
+            .and_then(|se| Some(se.downcast::<DbError>()));
+
+        if let Some(Ok(db_err)) = db_err_opt {
+            Ok(*db_err)
+        } else {
+            panic!("expected to get a DbError, but failed, something was wrong...")
+        }
+    }
+
     fn map_params(params: &[Value]) -> Result<Vec<String>> {
         let mut mapped_params = Vec::with_capacity(params.len());
         for param in params {
@@ -186,7 +244,7 @@ impl PostgresProxy {
         Ok(mapped_params)
     }
 
-    fn map_param(param: &Value) -> Result<String> {
+    pub fn map_param(param: &Value) -> Result<String> {
         let mapped_param = match param {
             Value::Null => String::from("null"),
             Value::Bool(val) => val.to_string(),
@@ -216,39 +274,32 @@ impl PostgresProxy {
 impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
     fn execute<'b>(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
         log::debug!("start executing postgres statement...");
-        let stmt;
-        if parameters.len() > 0 {
-            let mut filled_stmt = String::with_capacity(statement.len());
-            let mut stmt_iter = statement.split("?");
-            let mapped_params = match Self::map_params(parameters) {
-                Ok(mapped_params) => mapped_params,
-                Err(e) => {
-                    return Err(anyhow!("map parameters error: {}", e));
-                }
-            };
-            let mut params_iter = mapped_params.iter();
 
-            filled_stmt.push_str(stmt_iter.next().unwrap_or_default());
-
-            while let (Some(part), Some(param)) = (stmt_iter.next(), params_iter.next()) {
-                filled_stmt.push_str(param);
-                filled_stmt.push_str(part);
-            }
-            if (stmt_iter.next(), params_iter.next()) != (None, None) {
-                return Err(anyhow!("parameters are not matched with the statement..."));
-            }
-            stmt = String::from(filled_stmt);
-        } else {
-            stmt = String::from(statement);
-        }
 
         POSTGRES_RUNTIME.lock().unwrap().block_on(async {
             let client = self.get_connection().await?;
             let client_lock = client.lock().unwrap();
+            let mapped_params: Vec<String> = if parameters.len() > 0 {
+                match Self::map_params(parameters) {
+                    Ok(mapped_params) => mapped_params,
+                    Err(e) => {
+                        return Err(anyhow!("map parameters error: {}", e));
+                    }
+                }
+            } else {
+                vec![]
+            };
+            let mut mapped_params_ref: Vec<&String> = vec![];
 
-            match Self::execute_statement(&stmt, &client_lock).await {
+            for i in 0..mapped_params.len() {
+                mapped_params_ref.push(mapped_params.get(i).unwrap())
+            }
+
+            match Self::execute_mapped_statement(&statement, Some(&mapped_params_ref), &client_lock)
+                .await
+            {
                 Ok(rs) => Ok(SQLResult::new_result(Some(rs))),
-                Err(e) => Err(anyhow!("postgres error: {}", e)),
+                Err(e) => Ok(SQLResult::new_error(e)),
             }
         })
     }
@@ -258,7 +309,7 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
             self.config = config;
             match self.get_connection().await {
                 Ok(_) => Ok(SQLResult::new_result(None)),
-                Err(e) => Err(anyhow!(e.to_string())),
+                Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
             }
         })
     }
@@ -274,4 +325,8 @@ lazy_static! {
 
 pub fn get_proxy() -> Arc<Mutex<PostgresProxy>> {
     Arc::clone(&INSTANCE)
+}
+
+pub fn get_runtime() -> Arc<Mutex<Runtime>> {
+    Arc::clone(&POSTGRES_RUNTIME)
 }

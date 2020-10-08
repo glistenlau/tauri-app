@@ -1,39 +1,33 @@
-import { createStyles, withStyles } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
+import { createStyles, withStyles } from "@material-ui/core/styles";
 import React from "react";
-import { Resizable } from "re-resizable";
 import { connect } from "react-redux";
 import {
+  changeLeftPanelWidth,
+  changePropValue,
   changeSearchClassName,
   changeSearchFilePath,
   openParameterModal,
   saveProp,
+  scanRunQuery,
   searchProps,
   selectClassName,
   selectPropKey,
-  changePropValue,
-  scanRunQuery,
-  changeLeftPanelWidth,
   showNotification,
 } from "../actions";
-import ClassSelect from "../components/ClassSelect";
-import EditorToolBar from "../components/EditorToolBar";
-import PropNameList from "../components/PropNameList";
-import PropsSearchView from "../features/propsEditor/PropsSearchView";
-import PropsEditorView from "../features/propsEditor/PropsEditorView";
-import SplitEditor from "../components/SplitEditor";
-import { format } from "../core/formatter";
-
-import { getParameterMarkerPosition } from "../util";
-import { evaluateParamsPair } from "../core/parameterEvaluator";
 import CopyDialog from "../components/CopyDialog";
 import SaveDialog from "../components/SaveDialog";
+import { format } from "../core/formatter";
+import { evaluateParamsPair } from "../core/parameterEvaluator";
+import EditorToolBarView from "../features/propsEditor/EditorToolBarView";
+import PropsEditorView from "../features/propsEditor/PropsEditorView";
+import SplitEditorView from "../features/propsEditor/SplitEditorView";
 import {
-  changeSortResults,
   changeSchema,
+  changeSortResults,
 } from "../features/runnerControl/runnerControlSlice";
 import { RootState } from "../reducers";
-import SplitEditorView from "../features/propsEditor/SplitEditorView";
+import { getParameterMarkerPosition } from "../util";
 
 const styles: any = (theme: any) =>
   createStyles({
@@ -251,7 +245,7 @@ class DiffEditor extends React.Component<any, any> {
       storedParams.oracle.length !== oraParams.length ||
       storedParams.postgres.length !== pgParams.length
     ) {
-      const extraParams:any = null;
+      const extraParams: any = null;
       if (
         extraParams?.oracle?.length === oraParams.length &&
         storedParams?.oracle?.length !== oraParams.length
@@ -444,15 +438,7 @@ class DiffEditor extends React.Component<any, any> {
           <Divider orientation="vertical" flexItem />
 
           <div className={classes.rightContainer}>
-            <EditorToolBar
-              diff={diffCode}
-              onClickCopy={this.handleClickCopy}
-              onClickFormat={this.handleClickFormat}
-              onClickDiff={this.handleToggleDiffCode}
-              onClickRun={this.handleClickRun}
-              onClickSave={this.handleClickSave}
-              validateResult={propValidateResult}
-            />
+            <EditorToolBarView />
             <Divider />
             <SaveDialog
               id="save-confirm-dialog"

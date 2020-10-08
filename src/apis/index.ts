@@ -1,5 +1,4 @@
-import {promisified} from "tauri/api/tauri";
-import { RSA_NO_PADDING } from "constants";
+import { promisified } from "tauri/api/tauri";
 
 export const requestAsync = async (handlerName: string, action: any, payload: any) => {
   const args = {

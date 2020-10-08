@@ -1,14 +1,13 @@
-import React from "react";
 import { createStyles, withStyles } from "@material-ui/styles";
+import React from "react";
 import { connect } from "react-redux";
-
 import { changeActiveView } from "../actions";
 import SideBar from "../components/SideBar";
 
 const styles: any = (theme: any) =>
   createStyles({
     rootContainer: {
-      height: "100vh",
+      height: "calc(100vh - 1px)",
       width: "100vw",
       display: "flex",
       flexDirection: "row",
