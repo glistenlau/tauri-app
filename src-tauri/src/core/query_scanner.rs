@@ -144,10 +144,13 @@ impl<'a> QueryScanner<'a> {
             .lock()
             .unwrap()
             .block_on(async {
+                log::debug!("got postgres runtime lock.");
                 let proxy_lock = crate::proxies::postgres::get_proxy();
                 let mut proxy = proxy_lock.lock().unwrap();
+                log::debug!("got postgres proxy lock.");
                 let client_lock = proxy.get_connection().await?;
                 let client = client_lock.lock().unwrap();
+                log::debug!("got postgres connection lock.");
                 crate::proxies::postgres::PostgresProxy::execute_mapped_statement(
                     &self.statement,
                     next_params.as_deref(),

@@ -1,57 +1,102 @@
 use std::{
-    cell::RefCell, collections::HashMap, sync::atomic::AtomicBool, sync::atomic::Ordering,
-    sync::mpsc, sync::Arc, sync::Mutex, thread,
+    cell::RefCell,
+    collections::HashMap,
+    sync::atomic::AtomicBool,
+    sync::atomic::Ordering,
+    sync::mpsc,
+    sync::Arc,
+    thread,
+    time::{self, Duration, Instant},
 };
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::sql_common::{SQLError, SQLResult};
+use super::sql_common::{SQLError, SQLResult, SQLResultSet};
 use crate::{
     core::parameter_iterator::DBParamIter, core::parameter_iterator::ParameterIterator,
     core::query_scanner::QueryScanner, handlers::query_runner::Query,
 };
 use anyhow::Result;
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ProgressInfo {
-    schema: String,
-    parameters: Option<Vec<Value>>,
+
+#[derive(Clone, Serialize, Debug)]
+pub struct ProgressMessage<'a> {
+    schema: &'a str,
+    index: usize,
+    parameters: Option<&'a Vec<Value>>,
     finished: usize,
+    pending: usize,
     total: usize,
 }
 
-impl ProgressInfo {
+impl<'a> ProgressMessage<'a> {
     pub fn new(
-        schema: String,
-        parameters: Option<Vec<Value>>,
+        schema: &'a str,
+        index: usize,
+        parameters: Option<&'a Vec<Value>>,
         finished: usize,
+        pending: usize,
         total: usize,
     ) -> Self {
         Self {
             schema,
+            index,
             parameters,
             finished,
+            pending,
             total,
         }
     }
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct ProgressInfo {
+    finished: usize,
+    total: usize,
+    pending: usize,
+    elapsed: Duration,
+}
+
+impl ProgressInfo {
+    pub fn new(finished: usize, total: usize, pending: usize, elapsed: Duration) -> Self {
+        Self {
+            finished,
+            total,
+            pending,
+            elapsed,
+        }
+    }
+}
+
+enum Message {
+    FinishQuery(
+        usize,
+        Result<SQLResultSet, SQLError>,
+        Option<Vec<Value>>,
+        usize,
+        Duration,
+    ),
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResultPerSchema {
     progress: ProgressInfo,
+    parameters: Option<Vec<Value>>,
     results: Option<SQLResult>,
 }
 
 impl ResultPerSchema {
     pub fn new(
-        schema: String,
         parameters: Option<Vec<Value>>,
         results: Option<SQLResult>,
         finished: usize,
+        pending: usize,
         total: usize,
+        elapsed: Duration,
     ) -> Self {
         Self {
-            progress: ProgressInfo::new(schema, parameters, finished, total),
+            progress: ProgressInfo::new(finished, total, pending, elapsed),
+            parameters,
             results,
         }
     }
@@ -59,14 +104,15 @@ impl ResultPerSchema {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RunResults {
+    #[serde(flatten)]
     results: HashMap<String, Vec<Option<ResultPerSchema>>>,
 }
 
-pub fn scan_queries(schemas: Vec<String>, queries: Vec<Query>) -> RunResults {
+pub fn scan_queries(schemas: Vec<String>, queries: Vec<Query>, diff_results: bool) -> RunResults {
     let mut results = HashMap::with_capacity(schemas.len());
     for schema in schemas {
         let queries_arc = queries.iter().map(|q| Arc::new(q.clone())).collect();
-        let schema_result = scan_schema_queries(schema.clone(), queries_arc);
+        let schema_result = scan_schema_queries(schema.clone(), queries_arc, diff_results);
         results.insert(schema.clone(), schema_result);
     }
 
@@ -76,8 +122,9 @@ pub fn scan_queries(schemas: Vec<String>, queries: Vec<Query>) -> RunResults {
 pub fn scan_schema_queries(
     schema: String,
     queries: Arc<[Arc<Query>]>,
+    diff_results: bool,
 ) -> Vec<Option<ResultPerSchema>> {
-    let (sender, receiver) = mpsc::channel();
+    let (sender, receiver) = mpsc::channel::<Message>();
     let stop = Arc::new(AtomicBool::new(false));
     log::debug!("start schema queries scan...");
 
@@ -138,7 +185,13 @@ pub fn scan_schema_queries(
                 }
                 Err(err) => {
                     log::debug!("map params iterator failed: {}", err);
-                    tx.send((i, Err(err), None, 0, 0));
+                    tx.send(Message::FinishQuery(
+                        i,
+                        Err(err),
+                        None,
+                        0,
+                        Duration::default(),
+                    ));
                     return;
                 }
             };
@@ -148,19 +201,22 @@ pub fn scan_schema_queries(
                     .unwrap();
             while !stop.load(Ordering::Acquire) {
                 log::debug!(
-                    "scan params, finished: {}, total: {}, drained: {}",
+                    "{} scan params, finished: {}, total: {}, drained: {}",
+                    i,
                     query_scanner.finished(),
                     query_scanner.total(),
                     query_scanner.drained()
                 );
+                let now = Instant::now();
                 match query_scanner.next() {
                     Some(rs) => {
-                        let messge = (
+                        let elapsed = now.elapsed();
+                        let messge = Message::FinishQuery(
                             i,
                             rs,
                             query_scanner.current_params(),
-                            query_scanner.finished(),
                             query_scanner.total(),
+                            elapsed,
                         );
                         if !stop.load(Ordering::Acquire) {
                             tx.send(messge).unwrap();
@@ -170,42 +226,127 @@ pub fn scan_schema_queries(
                 }
             }
 
-            log::debug!("finished scan query: {:#?}", queries_clone);
+            log::debug!("{} finished scan query.", i);
         });
     }
 
-    let mut query_results = Vec::with_capacity(queries.len());
-    for _ in 0..queries.len() {
-        query_results.push(None);
-    }
+    let mut query_results = vec![vec![]; queries.len()];
+    let mut final_results = vec![None; queries.len()];
+    let mut progress_vec: Vec<Option<RefCell<ProgressInfo>>> = vec![None; queries.len()];
 
-    for (i, rs, cur_params, finished, total) in receiver {
-        log::debug!("receive message.");
-        let sql_result = match rs {
-            Ok(rs) => SQLResult::new_result(Some(rs)),
-            Err(err) => {
-                stop.store(true, Ordering::Release);
-                SQLResult::new_error(err)
+    for msg in receiver {
+        match msg {
+            Message::FinishQuery(i, rs, cur_params, total, elapsed) => {
+                let sql_result = match rs {
+                    Ok(rs) => SQLResult::new_result(Some(rs)),
+                    Err(err) => {
+                        stop.store(true, Ordering::Release);
+                        SQLResult::new_error(err)
+                    }
+                };
+
+                let (pending_delta, finished_delta) = if diff_results { (1, 0) } else { (0, 1) };
+
+                match progress_vec.get(i).unwrap() {
+                    Some(progress) => {
+                        let mut progress_mut = progress.borrow_mut();
+                        progress_mut.finished += finished_delta;
+                        progress_mut.pending += pending_delta;
+                        progress_mut.elapsed += elapsed;
+                    }
+                    None => {
+                        progress_vec[i] = Some(RefCell::new(ProgressInfo::new(
+                            finished_delta,
+                            total,
+                            pending_delta,
+                            elapsed,
+                        )));
+                    }
+                };
+                let progress = progress_vec[i].as_ref().unwrap().borrow();
+                emit_progress(
+                    &schema,
+                    i,
+                    &cur_params,
+                    progress.finished,
+                    progress.pending,
+                    progress.total,
+                );
+
+                let scan_result = (cur_params, sql_result);
+
+                if !diff_results {
+                    final_results[i] = Some(scan_result);
+                } else {
+                    query_results[i].push(scan_result);
+                }
             }
-        };
+        }
+        log::debug!("receive message.");
 
-        let scan_result = ResultPerSchema::new(
-            schema.clone(),
-            cur_params,
-            Some(sql_result),
-            finished,
-            total,
-        );
-        query_results[i] = Some(scan_result);
+        let all_finished = progress_vec.iter().all(|p| {
+            p.as_ref().map_or(false, |p| {
+                let p_ref = p.borrow();
+                if p_ref.total == p_ref.finished {
+                    if p_ref.pending != 0 {
+                        panic!("shouldn't have pending when all finished...");
+                    }
+
+                    return true;
+                }
+                false
+            })
+        });
+
+        if all_finished {
+            stop.store(true, Ordering::Release);
+        } else {
+        }
+
         if stop.load(Ordering::Acquire) {
             break;
         }
-        if query_results.iter().all(|qr| qr.is_some()) {
-            break;
-        }
     }
 
-    log::debug!("finish schema queries scan {:#?}", query_results);
+    log::debug!("finish schema queries scan.");
 
-    query_results
+    final_results
+        .drain(..)
+        .enumerate()
+        .map(|(i, fr_opt)| match fr_opt {
+            Some((params, result)) => {
+                let progress = progress_vec[i].as_ref().unwrap().borrow();
+                let finished = progress.finished;
+                let pending = progress.pending;
+                let total = progress.total;
+                let elapsed = progress.elapsed;
+
+                Some(ResultPerSchema::new(
+                    params,
+                    Some(result),
+                    finished,
+                    pending,
+                    total,
+                    elapsed,
+                ))
+            }
+            None => None,
+        })
+        .collect()
+}
+
+fn emit_progress(
+    schema: &str,
+    index: usize,
+    cur_params: &Option<Vec<Value>>,
+    finished: usize,
+    pending: usize,
+    total: usize,
+) {
+    let emitter_lock = crate::event::get_emitter();
+    let mut emitter = emitter_lock.lock().unwrap();
+    emitter.emit(
+        "scan_query_progress",
+        Some(ProgressMessage::new(schema, index, cur_params.as_ref(), finished, pending, total)),
+    );
 }

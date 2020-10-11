@@ -1,10 +1,11 @@
 import React, { useCallback, useMemo } from "react";
-import { useSelector } from "react-redux";
-import queryRunner from "../../apis/queryRunner";
+import { useDispatch, useSelector } from "react-redux";
 import EditorToolBar from "../../components/EditorToolBar";
 import { RootState } from "../../reducers";
+import { setOpenModal } from "../queryScan/queryScanSlice";
 
 const EditorToolBarView = () => {
+  const dispatch = useDispatch();
   const propsValidateMap = useSelector(
     (rootState: RootState) => rootState.propsEditor.propsValidateMap
   );
@@ -24,10 +25,9 @@ const EditorToolBarView = () => {
     return selectedProps[selectedPropName];
   }, [propsValidateMap, selectedClassName, selectedPropName]);
 
-  const handleClickRun = useCallback(async () => {
-    const result = await queryRunner.getAllSchemas();
-    console.log(result);
-  }, []);
+  const handleClickRun = useCallback(() => {
+    dispatch(setOpenModal(true));
+  }, [dispatch]);
 
   return (
     <EditorToolBar

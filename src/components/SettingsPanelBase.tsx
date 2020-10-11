@@ -1,14 +1,12 @@
-import React from "react";
-
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import ExpansionPanelActions from "@material-ui/core/ExpansionPanelActions";
-import Divider from "@material-ui/core/Divider";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionActions from "@material-ui/core/AccordionActions";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
 import Button from "@material-ui/core/Button";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import Divider from "@material-ui/core/Divider";
 import Typography from "@material-ui/core/Typography";
-
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import React from "react";
 import SVGIcon from "./SVGIcon";
 
 const SettingsPanelBase = React.memo(
@@ -30,8 +28,8 @@ const SettingsPanelBase = React.memo(
     }, [onSubmit]);
 
     return (
-      <ExpansionPanel>
-        <ExpansionPanelSummary
+      <Accordion>
+        <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls={title}
           id={title}
@@ -52,27 +50,27 @@ const SettingsPanelBase = React.memo(
             />
             <Typography>{title}</Typography>
           </div>
-        </ExpansionPanelSummary>
-        <ExpansionPanelDetails>{children(disabled)}</ExpansionPanelDetails>
+        </AccordionSummary>
+        <AccordionDetails>{children(disabled)}</AccordionDetails>
         <Divider />
         {!disabled && (
-          <ExpansionPanelActions>
+          <AccordionActions>
             <Button size="small" onClick={handleClickCancel}>
               Cancel
             </Button>
             <Button size="small" onClick={handleClickOK} color="primary">
               Save
             </Button>
-          </ExpansionPanelActions>
+          </AccordionActions>
         )}
         {disabled && (
-          <ExpansionPanelActions>
+          <AccordionActions>
             <Button size="small" color="primary" onClick={handleClickEdit}>
               Edit
             </Button>
-          </ExpansionPanelActions>
+          </AccordionActions>
         )}
-      </ExpansionPanel>
+      </Accordion>
     );
   }
 );

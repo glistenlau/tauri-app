@@ -71,7 +71,7 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<ResponseBod
     match action {
         Action::Search => {
             let file_props_map = load_props(&filepath, &classname)?;
-
+            log::debug!("found {} property files.", file_props_map.len());
             let queries_to_validate: HashMap<String, HashMap<String, ValidateResult>> =
                 file_props_map
                     .iter()
@@ -117,6 +117,7 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<ResponseBod
 
 fn generate_stmts_results(stmt_list: Vec<&str>) -> Vec<ValidateResult> {
     let size = stmt_list.len();
+    log::debug!("validating {} queries.", size);
     match PostgresProxy::validate_stmts(stmt_list) {
         Ok(mut validate_result) => validate_result
             .drain(..)

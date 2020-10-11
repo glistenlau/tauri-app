@@ -6,6 +6,7 @@ import React from "react";
 import { connect } from "react-redux";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
+import QueryScanModal from "../features/queryScan/QueryScanModal";
 import RunnerResultPanel from "../features/runnerResult/RunnerResultPanel";
 import SchemaEditorView from "../features/schemaEditor/SchemaEditorView";
 import SettingsPanel from "../features/settings/SettingsPanel";
@@ -13,7 +14,6 @@ import { RootState } from "../reducers";
 import DiffEditor from "./DiffEditor";
 import Navigator from "./Navigator";
 import Notification from "./Notification";
-import QueryRunner from "./QueryRunner";
 
 const styles: any = () =>
   createStyles({
@@ -56,7 +56,7 @@ class Root extends React.Component<any, any> {
           <SchemaEditorView active={activeView === 2} />
           <SettingsPanel active={activeView === 3} />
         </div>
-        <QueryRunner />
+        <QueryScanModal />
         <Notification />
         <ExitDialog open={showClosingDialog} />
       </div>

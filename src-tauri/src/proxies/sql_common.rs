@@ -14,7 +14,7 @@ pub enum DBType {
     Postgres,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SQLResultSet {
     row_count: usize,
     columns: Option<Vec<String>>,
@@ -245,7 +245,7 @@ impl From<tokio_postgres::Error> for SQLError {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum SQLResult {
     Result(Option<SQLResultSet>),

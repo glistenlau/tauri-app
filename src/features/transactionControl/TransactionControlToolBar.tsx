@@ -1,21 +1,21 @@
-import React from "react";
-import clsx from "clsx";
-import SettingsBackupRestoreIcon from "@material-ui/icons/SettingsBackupRestore";
-import TextField from "@material-ui/core/TextField";
-import { purple, cyan, pink } from "@material-ui/core/colors";
+import { ListSubheader, MenuItem } from "@material-ui/core";
+import { cyan, pink, purple } from "@material-ui/core/colors";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import { MenuItem, ListSubheader } from "@material-ui/core";
-
-import databaseConsole from "../../core/databaseConsole";
+import TextField from "@material-ui/core/TextField";
+import SettingsBackupRestoreIcon from "@material-ui/icons/SettingsBackupRestore";
+import clsx from "clsx";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import ProcessIconButton from "../../components/ProgressIconButton";
 import SVGIcon from "../../components/SVGIcon";
-import { useDispatch, useSelector } from "react-redux";
+import databaseConsole from "../../core/databaseConsole";
+import { RootState } from "../../reducers";
 import {
   changeTransactionMode,
   changeUncommitCount,
   TransactionMode,
 } from "./transactionControlSlice";
-import { RootState } from "../../reducers";
+
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) =>
     },
     select: {
       backgroundColor: theme.palette.background.paper,
-      width: 100,
+      width: 150,
     },
     commit: {
       color: purple[500],

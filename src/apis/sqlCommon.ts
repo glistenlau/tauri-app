@@ -25,6 +25,17 @@ export interface SQLError {
   where?: string;
 }
 
+export interface SQLResultSet {
+  rowCount: number;
+  columns?: string[];
+  rows?: [string[]];
+}
+
+export interface SQLResult {
+  result?: SQLResultSet;
+  error?: SQLError;
+}
+
 enum Action {
   ExecuteStatement = "executeStatement",
   SetConfig = "setConfig",

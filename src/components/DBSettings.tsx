@@ -1,19 +1,23 @@
-import React from "react";
-import TextField from "@material-ui/core/TextField";
-
+import Accordion from "@material-ui/core/Accordion";
+import AccordionActions from "@material-ui/core/AccordionActions";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import Button from "@material-ui/core/Button";
+import Divider from "@material-ui/core/Divider";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import React from "react";
+import {
+  isOracleSettings,
+  OracleSettings,
+  PostgreSettings,
+} from "../features/settings/settingsSlice";
 import SVGIcon from "./SVGIcon";
 
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import ExpansionPanelActions from "@material-ui/core/ExpansionPanelActions";
-import Divider from "@material-ui/core/Divider";
-import Button from "@material-ui/core/Button";
 
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import Typography from "@material-ui/core/Typography";
-import { OracleSettings, PostgreSettings, isOracleSettings } from "../features/settings/settingsSlice";
+
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -84,8 +88,8 @@ const DBSettings = ({onChange, title, value}: DBSettingsProps) => {
   }, [value]);
 
   return (
-    <ExpansionPanel>
-      <ExpansionPanelSummary
+    <Accordion>
+      <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls={title}
         id={title}
@@ -106,8 +110,8 @@ const DBSettings = ({onChange, title, value}: DBSettingsProps) => {
           />
           <Typography>{title}</Typography>
         </div>
-      </ExpansionPanelSummary>
-      <ExpansionPanelDetails>
+      </AccordionSummary>
+      <AccordionDetails>
         <div className={classes.container}>
           <div className={classes.hostContainer}>
             <TextField
@@ -168,26 +172,26 @@ const DBSettings = ({onChange, title, value}: DBSettingsProps) => {
             margin="dense"
           />
         </div>
-      </ExpansionPanelDetails>
+      </AccordionDetails>
       <Divider />
       {!disabled && (
-        <ExpansionPanelActions>
+        <AccordionActions>
           <Button size="small" onClick={handleClickCancel}>
             Cancel
           </Button>
           <Button size="small" onClick={handleClickOK} color="primary">
             Save
           </Button>
-        </ExpansionPanelActions>
+        </AccordionActions>
       )}
       {disabled && (
-        <ExpansionPanelActions>
+        <AccordionActions>
           <Button size="small" color="primary" onClick={handleClickEdit}>
             Edit
           </Button>
-        </ExpansionPanelActions>
+        </AccordionActions>
       )}
-    </ExpansionPanel>
+    </Accordion>
   );
 };
 

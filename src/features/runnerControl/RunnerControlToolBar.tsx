@@ -1,17 +1,18 @@
-import { Typography } from "@material-ui/core";
+import { MenuItem } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
+import RefreshIcon from "@material-ui/icons/Refresh";
 import clsx from "clsx";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { showNotification } from "../../actions";
-import ProgressSplitIconButton from "../../components/ProgressSplitIconButton";
+import styled from "styled-components";
+import QueryRunner from "../../apis/queryRunner";
+import ProcessIconButton from "../../components/ProgressIconButton";
 import SVGIcon from "../../components/SVGIcon";
-import databaseConsole from "../../core/databaseConsole";
 import { RootState } from "../../reducers";
-import { changeSchema } from "./runnerControlSlice";
+import { changeSchema, setSchemas } from "./runnerControlSlice";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -36,6 +37,18 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
+const RefreshContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+`;
+
+const SchemaTextField = styled(TextField)`
+  margin-left: 10px;
+  width: 200px;
+`;
+
 export enum RunMode {
   DUAL,
   ORACLE,
@@ -58,31 +71,18 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const schema = useSelector((state: RootState) => state.runnerControl.schema);
+  const schemas = useSelector(
+    (state: RootState) => state.runnerControl.schemas
+  );
+
   const isRunning = useSelector(
     (state: RootState) => state.runnerControl.isRunning
   );
-  const [schemaValue, setSchemaValue] = React.useState(schema);
 
-  const handleChangeSchema = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setSchemaValue(value);
-    },
-    []
-  );
-
-  React.useEffect(() => {
-    setSchemaValue(schema);
-  }, [schema]);
-
-  const handleBlur = React.useCallback(() => {
-    dispatch(changeSchema(schemaValue));
-    try {
-      databaseConsole.setSchema(schemaValue);
-    } catch (e) {
-      dispatch(showNotification("Set schema failed.", "error"));
-    }
-  }, [dispatch, schemaValue]);
+  const fetchSchemas = useCallback(async () => {
+    const schemas = await QueryRunner.getAllSchemas();
+    dispatch(setSchemas(schemas));
+  }, [dispatch]);
 
   const handleClickRun = React.useCallback(async () => {
     try {
@@ -92,96 +92,109 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
     }
   }, [onClickRun]);
 
-  const handleSelectMenu = React.useCallback(
-    async (index) => {
-      if (index === 0) {
-        await onClickRun({ mode: RunMode.ORACLE });
-      } else {
-        await onClickRun({ mode: RunMode.POSTGRES });
-      }
+  const handleSchemaChange = useCallback(
+    (e) => {
+      e.preventDefault();
+      dispatch(changeSchema(e.target.value));
     },
-    [onClickRun]
+    [dispatch]
   );
 
-  const runOracleOption = React.useMemo(
-    () => (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <SVGIcon
-          width={20}
-          height={20}
-          name="database"
-          style={{ marginRight: 10 }}
-        />
-        <Typography>{"Run Oracle"}</Typography>
-      </div>
-    ),
-    []
-  );
+  const schemaMenuItems = useMemo(() => {
+    if (!schemas) {
+      return null;
+    }
 
-  const runPostgresOption = React.useMemo(
-    () => (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <SVGIcon
-          width={20}
-          height={20}
-          name="postgres"
-          fill="#9ba0a6"
-          style={{ marginRight: 10 }}
-        />
-        <Typography>{"Run Postgres"}</Typography>
-      </div>
-    ),
-    []
-  );
+    const schemaList: string[] = [];
+    const oracle_schema_set = new Set();
+    const postgres_schema_set = new Set();
+    schemas[0].forEach((s) => {
+      const s_low = s.toLowerCase();
+      schemaList.push(s_low);
+      oracle_schema_set.add(s_low);
+    });
 
-  const runOptions = React.useMemo(() => [runOracleOption, runPostgresOption], [
-    runOracleOption,
-    runPostgresOption,
-  ]);
+    schemas[1].forEach((s) => {
+      if (!oracle_schema_set.has) {
+        schemaList.push(s);
+      }
+      postgres_schema_set.add(s);
+    });
+    return schemaList.map((s, i) => {
+      return (
+        <MenuItem key={s} value={s}>
+          <span
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {oracle_schema_set.has(s) && (
+              <SVGIcon
+                style={{ flexShrink: 0, marginRight: 3 }}
+                name="database"
+                width={20}
+                height={20}
+              />
+            )}
+            {postgres_schema_set.has(s) && (
+              <SVGIcon
+                style={{ flexShrink: 0, marginRight: 3 }}
+                name="postgres"
+                width={20}
+                height={20}
+              />
+            )}
+
+            <span
+              style={{
+                flex: 1,
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {s}
+            </span>
+          </span>
+        </MenuItem>
+      );
+    });
+  }, [schemas]);
 
   return (
     <div className={clsx(classes.runnerContainer, className)} {...others}>
-      <TextField
-        className={classes.inputSchema}
+      <SchemaTextField
+        select
+        disabled={isRunning}
         color="primary"
         id="schema"
-        label="Schema"
+        label="schema"
         size="small"
         variant="outlined"
         margin="dense"
-        onChange={handleChangeSchema}
-        onBlur={handleBlur}
-        value={schemaValue}
-      />
-
-      <ProgressSplitIconButton
-        onClick={handleClickRun}
+        value={schema}
+        onChange={handleSchemaChange}
+      >
+        <RefreshContainer onClick={fetchSchemas}>
+          <RefreshIcon />
+          Refresh
+        </RefreshContainer>
+        {schemaMenuItems}
+      </SchemaTextField>
+      <ProcessIconButton
+        title="Run Queries"
         loading={isRunning}
         disabled={isRunning}
-        onSelectItem={handleSelectMenu}
-        options={runOptions}
-        containerStyle={{
-          marginLeft: 10,
-          marginRight: 10,
-        }}
+        onClick={handleClickRun}
       >
         <PlayArrowIcon
           className={isRunning ? undefined : classes.play}
           color={isRunning ? "disabled" : undefined}
         />
-      </ProgressSplitIconButton>
+      </ProcessIconButton>
     </div>
   );
 });

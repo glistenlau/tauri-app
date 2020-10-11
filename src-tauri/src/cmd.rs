@@ -19,7 +19,6 @@ pub fn dispatch_command(_webview: &mut Webview, arg: &str) -> Result<(), String>
   match serde_json::from_str(arg) {
     Err(e) => Err(e.to_string()),
     Ok(command) => {
-      log::debug!("Got cmd: {:?}", command);
       match command {
         Cmd::AsyncCommand {
           handler,

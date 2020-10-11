@@ -102,8 +102,10 @@ impl PostgresProxy {
     }
 
     async fn connect(&self) -> Result<Client, Error> {
+        log::debug!("trying to get new postgres connection.");
         let (client, connection) =
             tokio_postgres::connect(&self.config.to_key_value_string(), NoTls).await?;
+        log::debug!("got new postgres connection");
 
         spawn(async move {
             if let Err(e) = connection.await {
@@ -128,6 +130,7 @@ impl PostgresProxy {
     }
 
     pub async fn validate_stmt(stmt: &str, client: &Client) -> Result<QueryVlidationResult, Error> {
+        log::debug!("validating query: {}", stmt);
         let company_stmt = stmt.replace("COMPANY_", "GREENCO.");
         let split = company_stmt.split("?");
         let mut mapped_stmt = String::with_capacity(company_stmt.len());
@@ -328,5 +331,6 @@ pub fn get_proxy() -> Arc<Mutex<PostgresProxy>> {
 }
 
 pub fn get_runtime() -> Arc<Mutex<Runtime>> {
+    log::debug!("got postgres runtime.");
     Arc::clone(&POSTGRES_RUNTIME)
 }

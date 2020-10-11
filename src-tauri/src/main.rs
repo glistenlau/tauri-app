@@ -3,17 +3,22 @@
   windows_subsystem = "windows"
 )]
 mod cmd;
+mod event;
 mod handlers;
 mod proxies;
 mod core;
 mod utilities;
+
 
 fn main() {
   match core::log::setup_logger() {
     Ok(()) => println!("logger setup successfully."),
     Err(e) => print!("logger setup failed: {}", e),
   }
-  tauri::AppBuilder::new()
+  tauri::AppBuilder::new().setup(|_webview, _source|{
+    let mut webview_mut = _webview.as_mut();
+    event::get_emitter().lock().unwrap().set_webview(webview_mut);
+  })
     .invoke_handler(cmd::dispatch_command)
     .build()
     .run();

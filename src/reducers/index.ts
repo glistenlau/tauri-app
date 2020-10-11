@@ -1,27 +1,26 @@
 import {
-  combineReducers,
-  ThunkAction,
   Action,
   AnyAction,
+  combineReducers,
+  ThunkAction,
 } from "@reduxjs/toolkit";
-import editor from "./editor";
-import search from "./search";
-import queryRunner from "./queryRunner";
-import navigator from "./navigator";
-import notification from "./notification";
-
-import dataStore from "../apis/dataStore";
+import { persistReducer } from "redux-persist";
 import { ActionType } from "../actions";
-import transactionControl from "../features/transactionControl/transactionControlSlice";
+import dataStore from "../apis/dataStore";
 import databaseConsole from "../features/databaseConsole/databaseConsoleSlice";
+import editorSettings from "../features/editorSettings/editorSettingsSlice";
+import propsEditor from "../features/propsEditor/propsEditorSlice";
+import queryScan from "../features/queryScan/queryScanSlice";
 import runnerControl from "../features/runnerControl/runnerControlSlice";
 import runnerResult from "../features/runnerResult/runnerResultSlice";
 import schemaEditor from "../features/schemaEditor/schemaEditorSlice";
-import settings from "../features/settings/settingsSlice"
-import editorSettings from "../features/editorSettings/editorSettingsSlice";
-import propsEditor from "../features/propsEditor/propsEditorSlice";
-import { persistReducer } from "redux-persist";
-
+import settings from "../features/settings/settingsSlice";
+import transactionControl from "../features/transactionControl/transactionControlSlice";
+import editor from "./editor";
+import navigator from "./navigator";
+import notification from "./notification";
+import queryRunner from "./queryRunner";
+import search from "./search";
 
 const persistConfig = {
   key: "root",
@@ -36,6 +35,7 @@ const appReducer = combineReducers({
   editorSettings,
   search,
   queryRunner,
+  queryScan,
   navigator,
   settings,
   transactionControl,
@@ -48,7 +48,10 @@ const appReducer = combineReducers({
 
 export type RootState = ReturnType<typeof appReducer>;
 
-const rootReducer = (state: RootState | undefined, action: AnyAction): RootState => {
+const rootReducer = (
+  state: RootState | undefined,
+  action: AnyAction
+): RootState => {
   if (action.type === ActionType.RESET_APP) {
     state = undefined;
   }

@@ -40,6 +40,7 @@ impl Query {
 pub struct Payload {
     schemas: Vec<String>,
     queries: Vec<Query>,
+    diff_results: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -48,8 +49,9 @@ pub enum Action {
     ScanQueries,
 }
 
-pub fn handle_command(action: Action, Payload { schemas, queries }: Payload) -> Result<RunResults> {
+pub fn handle_command(action: Action, Payload { schemas, queries, diff_results }: Payload) -> Result<RunResults> {
+    log::debug!("got query runner command.");
     match action {
-        Action::ScanQueries => Ok(scan_queries(schemas, queries)),
+        Action::ScanQueries => Ok(scan_queries(schemas, queries, diff_results)),
     }
 }
