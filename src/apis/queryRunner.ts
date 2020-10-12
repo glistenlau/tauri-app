@@ -27,7 +27,7 @@ export interface ScanSchemaResult {
 }
 
 export interface ScanResult {
-  [schema: string]: ScanSchemaResult[];
+  [schema: string]: (ScanSchemaResult | null)[];
 }
 
 export interface Query {
@@ -100,20 +100,18 @@ class QueryRunner {
 
     const result = await this.scanQueries(
       schemas,
-
       [oracleQuery, postgresQuery],
-
       false
     );
 
-    const mapped_result = result['anaconda'].map(schemaResult => {
-      const sqlResult = schemaResult.results.result;
+    const mapped_result = result["anaconda"].map((schemaResult) => {
+      const sqlResult = schemaResult?.results.result;
       if (sqlResult?.rows) {
         return sqlResult.rows.flat();
       }
       return [] as string[];
     });
-    return [mapped_result[0], mapped_result[1]]
+    return [mapped_result[0], mapped_result[1]];
   };
 
   addProgressListener = (handler: (progress: ProgressMessage) => {}) => {

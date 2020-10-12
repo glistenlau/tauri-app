@@ -19,6 +19,9 @@ const runnerControl = createSlice({
   initialState,
   reducers: {
     setSchemas(state, { payload }: PayloadAction<[string[], string[]]>) {
+      if (!payload) {
+        return;
+      }
       state.schemas = payload;
     },
     changeSchema(state, { payload }: PayloadAction<string>) {

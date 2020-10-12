@@ -233,6 +233,7 @@ pub fn scan_schema_queries(
     let mut query_results = vec![vec![]; queries.len()];
     let mut final_results = vec![None; queries.len()];
     let mut progress_vec: Vec<Option<RefCell<ProgressInfo>>> = vec![None; queries.len()];
+    let mut has_error = false;
 
     for msg in receiver {
         match msg {
@@ -240,7 +241,7 @@ pub fn scan_schema_queries(
                 let sql_result = match rs {
                     Ok(rs) => SQLResult::new_result(Some(rs)),
                     Err(err) => {
-                        stop.store(true, Ordering::Release);
+                        has_error = true;
                         SQLResult::new_error(err)
                     }
                 };
@@ -297,8 +298,9 @@ pub fn scan_schema_queries(
                 false
             })
         });
+        let all_have_result = final_results.iter().all(|fr| fr.as_ref().is_some());
 
-        if all_finished {
+        if all_finished || (has_error && all_have_result) {
             stop.store(true, Ordering::Release);
         } else {
         }
