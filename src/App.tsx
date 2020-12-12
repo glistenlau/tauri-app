@@ -8,6 +8,17 @@ initLogger();
 window.logger.debug("logger loaded.");
 
 const lightTheme = createMuiTheme({
+  typography: {
+    fontFamily: [
+      'Source Code Pro',
+      "Ubuntu Mono",
+      "Menlo",
+      "DejaVu Sans Mono",
+      "Cascadia Code",
+      "Consolas",
+      
+    ].join(","),
+  },
   palette: {
     type: "light", // Switching the dark mode on is a single property value change.
     background: { paper: "#fff", default: "#fafafa" },
@@ -45,7 +56,9 @@ const App = () => {
   return (
     <ThemeProvider theme={lightTheme}>
       <Divider />
-      <Root />
+      <div className="App">
+        <Root />
+      </div>
     </ThemeProvider>
   );
 };

@@ -1,26 +1,40 @@
-import React from "react";
-import Modal from "@material-ui/core/Modal";
-import { makeStyles, createStyles } from "@material-ui/styles";
-import Paper from "@material-ui/core/Paper";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
 import {
-  Divider,
   Button,
-  IconButton,
+  DialogActions,
+  Divider,
   FormControlLabel,
-  Switch,
+  IconButton,
+  Switch
 } from "@material-ui/core";
-import { green, red, purple } from "@material-ui/core/colors";
-import ParameterEditor from "./ParameterEditor";
-import { Parameter } from "../containers/QueryRunner";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import { green, purple, red } from "@material-ui/core/colors";
+import Dialog from "@material-ui/core/Dialog/Dialog";
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
 import Typography from "@material-ui/core/Typography";
+import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import { createStyles, makeStyles } from "@material-ui/styles";
+import React, { useCallback } from "react";
+import styled from "styled-components";
+import { Parameter } from "../containers/QueryRunner";
+import SchemaSelect from "../features/queryScan/SchemaSelect";
+import { updateArrayElement } from "../util";
+import ParameterEditor from "./ParameterEditor";
+import ProcessIconButton from "./ProgressIconButton";
 import SVGIcon from "./SVGIcon";
 import Tooltip from "./Tooltip";
-import { updateArrayElement } from "../util";
-import ProcessIconButton from "./ProgressIconButton";
+
+const TabLaberContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ContentContainer = styled.div`
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+`;
 
 const useStyles = makeStyles((theme: any) =>
   createStyles({
@@ -37,10 +51,12 @@ const useStyles = makeStyles((theme: any) =>
       alignItems: "center",
     },
     container: {
+      backgroundColor: theme.palette.background.default,
       display: "flex",
       flexDirection: "column",
-      height: "80vh",
-      width: "80vw",
+      height: "90vh",
+      width: "90vw",
+      padding: 5,
     },
     tabContainer: {
       flex: 1,
@@ -224,112 +240,132 @@ const QueryParameterModal = React.memo(
       }
     }, [curParam, curTab, onCopyParams, parameters, sync]);
 
+    const tabLabel = useCallback((text) => {
+      return (
+        <TabLaberContainer>
+          <SVGIcon
+            style={{ flexShrink: 0, marginRight: 5 }}
+            name={text === "Oracle" ? "database" : "postgres"}
+            width={20}
+            height={20}
+          />
+          <span>{text}</span>
+        </TabLaberContainer>
+      );
+    }, []);
+    console.log('open', open);
+
     return (
-      <div>
-        <Modal className={classes.modal} open={open} onClose={() => {}}>
-          <Paper className={classes.container}>
-            <div className={classes.headerContainer}>
-              <Tabs
-                className={classes.tabContainer}
-                value={curTab}
-                onChange={handleChangeTab}
-                indicatorColor="primary"
-                textColor="primary"
-              >
-                <Tab label="Oracle" />
-                <Tab label="Postgres" />
-              </Tabs>
-              <Typography
-                className={classes.button}
-                style={{ color: total === 0 ? red[500] : green[500] }}
-              >
-                {`Total ${total} combination`}
-              </Typography>
+      <Dialog fullWidth maxWidth="xl" open={open} onClose={onClose}>
+        <ContentContainer>
+          <SchemaSelect />
+          <div className={classes.headerContainer}>
+            <Tabs
+              className={classes.tabContainer}
+              value={curTab}
+              onChange={handleChangeTab}
+              indicatorColor="primary"
+              textColor="primary"
+            >
+              <Tab label={tabLabel("Oracle")} />
+              <Tab label={tabLabel("Postgres")} />
+            </Tabs>
+            <Typography
+              className={classes.button}
+              style={{ color: total === 0 ? red[500] : green[500] }}
+            >
+              {`Total ${total} combination`}
+            </Typography>
 
-              <Button
-                className={classes.button}
-                variant="contained"
-                color="primary"
-                disabled={total === 0}
-                onClick={() => onClose(true)}
-              >
-                Run
-              </Button>
-              <Button
-                className={classes.button}
-                variant="outlined"
-                color="secondary"
-                onClick={() => onClose(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-            <Divider />
-            <div className={classes.toolbarContainer}>
-              {ableSync && (
-                <FormControlLabel
-                  style={{ marginLeft: 20 }}
-                  control={
-                    <Switch
-                      checked={sync}
-                      onChange={onSyncChange}
-                      value="sync"
-                    />
-                  }
-                  label="Sync"
-                />
-              )}
-
+            <Button
+              className={classes.button}
+              variant="contained"
+              color="primary"
+              disabled={total === 0}
+              onClick={() => onClose(true)}
+            >
+              Run
+            </Button>
+            <Button
+              className={classes.button}
+              variant="outlined"
+              color="secondary"
+              onClick={() => onClose(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+          <Divider />
+          <div className={classes.toolbarContainer}>
+            {ableSync && (
               <FormControlLabel
                 style={{ marginLeft: 20 }}
                 control={
-                  <Switch
-                    checked={cartesian}
-                    onChange={onCartesianChange}
-                    value="cartesian"
-                  />
+                  <Switch checked={sync} onChange={onSyncChange} value="sync" />
                 }
-                label="Cartesian"
+                label="Sync"
               />
+            )}
 
-              {parameter.length > 0 && (
-                <div className={classes.paramNavButton}>
-                  <ProcessIconButton
-                    title="Copy to all parameters"
-                    onClick={handleCopyParameter}
-                  >
-                    <SVGIcon name="fileCopyFill" fill={purple[500]} />
-                  </ProcessIconButton>
-
-                  <Tooltip title="Previous parameter">
-                    <IconButton onClick={handleClickPrev}>
-                      <NavigateBeforeIcon color="action" />
-                    </IconButton>
-                  </Tooltip>
-                  <Typography style={{ width: 60, textAlign: "center" }}>
-                    {`${parameter.length === 0 ? 0 : curParam + 1} / ${
-                      parameter.length
-                    }`}
-                  </Typography>
-                  <Tooltip title="Next parameter">
-                    <IconButton onClick={handleClickNext}>
-                      <NavigateNextIcon color="action" />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              )}
-            </div>
-            <Divider />
-            <ParameterEditor
-              statement={statement}
-              parameter={parameter}
-              currentParameter={curParam}
-              onEditorBlur={handleEditorBlur}
-              onCurrentParameterChange={handleCurrentParameterChange}
+            <FormControlLabel
+              style={{ marginLeft: 20 }}
+              control={
+                <Switch
+                  checked={cartesian}
+                  onChange={onCartesianChange}
+                  value="cartesian"
+                />
+              }
+              label="Cartesian"
             />
-          </Paper>
-        </Modal>
-      </div>
+
+            {parameter.length > 0 && (
+              <div className={classes.paramNavButton}>
+                <ProcessIconButton
+                  title="Copy to all parameters"
+                  onClick={handleCopyParameter}
+                >
+                  <SVGIcon name="fileCopyFill" fill={purple[500]} />
+                </ProcessIconButton>
+
+                <Tooltip title="Previous parameter">
+                  <IconButton onClick={handleClickPrev}>
+                    <NavigateBeforeIcon color="action" />
+                  </IconButton>
+                </Tooltip>
+                <Typography style={{ width: 60, textAlign: "center" }}>
+                  {`${parameter.length === 0 ? 0 : curParam + 1} / ${
+                    parameter.length
+                  }`}
+                </Typography>
+                <Tooltip title="Next parameter">
+                  <IconButton onClick={handleClickNext}>
+                    <NavigateNextIcon color="action" />
+                  </IconButton>
+                </Tooltip>
+              </div>
+            )}
+          </div>
+          <Divider />
+          <ParameterEditor
+            statement={statement}
+            parameter={parameter}
+            currentParameter={curParam}
+            onEditorBlur={handleEditorBlur}
+            onCurrentParameterChange={handleCurrentParameterChange}
+          />
+                    <Divider />
+
+        <DialogActions>
+          <Button autoFocus onClick={onClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={onClose} color="primary">
+            Ok
+          </Button>
+        </DialogActions>
+        </ContentContainer>
+      </Dialog>
     );
   }
 );

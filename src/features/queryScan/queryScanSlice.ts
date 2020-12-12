@@ -24,7 +24,8 @@ export interface Parameter {
 interface QueryScanState {
   cartesian: boolean;
   openModel: boolean;
-  schemas: string[];
+  selectedSchemas: string[];
+  activeSchema: string;
   statements: [string, string];
   sync: boolean;
   parameters: [Parameter[], Parameter[]];
@@ -33,8 +34,9 @@ interface QueryScanState {
 const initialState: QueryScanState = {
   cartesian: false,
   openModel: false,
+  activeSchema: "",
   sync: false,
-  schemas: [],
+  selectedSchemas: [],
   statements: ["", ""],
   parameters: [[], []],
 };
@@ -46,9 +48,15 @@ const queryScan = createSlice({
     setOpenModal(state, { payload }: PayloadAction<boolean>) {
       state.openModel = payload;
     },
+    setSelectedSchemas(state, {payload}: PayloadAction<string[]>) {
+      state.selectedSchemas = payload;
+    },
+    setActiveSchema(state, {payload}: PayloadAction<string>) {
+      state.activeSchema = payload;
+    }
   },
 });
 
-export const { setOpenModal } = queryScan.actions;
+export const { setActiveSchema, setOpenModal, setSelectedSchemas } = queryScan.actions;
 
 export default queryScan.reducer;

@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
-import { withSize } from "react-sizeme";
-import { makeStyles, createStyles } from "@material-ui/styles";
-import "./SplitEditor.css";
-import Typography from "@material-ui/core/Typography";
 import { Divider } from "@material-ui/core";
-import { Parameter } from "../containers/QueryRunner";
-import "./SplitEditor.css";
 import { red } from "@material-ui/core/colors";
+import Typography from "@material-ui/core/Typography";
+import { createStyles, makeStyles } from "@material-ui/styles";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { withSize } from "react-sizeme";
+import { Parameter } from "../containers/QueryRunner";
 import Editor from "./Editor";
+import "./SplitEditor.css";
 
 const useStyles = makeStyles((theme: any) =>
   createStyles({
@@ -79,23 +78,11 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
   }, [onEditorBlur]);
 
   const handleBeforeUnload = React.useCallback(() => {
-    remote.getCurrentWindow().removeListener("blur", handleBlur);
     handleBlur();
   }, [handleBlur]);
 
-  React.useEffect(() => {
-    remote.getCurrentWindow().on("blur", handleBlur);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    const disposable =
-      rightEditorRef.current &&
-      rightEditorRef.current.editor.onDidBlurEditorWidget(handleBlur);
 
-    return () => {
-      disposable && disposable.dispose();
-      remote.getCurrentWindow().removeListener("blur", handleBlur);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [handleBlur, handleBeforeUnload]);
+  const handleEditorClick = useCallback(() => {}, []);
 
   React.useEffect(() => {
     const editor = editorRef.current && editorRef.current.editor;
@@ -121,12 +108,6 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
       editor.setPosition(new monaco.Position(1, 1));
     }
   }, [currentParameter, parameter]);
-
-  useEffect(() => {
-    if (rightEditorRef.current) {
-      rightEditorRef.current.editor.focus();
-    }
-  }, [currentParameter]);
 
   useEffect(() => {
     let activeRow: number = 0;
@@ -165,7 +146,7 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     newDecorations.push(lineDecoration);
 
     setMarkers(newDecorations);
-    if (editorRef.current) {
+    if (editorRef.current?.editor) {
       editorRef.current.editor.revealPositionInCenter(
         new monaco.Position(activeRow, activeColumn)
       );
@@ -192,6 +173,7 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     return JSON.stringify(evalVal.value);
   }, [evalVal]);
 
+  console.log('got here')
   return (
     <div className={classes.container}>
       <Editor

@@ -1,11 +1,11 @@
-import React, { forwardRef, useRef } from "react";
-import clsx from "clsx";
-import { VariableSizeGrid } from "react-window";
-
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import SVGIcon from "./SVGIcon";
+import clsx from "clsx";
+import React, { forwardRef, useRef } from "react";
+import { VariableSizeGrid } from "react-window";
 import "./data_table.css";
+import SVGIcon from "./SVGIcon";
+
 
 interface Column {
   name: string;
@@ -243,10 +243,7 @@ const StickyColumn = React.memo(
         return null;
       }
 
-      const renderRows = React.useMemo(
-        () => dataRows.slice(renderRange[0], renderRange[1] + 1),
-        [dataRows, renderRange]
-      );
+      const renderRows = dataRows.slice(renderRange[0], renderRange[1] + 1);
 
       return (
         <div className={clsx("sticky")} style={style}>

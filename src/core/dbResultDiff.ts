@@ -1,8 +1,8 @@
 import { getTextWidth } from "../util";
 import { ResultType } from "./queryRunner";
 
-const HEADER_FONT = "700 14px Roboto";
-const ROW_FONT = "400 14px Roboto";
+const HEADER_FONT = "700 14px Source Code Pro";
+const ROW_FONT = "400 14px Source Code Pro";
 const EXTRA_WIDTH = 41;
 
 export type ProcessedRowType = {

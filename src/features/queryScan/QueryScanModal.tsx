@@ -1,7 +1,8 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import QueryParameterModal from "../../components/QueryParameterModal";
 import { RootState } from "../../reducers";
+import { setOpenModal } from "./queryScanSlice";
 
 const QueryScanModal: React.FC = () => {
   const cartesian = useSelector(
@@ -21,6 +22,15 @@ const QueryScanModal: React.FC = () => {
     (state: RootState) => state.queryScan.parameters
   );
 
+  const dispatch = useDispatch();
+
+  const handleModalClose = useCallback(() => {
+    console.log("click close");
+    dispatch(setOpenModal(false));
+  }, [dispatch]);
+
+  console.log("open modal", openModel);
+
   return (
     <QueryParameterModal
       cartesian={cartesian}
@@ -28,7 +38,7 @@ const QueryScanModal: React.FC = () => {
       open={openModel}
       statements={statements}
       parameters={parameters}
-      onClose={() => {}}
+      onClose={handleModalClose}
       onCartesianChange={() => {}}
       onSyncChange={() => {}}
       onEditorBlur={() => {}}

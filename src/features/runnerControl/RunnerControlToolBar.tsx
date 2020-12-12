@@ -1,6 +1,5 @@
-import { MenuItem } from "@material-ui/core";
+import { createStyles, makeStyles, MenuItem } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
-import { createStyles, makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import RefreshIcon from "@material-ui/icons/Refresh";
@@ -9,8 +8,8 @@ import React, { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import QueryRunner from "../../apis/queryRunner";
+import LabelWithDdIcons from "../../components/LabelWithDbIcons";
 import ProcessIconButton from "../../components/ProgressIconButton";
-import SVGIcon from "../../components/SVGIcon";
 import { RootState } from "../../reducers";
 import { changeSchema, setSchemas } from "./runnerControlSlice";
 
@@ -123,42 +122,12 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
     return schemaList.map((s, i) => {
       return (
         <MenuItem key={s} value={s}>
-          <span
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+          <LabelWithDdIcons
+            showOracleIcon={oracle_schema_set.has(s)}
+            showPostgresIcon={postgres_schema_set.has(s)}
           >
-            {oracle_schema_set.has(s) && (
-              <SVGIcon
-                style={{ flexShrink: 0, marginRight: 3 }}
-                name="database"
-                width={20}
-                height={20}
-              />
-            )}
-            {postgres_schema_set.has(s) && (
-              <SVGIcon
-                style={{ flexShrink: 0, marginRight: 3 }}
-                name="postgres"
-                width={20}
-                height={20}
-              />
-            )}
-
-            <span
-              style={{
-                flex: 1,
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {s}
-            </span>
-          </span>
+            {s}
+          </LabelWithDdIcons>
         </MenuItem>
       );
     });
