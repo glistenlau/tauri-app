@@ -6,12 +6,12 @@ import React from "react";
 import { connect } from "react-redux";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
+import PropsEditorView from "../features/propsEditor/PropsEditorView";
 import QueryScanModal from "../features/queryScan/QueryScanModal";
 import RunnerResultPanel from "../features/runnerResult/RunnerResultPanel";
 import SchemaEditorView from "../features/schemaEditor/SchemaEditorView";
 import SettingsPanel from "../features/settings/SettingsPanel";
 import { RootState } from "../reducers";
-import DiffEditor from "./DiffEditor";
 import Navigator from "./Navigator";
 import Notification from "./Notification";
 
@@ -50,7 +50,7 @@ class Root extends React.Component<any, any> {
         <Navigator />
         <Divider />
         <div className={classes.rightContainer}>
-          <DiffEditor active={activeView === 0} />
+          <PropsEditorView active={activeView === 0} />
           <DatabaseConsolePage active={activeView === 1} />
           <RunnerResultPanel active={activeView === 0 || activeView === 1} />
           <SchemaEditorView active={activeView === 2} />

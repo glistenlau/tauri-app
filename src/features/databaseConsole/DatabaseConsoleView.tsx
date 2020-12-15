@@ -1,9 +1,10 @@
 import { createStyles, Divider, makeStyles } from "@material-ui/core";
-import clsx from "clsx";
 import React, { useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
 import { openParameterModal, scanRunQuery } from "../../actions";
 import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
+import TabContent from "../../components/TabContent";
 import { evaluateParamsPair } from "../../core/parameterEvaluator";
 import { RootState } from "../../reducers";
 import { getParameterMarkerPosition } from "../../util";
@@ -15,6 +16,11 @@ import DatabaseConsoleToolBar from "./DatabaseConsoleToolBar";
 interface DatabaseConsolePageProps {
   active: boolean;
 }
+
+const Container = styled(TabContent)`
+  display: flex;
+  flex-direction: column;
+`;
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -55,22 +61,17 @@ const DatabaseConsolePage = React.memo(
 
       const mode = runOptions.mode;
 
-      switch(mode) {
+      switch (mode) {
         case RunMode.ORACLE: {
-
         }
         case RunMode.POSTGRES: {
-
         }
         case RunMode.DUAL: {
-
         }
         default: {
-
         }
       }
-
-    }, [])
+    }, []);
 
     const handleClickRun = React.useCallback(
       async (sortResults) => {
@@ -107,7 +108,7 @@ const DatabaseConsolePage = React.memo(
           evaluated: {},
         }));
 
-        const storedParams: any = null
+        const storedParams: any = null;
 
         if (storedParams.oracle && !storedParams.postgres) {
           storedParams.postgres = storedParams.oracle;
@@ -172,8 +173,8 @@ const DatabaseConsolePage = React.memo(
       (valuePair: [string, string]) => {
         dispatch(changeConsleValuePair(valuePair));
       },
-      [dispatch],
-    )
+      [dispatch]
+    );
 
     const handleEditorRef = React.useCallback(
       (e: any, index: number) => {
@@ -183,12 +184,7 @@ const DatabaseConsolePage = React.memo(
     );
 
     return (
-      <div
-        className={clsx(
-          classes.container,
-          active ? undefined : classes.hideContainer
-        )}
-      >
+      <Container active={active}>
         <DatabaseConsoleToolBar onClickRun={handleClick} />
         <Divider />
         <SplitEditor
@@ -197,7 +193,7 @@ const DatabaseConsolePage = React.memo(
           valuePair={consoleValuePair}
           onChange={handleValuePairChange}
         />
-      </div>
+      </Container>
     );
   }
 );

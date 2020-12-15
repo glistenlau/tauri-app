@@ -2,9 +2,15 @@ import React, { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import EditorToolBar from "../../components/EditorToolBar";
 import { RootState } from "../../reducers";
-import { setOpenModal } from "../queryScan/queryScanSlice";
+import { setActivePair, setDiffMode } from "./propsEditorSlice";
 
-const EditorToolBarView = () => {
+interface EditorToolBarViewProps {
+  onClickRun: () => any;
+}
+
+const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
+  onClickRun,
+}) => {
   const dispatch = useDispatch();
   const propsValidateMap = useSelector(
     (rootState: RootState) => rootState.propsEditor.propsValidateMap
@@ -15,6 +21,13 @@ const EditorToolBarView = () => {
   const selectedPropName = useSelector(
     (rootState: RootState) => rootState.propsEditor.selectedPropName
   );
+  const diffMode = useSelector(
+    (rootState: RootState) => rootState.propsEditor.diffMode
+  );
+  const activePair = useSelector(
+    (rootState: RootState) => rootState.propsEditor.activePair
+  );
+
 
   const propValidateResult = useMemo(() => {
     if (!propsValidateMap || !selectedClassName || !selectedPropName) {
@@ -25,18 +38,24 @@ const EditorToolBarView = () => {
     return selectedProps[selectedPropName];
   }, [propsValidateMap, selectedClassName, selectedPropName]);
 
-  const handleClickRun = useCallback(() => {
-    dispatch(setOpenModal(true));
-  }, [dispatch]);
+  const handleClickDiff = useCallback((e, checked) => {
+    dispatch(setDiffMode(checked));
+  }, [dispatch])
+
+  const handleActivePairChange = useCallback((activePair: [boolean, boolean]) => {
+    dispatch(setActivePair(activePair));
+  }, [dispatch])
 
   return (
     <EditorToolBar
-      diff={false}
-      onClickCopy={() => {}}
-      onClickFormat={() => {}}
-      onClickDiff={() => {}}
-      onClickRun={handleClickRun}
-      onClickSave={() => {}}
+      activePair={activePair}
+      diff={diffMode}
+      onActivePairChange={handleActivePairChange}
+      onClickCopy={() => { }}
+      onClickFormat={() => { }}
+      onClickDiff={handleClickDiff}
+      onClickRun={onClickRun}
+      onClickSave={() => { }}
       validateResult={propValidateResult}
     />
   );

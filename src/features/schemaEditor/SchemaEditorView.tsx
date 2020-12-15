@@ -1,39 +1,27 @@
-import clsx from "clsx";
-import React, { useCallback } from "react";
+import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
-import { useSelector, useDispatch, shallowEqual } from "react-redux";
+import React, { useCallback } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
+import SearchBar from "../../components/SearchBar";
+import SplitEditor from "../../components/SplitEditor";
+import TabContent from "../../components/TabContent";
+import { extractXmlFileIndex } from "../../core/xmlProcessor";
 import { RootState } from "../../reducers";
 import {
   changeLeftPanelWidth,
-  changeValuePair,
   changeSearchFile,
   changeSearchPath,
-  searchXmlFiles,
+  changeValuePair,
   saveTagValue,
-  setXmlFileTag,
+  searchXmlFiles,
+  setXmlFileTag
 } from "./schemaEditorSlice";
-import { makeStyles, createStyles, Divider } from "@material-ui/core";
 import SchemaTreeView from "./SchemaTreeView";
 import SchemaTreeViewToolBar from "./SchemaTreeViewToolBar";
-import SplitEditor from "../../components/SplitEditor";
-import SearchBar from "../../components/SearchBar";
-import { extractXmlFileIndex } from "../../core/xmlProcessor";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
-    container: {
-      flex: 1,
-      display: "flex",
-      flexDirection: "row",
-      height: "100vh",
-      width: "100%",
-    },
-    hide: {
-      flex: 0,
-      height: 0,
-      width: 0,
-      overflow: "hidden",
-    },
     leftContainer: {
       display: "flex",
       flexDirection: "column",
@@ -47,6 +35,12 @@ const useStyles = makeStyles((theme) =>
     },
   })
 );
+
+const Container = styled(TabContent)`
+  background-color: ${({ theme }) => theme.palette.background.paper};
+  display: flex;
+  flex-direction: row;
+`;
 
 interface SchemaEditorViewProps {
   active: boolean;
@@ -132,7 +126,7 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
   );
 
   return (
-    <div className={clsx(classes.container, active ? undefined : classes.hide)}>
+    <Container active={active}>
       <Resizable
         className={classes.leftContainer}
         onResizeStop={handleLeftPanelResize}
@@ -177,7 +171,7 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
           activePair={activePair}
         />
       </div>
-    </div>
+    </Container>
   );
 });
 

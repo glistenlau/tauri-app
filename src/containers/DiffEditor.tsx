@@ -20,7 +20,7 @@ import SaveDialog from "../components/SaveDialog";
 import { format } from "../core/formatter";
 import { evaluateParamsPair } from "../core/parameterEvaluator";
 import EditorToolBarView from "../features/propsEditor/EditorToolBarView";
-import PropsEditorView from "../features/propsEditor/PropsEditorView";
+import PropsEditorView from "../features/propsEditor/PropsListView";
 import SplitEditorView from "../features/propsEditor/SplitEditorView";
 import {
   changeSchema,

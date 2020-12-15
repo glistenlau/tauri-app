@@ -1,8 +1,10 @@
-import { createSlice, PayloadAction, createAsyncThunk, combineReducers } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initApp } from "../../actions";
-import JavaPropsApi, {FilePropsMap, FilePropsValidMap, JavaPropsResponse} from "../../apis/javaProps";
-import dataStore from "../../apis/dataStore";
-import { persistReducer } from "redux-persist";
+import JavaPropsApi, {
+  FilePropsMap,
+  FilePropsValidMap,
+  JavaPropsResponse,
+} from "../../apis/javaProps";
 
 export interface PropName {
   name: string;
@@ -11,6 +13,7 @@ export interface PropName {
 }
 
 export interface propsSearchState {
+  activePair: [boolean, boolean];
   searchFilePath: string;
   searchClassName: string;
   selectedClassName: string;
@@ -27,6 +30,7 @@ export interface propsSearchState {
 }
 
 const initialState: propsSearchState = {
+  activePair: [true, true],
   status: "idle",
   error: null,
   searchFilePath: "",
@@ -104,6 +108,12 @@ const propsEditorSlice = createSlice({
     setWidth(state, { payload }: PayloadAction<number>) {
       state.panelWidth = payload;
     },
+    setActivePair(state, { payload }: PayloadAction<[boolean, boolean]>) {
+      state.activePair = payload;
+    },
+    setDiffMode(state, { payload }: PayloadAction<boolean>) {
+      state.diffMode = payload;
+    },
     setPropName(state, { payload }: PayloadAction<string>) {
       selectPropName(state, payload);
     },
@@ -113,22 +123,22 @@ const propsEditorSlice = createSlice({
     setValuePair(state, { payload }: PayloadAction<[string, string]>) {
       updateValuePair(state, payload);
     },
-    updateParamValuePair(state, {payload}: PayloadAction<[string, string]>) {
-      const {propsMap, selectedClassName, selectedPropName} = state;
-      const propsList = propsMap[selectedClassName] ?? {}
+    updateParamValuePair(state, { payload }: PayloadAction<[string, string]>) {
+      const { propsMap, selectedClassName, selectedPropName } = state;
+      const propsList = propsMap[selectedClassName] ?? {};
       if (propsList[selectedPropName]) {
         propsList[selectedPropName] = payload;
       }
-    }
+    },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(initApp, (state) => {
       return Object.assign({}, initialState, state);
     });
-    builder.addCase((searchProps.pending), (state, action) => {
+    builder.addCase(searchProps.pending, (state, action) => {
       state.status = "loading";
     });
-    builder.addCase((searchProps.fulfilled), (state, action) => {
+    builder.addCase(searchProps.fulfilled, (state, action) => {
       const propsMap: JavaPropsResponse = action.payload;
 
       state.status = "succeeded";
@@ -142,7 +152,7 @@ const propsEditorSlice = createSlice({
 
       let classNameToSelect = state.classNameList[0];
       if (state.classNameList.indexOf(state.selectedClassName) !== -1) {
-        classNameToSelect = state.selectedClassName
+        classNameToSelect = state.selectedClassName;
       }
 
       selectClassName(state, classNameToSelect);
@@ -151,6 +161,8 @@ const propsEditorSlice = createSlice({
 });
 
 export const {
+  setActivePair,
+  setDiffMode,
   setFilePath,
   setClassName,
   setWidth,

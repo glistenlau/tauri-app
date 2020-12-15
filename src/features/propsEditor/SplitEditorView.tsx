@@ -1,12 +1,11 @@
-import React, { useCallback, useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React, { forwardRef, ForwardRefRenderFunction, memo, useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
 import { RootState } from "../../reducers";
 import { updateParamValuePair } from "./propsEditorSlice";
-import { makeStyles, createStyles } from "@material-ui/core";
-import SplitEditor from "../../components/SplitEditor";
 
 
-const SplitEditorView = React.memo(() => {
+const SplitEditorView: ForwardRefRenderFunction<SplitEditorHandle, {}> = ({ }, ref) => {
   const dispatch = useDispatch();
   const [valuePair, setValuePair] = useState(["", ""] as [string, string]);
   const propsMap = useSelector(
@@ -21,6 +20,9 @@ const SplitEditorView = React.memo(() => {
   const diffMode = useSelector(
     (rootState: RootState) => rootState.propsEditor.diffMode
   );
+  const activePair = useSelector(
+    (rootState: RootState) => rootState.propsEditor.activePair
+  );
 
   useEffect(() => {
     if (!propsMap || !selectedClassName || !selectedPropName) {
@@ -33,7 +35,7 @@ const SplitEditorView = React.memo(() => {
     }
 
     setValuePair(propNameMap[selectedPropName]);
-  },[propsMap, selectedClassName, selectedPropName])
+  }, [propsMap, selectedClassName, selectedPropName])
 
   const handleChange = useCallback(
     (valuePair: [string, string]) => {
@@ -44,16 +46,18 @@ const SplitEditorView = React.memo(() => {
 
   const handleBlur = useCallback(() => {
     dispatch(updateParamValuePair(valuePair));
-  },[dispatch, valuePair]);
+  }, [dispatch, valuePair]);
 
   return (
     <SplitEditor
+      activePair={activePair}
+      ref={ref}
       valuePair={valuePair}
       onBlur={handleBlur}
       onChange={handleChange}
       diff={diffMode}
     />
   );
-});
+};
 
-export default SplitEditorView;
+export default memo(forwardRef(SplitEditorView));

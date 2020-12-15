@@ -25,9 +25,12 @@ const QueryScanModal: React.FC = () => {
   const dispatch = useDispatch();
 
   const handleModalClose = useCallback(() => {
-    console.log("click close");
     dispatch(setOpenModal(false));
   }, [dispatch]);
+
+  const handleClickScan = useCallback(() => {
+    dispatch(startScan());
+  }, []);
 
   console.log("open modal", openModel);
 
@@ -39,6 +42,7 @@ const QueryScanModal: React.FC = () => {
       statements={statements}
       parameters={parameters}
       onClose={handleModalClose}
+      onClickScan={handleClickScan}
       onCartesianChange={() => {}}
       onSyncChange={() => {}}
       onEditorBlur={() => {}}

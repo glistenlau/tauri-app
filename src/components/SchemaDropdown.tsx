@@ -1,13 +1,15 @@
 import {
   Checkbox,
   Chip,
+  CircularProgress,
   FormControl,
   Input,
   InputLabel,
   MenuItem,
   Select
 } from "@material-ui/core";
-import React, { useCallback, useMemo } from "react";
+import RefreshIcon from "@material-ui/icons/Refresh";
+import React, { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import LabelWithDbIcons from "./LabelWithDbIcons";
 
@@ -36,12 +38,23 @@ const ChipsContainer = styled.div`
   flex-wrap: wrap;
   margin-bottom: -10px;
 `;
+const RefreshContainer = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+`;
 
+const RefreshText = styled.span`
+  margin-left: 10px;
+`;
 export interface SchemaDropdownProps {
   schemas: [string[], string[]];
   selectedSchemas: string[];
   activeSchema: string;
   onChange: (selected: string[]) => void;
+  onClickRefresh: () => Promise<void>;
   onClickSchema: (schema: string) => void;
   className?: any;
 }
@@ -50,21 +63,24 @@ const MenuProps = {
   PaperProps: {
     style: {
       maxHeight: 500,
-      width: 100,
     },
   },
 };
 
+const REFRESH_VALUE = "__refresh__";
 
 const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
   ({
     activeSchema,
     className,
     onChange,
+    onClickRefresh,
     onClickSchema,
     selectedSchemas,
     schemas,
   }) => {
+    const [refreshingSchema, setRefreshingSchema] = useState(false);
+
     const schemaMap = useMemo(() => {
       if (!schemas) {
         return null;
@@ -103,7 +119,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
         return null;
       }
 
-      return Array.from(schemaMap.values()).map((mappedSchema) => {
+      return Array.from(schemaMap.values()).sort((a, b) => a.value.localeCompare(b.value)).map((mappedSchema) => {
         return (
           <MenuItem dense key={mappedSchema.value} value={mappedSchema.value}>
             <Checkbox
@@ -123,6 +139,11 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
     const handleChange = useCallback(
       (event) => {
         const { value } = event.target;
+        const clickRefresh = value.indexOf(REFRESH_VALUE) > -1;
+        if (clickRefresh) {
+          console.log("click refresh", clickRefresh);
+          return;
+        }
 
         onChange(value);
       },
@@ -139,6 +160,19 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
       [onChange, selectedSchemas]
     );
 
+    const handleClickReresh = useCallback(async () => {
+      if (refreshingSchema) {
+        return;
+      }
+
+      setRefreshingSchema(true);
+      try {
+        await onClickRefresh();
+      } finally {
+        setRefreshingSchema(false);
+      }
+    }, [onClickRefresh, refreshingSchema]);
+
     const renderValue = useCallback(
       (selected: any) => (
         <ChipsContainer>
@@ -151,18 +185,18 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
                   event.stopPropagation();
                 }}
                 onClick={(e) => {
-                  console.log(e)
-                  onClickSchema(selectedSchema)
+                  console.log(e);
+                  onClickSchema(selectedSchema);
                 }}
                 size="small"
                 key={selectedSchema}
                 label={
                   <LabelWithDbIcons
                     showOracleIcon={
-                      schemaMap?.get(selectedSchema).showOracleIcon
+                      schemaMap?.get(selectedSchema)?.showOracleIcon
                     }
                     showPostgresIcon={
-                      schemaMap?.get(selectedSchema).showPostgresIcon
+                      schemaMap?.get(selectedSchema)?.showPostgresIcon
                     }
                   >
                     {selectedSchema}
@@ -184,14 +218,19 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
         <StyledFormControl>
           <StyledInputLabel>Schemas</StyledInputLabel>
           <Select
+            autoWidth
             multiple
             value={selectedSchemas}
             onChange={handleChange}
             input={<Input />}
-            variant="filled"
             renderValue={renderValue}
-            MenuProps={MenuProps}
           >
+            <MenuItem dense disabled={refreshingSchema} key={REFRESH_VALUE} value={REFRESH_VALUE}>
+              <RefreshContainer onClick={handleClickReresh}>
+                {refreshingSchema ? <CircularProgress size={24} />: <RefreshIcon />}
+                <RefreshText>Refresh</RefreshText>
+              </RefreshContainer>
+            </MenuItem>
             {schemaMenuItems}
           </Select>
         </StyledFormControl>

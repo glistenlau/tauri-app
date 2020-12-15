@@ -1,64 +1,71 @@
-import React, { useCallback } from "react";
-import SearchBar from "../../components/SearchBar";
-import { useSelector, useDispatch, shallowEqual } from "react-redux";
-import { RootState } from "../../reducers";
-import { setClassName, setFilePath, searchProps, setWidth } from "./propsEditorSlice";
-import { Resizable } from "re-resizable";
-import { Divider, makeStyles, createStyles } from "@material-ui/core";
-import PropNameList from "../../components/PropNameList";
-import ClassSelect from "../../components/ClassSelect";
-import PropsSearchView from "./PropsSearchView";
-import ClassSelectView from "./ClassSelectView";
-import PropNameListView from "./PropNameListView";
+import Divider from "@material-ui/core/Divider";
+import { useSnackbar } from "notistack";
+import React, { RefObject, useCallback, useRef } from "react";
+import { useDispatch } from "react-redux";
+import styled from "styled-components";
+import { SplitEditorHandle } from "../../components/SplitEditor";
+import TabContent from "../../components/TabContent";
+import { initQueryScan } from "../queryScan/queryScanSlice";
+import EditorToolBarView from "./EditorToolBarView";
+import PropsListView from "./PropsListView";
+import SplitEditorView from "./SplitEditorView";
 
-const useStyles = makeStyles((theme) =>
-  createStyles({    
-    leftContainer: {
-      display: "flex",
-      flexDirection: "column",
-      height: "100%",
-      width: "100%",
-    },
-  }));;
+const Container = styled(TabContent)`
+  background-color: ${({ theme }) => theme.palette.background.paper};
+  display: flex;
+  flex-direction: column;
+`;
 
-const PropsEditorView = React.memo(() => {
-  const classes = useStyles();
+const EditorContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  height: 40%;
+  width: 100%;
+`;
+
+const RightContainer = styled.div`
+  background-color: ${({ theme }) => theme.palette.background.paper};
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  width: 10%;
+`;
+
+interface PropsEditorViewProps {
+  active: boolean;
+  className?: string;
+}
+
+const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
+  const splitEditorRef: null | RefObject<SplitEditorHandle> = useRef(null);
+  const snackbar = useSnackbar();
   const dispatch = useDispatch();
-  const panelWidth = useSelector(
-    (rootState: RootState) => rootState.propsEditor.panelWidth
-  );
-  const handlePanelResize = useCallback((e: any, direction: any, ref: any, d: any) => {
-    const width = panelWidth + d.width;
-    dispatch(setWidth(width));
-  }, [dispatch, panelWidth])
+
+  const handleClickRun = useCallback(async () => {
+    const values = splitEditorRef.current?.getEffectiveValue();
+    if (!values || values.filter(value => value.length === 0).length === 2) {
+      snackbar.enqueueSnackbar("There is no query to run.", { variant: 'warning' });
+      return;
+    }
+    await dispatch(initQueryScan(values));
+  }, [dispatch, snackbar]);
 
   return (
-    <Resizable
-      className={classes.leftContainer}
-      onResizeStop={handlePanelResize}
-      size={{
-        height: "100%",
-        width: panelWidth,
-      }}
-      minWidth={200}
-      maxWidth="40vw"
-      enable={{
-        top: false,
-        right: true,
-        bottom: false,
-        left: false,
-        topRight: false,
-        bottomRight: false,
-        bottomLeft: false,
-        topLeft: false,
-      }}
-    >
-      <PropsSearchView />
-      <ClassSelectView/>
-      <Divider />
-      <PropNameListView />
-    </Resizable>
+    <Container active={active}>
+      <EditorContainer>
+        <PropsListView />
+        <Divider orientation="vertical" flexItem />
+
+        <RightContainer>
+          <EditorToolBarView onClickRun={handleClickRun} />
+          <Divider />
+          <SplitEditorView ref={splitEditorRef} />
+        </RightContainer>
+      </EditorContainer>
+    </Container>
   );
-});
+};
 
 export default PropsEditorView;

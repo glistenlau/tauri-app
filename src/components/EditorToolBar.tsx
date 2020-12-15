@@ -1,14 +1,12 @@
 import { green, orange, purple } from "@material-ui/core/colors";
 import Divider from "@material-ui/core/Divider";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
 import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
   makeStyles,
   Theme,
-  withStyles,
+  withStyles
 } from "@material-ui/core/styles";
-import Switch from "@material-ui/core/Switch";
 import MTooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import CodeIcon from "@material-ui/icons/Code";
@@ -19,6 +17,7 @@ import React, { useMemo } from "react";
 import { ValidateResult } from "../apis/javaProps";
 import RunnerControlToolBar from "../features/runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../features/transactionControl/TransactionControlToolBar";
+import DiffToolBar from "./DiffToolbar";
 import ProcessIconButton from "./ProgressIconButton";
 
 const useStyles = makeStyles((theme) =>
@@ -91,25 +90,28 @@ const HtmlTooltip = withStyles((theme: Theme) => ({
 }))(MTooltip);
 
 export interface EditorToolBarPropsType {
+  activePair: [boolean, boolean];
   diff: boolean;
+  onActivePairChange: (activePair: [boolean, boolean]) => any;
   onClickCopy: any;
-  onClickDiff: any;
+  onClickDiff: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void;
   onClickFormat: any;
   onClickRun: any;
   onClickSave: any;
   validateResult?: ValidateResult;
 }
 
-function EditorToolBar(props: EditorToolBarPropsType) {
-  const {
-    diff,
-    onClickCopy,
-    onClickDiff,
-    onClickFormat,
-    onClickRun,
-    onClickSave,
-    validateResult,
-  } = props;
+const EditorToolBar: React.FC<EditorToolBarPropsType> = ({
+  activePair,
+  diff,
+  onClickCopy,
+  onActivePairChange,
+  onClickDiff,
+  onClickFormat,
+  onClickRun,
+  onClickSave,
+  validateResult,
+}) => {
 
   const classes = useStyles();
   const validateMessage = useMemo(() => {
@@ -173,12 +175,11 @@ function EditorToolBar(props: EditorToolBarPropsType) {
         </HtmlTooltip>
       )}
 
-      <FormControlLabel
-        className={classes.diff}
-        control={
-          <Switch checked={diff} value="diffCode" onChange={onClickDiff} />
-        }
-        label="Diff"
+      <DiffToolBar
+        activePair={activePair}
+        diffMode={diff}
+        onActivePairChange={onActivePairChange}
+        onToogleDiff={onClickDiff}
       />
     </div>
   );

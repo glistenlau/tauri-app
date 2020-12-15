@@ -88,6 +88,7 @@ export interface QueryParameterModalPropsType {
   statements: Array<string>;
   parameters: Array<Array<Parameter>>;
   onClose: any;
+  onClickScan: () => void;
   onCartesianChange: any;
   onCopyParams: any;
   onSyncChange: any;
@@ -103,6 +104,7 @@ const QueryParameterModal = React.memo(
       cartesian,
       sync,
       onCopyParams,
+      onClickScan,
       onClose,
       onCartesianChange,
       onSyncChange,
@@ -253,10 +255,10 @@ const QueryParameterModal = React.memo(
         </TabLaberContainer>
       );
     }, []);
-    console.log('open', open);
+    console.log("open", open);
 
     return (
-      <Dialog fullWidth maxWidth="xl" open={open} onClose={onClose}>
+      <Dialog fullWidth maxWidth="xl" open={open}>
         <ContentContainer>
           <SchemaSelect />
           <div className={classes.headerContainer}>
@@ -354,16 +356,16 @@ const QueryParameterModal = React.memo(
             onEditorBlur={handleEditorBlur}
             onCurrentParameterChange={handleCurrentParameterChange}
           />
-                    <Divider />
+          <Divider />
 
-        <DialogActions>
-          <Button autoFocus onClick={onClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={onClose} color="primary">
-            Ok
-          </Button>
-        </DialogActions>
+          <DialogActions>
+            <Button autoFocus onClick={onClose} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={onClickScan} color="primary">
+              Scan
+            </Button>
+          </DialogActions>
         </ContentContainer>
       </Dialog>
     );

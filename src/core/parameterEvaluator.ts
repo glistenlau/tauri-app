@@ -1,10 +1,14 @@
-import QueryRunner, { QueryType } from "./queryRunner";
-import OracleClient from "./oracle";
-import PgClient from "./postgres";
 import { Parameter } from "../containers/QueryRunner";
 import { DB_TYPE } from "./databaseConsole";
+import OracleClient from "./oracle";
+import PgClient from "./postgres";
+import QueryRunner, { QueryType } from "./queryRunner";
 
 const SQL_PATERN = /^sql\s*`([\s|\S]*)`$/i;
+
+function sql(strings: TemplateStringsArray) {
+  return { value: strings.raw[0], type: "sql" };
+}
 
 const extractSqlQuery = (text: string) => {
   const regexResults = SQL_PATERN.exec(text);
@@ -51,27 +55,28 @@ export const evaluatePostgres = async (text: string, schema: string) => {
   );
 };
 
-const evaluateCommon = async (text: string, schema: string, dbType:DB_TYPE ,queryFunc: any) => {
+const evaluateCommon = async (
+  text: string,
+  schema: string,
+  dbType: DB_TYPE,
+  queryFunc: any
+) => {
   const trimmed = text.trim();
-  const statement = extractSqlQuery(trimmed);
-  let result = null;
   try {
-    if (statement !== "") {
-      result = await evaluateSQL(statement, schema, dbType, queryFunc);
-    } else {
-      result = evaluateJS(trimmed);
+    let evaled = evaluateJS(trimmed);
+    if (evaled?.type === 'sql') {
+      evaled = await evaluateSQL(evaled.value, schema, dbType, queryFunc);
     }
+    return {
+      success: true,
+      value: evaled,
+    };
   } catch (err) {
     return {
       success: false,
       errorMessage: err.message,
     };
   }
-
-  return {
-    success: true,
-    value: result,
-  };
 };
 
 const evaluateJS = (text: string) => {
@@ -96,14 +101,11 @@ const evaluateSQL = async (
   dbType: DB_TYPE,
   queryFunc: any
 ) => {
-  const queryRet = await queryFunc(
-    {
-      dbType,
-      statement,
-      schema
-    },
-    
-  );
+  const queryRet = await queryFunc({
+    dbType,
+    statement,
+    schema,
+  });
 
   if (!queryRet.success) {
     throw queryRet.error;

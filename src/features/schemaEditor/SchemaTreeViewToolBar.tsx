@@ -1,20 +1,13 @@
-import React from "react";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
-import { makeStyles, createStyles } from "@material-ui/core/styles";
-import { useSelector, useDispatch } from "react-redux";
+import { createStyles, makeStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import React, { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import DiffToolBar from "../../components/DiffToolbar";
+import PathBreadcrumbs from "../../components/PathBreadcrumbs";
 import { RootState } from "../../reducers";
 import {
-  toggleDiffMode,
-  toggleActiveEditor,
-  selectXmlNode,
+  selectXmlNode, setActivePair, toggleDiffMode
 } from "./schemaEditorSlice";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
-import Button from "@material-ui/core/Button";
-import PathBreadcrumbs from "../../components/PathBreadcrumbs";
-import SVGIcon from "../../components/SVGIcon";
-import Tooltip from "../../components/Tooltip";
-import Typography from "@material-ui/core/Typography";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -44,6 +37,7 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
+
 const SchemaTreeViewToolBar = React.memo(() => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -60,13 +54,6 @@ const SchemaTreeViewToolBar = React.memo(() => {
   const handleToogleDiff = React.useCallback(() => {
     dispatch(toggleDiffMode());
   }, [dispatch]);
-
-  const controlRenderer = React.useMemo(
-    () => (
-      <Switch checked={diffMode} value="diffCode" onChange={handleToogleDiff} />
-    ),
-    [diffMode, handleToogleDiff]
-  );
 
   const handleClickPath = React.useCallback(
     (id) => dispatch(selectXmlNode(id)),
@@ -128,12 +115,12 @@ const SchemaTreeViewToolBar = React.memo(() => {
     [activeNodePaths]
   );
 
-  const handleClickLeft = React.useCallback(() => {
-    dispatch(toggleActiveEditor(0));
-  }, [dispatch]);
-  const handleClickRight = React.useCallback(() => {
-    dispatch(toggleActiveEditor(1));
-  }, [dispatch]);
+  const handleActivePairChange = useCallback(
+    (activePair: [boolean, boolean]) => {
+      dispatch(setActivePair(activePair));
+    },
+    [dispatch],
+  );
 
   return (
     <div className={classes.container}>
@@ -142,44 +129,12 @@ const SchemaTreeViewToolBar = React.memo(() => {
         onClick={handleClickPath}
         paths={pathBreadcrumbs}
       />
-      <div className={classes.diff}>
-        {!diffMode && (
-          <ButtonGroup className={classes.activeButtons} size="small">
-            <Tooltip
-              title={activePair[0] ? "Hide left editor" : "Show left editor"}
-            >
-              <Button
-                variant={activePair[0] ? "contained" : "outlined"}
-                onClick={handleClickLeft}
-                style={{
-                  backgroundColor: activePair[0] ? "#d12e26" : undefined,
-                }}
-              >
-                <SVGIcon
-                  name="database"
-                  fill={activePair[0] ? "white" : "#d12e26"}
-                  width={20}
-                  height={20}
-                />
-              </Button>
-            </Tooltip>
-            <Tooltip
-              title={activePair[1] ? "Hide right editor" : "Show right editor"}
-            >
-              <Button
-                variant={activePair[1] ? "contained" : "outlined"}
-                onClick={handleClickRight}
-                style={{
-                  backgroundColor: activePair[1] ? "#81c784" : undefined,
-                }}
-              >
-                <SVGIcon name="postgres" width={20} height={20} />
-              </Button>
-            </Tooltip>
-          </ButtonGroup>
-        )}
-        <FormControlLabel control={controlRenderer} label="Diff" />
-      </div>
+      <DiffToolBar
+        activePair={activePair}
+        diffMode={diffMode}
+        onActivePairChange={handleActivePairChange}
+        onToogleDiff={handleToogleDiff}
+      />
     </div>
   );
 });

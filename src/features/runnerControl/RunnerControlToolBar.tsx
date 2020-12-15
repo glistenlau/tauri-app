@@ -2,7 +2,6 @@ import { createStyles, makeStyles, MenuItem } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
 import TextField from "@material-ui/core/TextField";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import RefreshIcon from "@material-ui/icons/Refresh";
 import clsx from "clsx";
 import React, { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -78,10 +77,14 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
     (state: RootState) => state.runnerControl.isRunning
   );
 
-  const fetchSchemas = useCallback(async () => {
-    const schemas = await QueryRunner.getAllSchemas();
-    dispatch(setSchemas(schemas));
-  }, [dispatch]);
+  const fetchSchemas = useCallback(
+    async (e) => {
+      e.stopPropagation();
+      const schemas = await QueryRunner.getAllSchemas();
+      dispatch(setSchemas(schemas));
+    },
+    [dispatch]
+  );
 
   const handleClickRun = React.useCallback(async () => {
     try {
@@ -135,24 +138,6 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
 
   return (
     <div className={clsx(classes.runnerContainer, className)} {...others}>
-      <SchemaTextField
-        select
-        disabled={isRunning}
-        color="primary"
-        id="schema"
-        label="schema"
-        size="small"
-        variant="outlined"
-        margin="dense"
-        value={schema}
-        onChange={handleSchemaChange}
-      >
-        <RefreshContainer onClick={fetchSchemas}>
-          <RefreshIcon />
-          Refresh
-        </RefreshContainer>
-        {schemaMenuItems}
-      </SchemaTextField>
       <ProcessIconButton
         title="Run Queries"
         loading={isRunning}

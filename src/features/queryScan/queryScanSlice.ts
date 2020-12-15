@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { getParameterMarkerPosition } from "../../util";
 
 export enum ParameterStatus {
   Active = "active",
@@ -48,15 +49,36 @@ const queryScan = createSlice({
     setOpenModal(state, { payload }: PayloadAction<boolean>) {
       state.openModel = payload;
     },
-    setSelectedSchemas(state, {payload}: PayloadAction<string[]>) {
+    setSelectedSchemas(state, { payload }: PayloadAction<string[]>) {
       state.selectedSchemas = payload;
     },
-    setActiveSchema(state, {payload}: PayloadAction<string>) {
+    setActiveSchema(state, { payload }: PayloadAction<string>) {
       state.activeSchema = payload;
-    }
+    },
+    initQueryScan(state, { payload }: PayloadAction<[string, string]>) {
+      state.statements = payload;
+      state.parameters = payload
+        .map(getParameterMarkerPosition)
+        .map((paramsPos) =>
+          paramsPos.map((paramPos) => ({ ...paramPos, raw: "", evaluated: {} }))
+        ) as [Parameter[], Parameter[]];
+      state.sync = state.parameters[0].length === state.parameters[1].length 
+        && Array(state.parameters[0].length)
+        .filter((_, index) => state.parameters[0][index].raw !== state.parameters[1][index].raw).length === 0;
+      state.cartesian = false;
+      state.openModel = true;
+    },
+    startScan(state) {
+
+    },
   },
 });
 
-export const { setActiveSchema, setOpenModal, setSelectedSchemas } = queryScan.actions;
+export const {
+  initQueryScan,
+  setActiveSchema,
+  setOpenModal,
+  setSelectedSchemas,
+} = queryScan.actions;
 
 export default queryScan.reducer;

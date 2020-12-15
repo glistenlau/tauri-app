@@ -1,30 +1,25 @@
-import clsx from "clsx";
-import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
-
+import { makeStyles } from "@material-ui/core/styles";
+import { Resizable } from "re-resizable";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { SizeMeProps, withSize } from "react-sizeme";
+import styled from "styled-components";
+import RunnerStatusBar from "../../components/RunnerStatusBar";
 import SplitQueryTable from "../../components/SplitQueryTable";
 import SplitRunningPanel from "../../components/SplitRunningPanel";
-import RunnerStatusBar from "../../components/RunnerStatusBar";
-import { useSelector, useDispatch } from "react-redux";
+import TabContent from "../../components/TabContent";
 import { RootState } from "../../reducers";
 import { changePanelExpand, changePanelHeight } from "./runnerResultSlice";
-import { Resizable } from "re-resizable";
-import { withSize, SizeMeProps } from "react-sizeme";
+
+
+const Container = styled(TabContent)`
+  background-color: ${({ theme }) => theme.palette.background.default};
+  display: flex;
+  flex-direction: column;
+`;
 
 const styles = makeStyles((theme) => ({
-  container: {
-    backgroundColor: theme.palette.background.default,
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-  },
-  containerHide: {
-    flex: 0,
-    height: 0,
-    width: 0,
-    overflow: "hidden",
-  },
   tableContainer: {
     flex: 1,
     display: "flex",
@@ -113,12 +108,7 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
   }
 
   return (
-    <div
-      className={clsx(
-        classes.container,
-        active ? undefined : classes.containerHide
-      )}
-    >
+    <Container active={active}>
       <Resizable
         className={classes.container}
         onResizeStop={handlePanelResize}
@@ -170,7 +160,7 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
           />
         )}
       </Resizable>
-    </div>
+    </Container>
   );
 });
 

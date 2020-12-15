@@ -1,6 +1,7 @@
 import { Divider } from "@material-ui/core";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import React from "react";
+import { ThemeProvider } from "styled-components";
 import Root from "./containers/Root";
 import { initLogger } from "./core/logger";
 
@@ -10,13 +11,12 @@ window.logger.debug("logger loaded.");
 const lightTheme = createMuiTheme({
   typography: {
     fontFamily: [
-      'Source Code Pro',
+      "Source Code Pro",
       "Ubuntu Mono",
       "Menlo",
       "DejaVu Sans Mono",
       "Cascadia Code",
       "Consolas",
-      
     ].join(","),
   },
   palette: {
@@ -54,12 +54,14 @@ const darkTheme = createMuiTheme({
 
 const App = () => {
   return (
-    <ThemeProvider theme={lightTheme}>
-      <Divider />
-      <div className="App">
-        <Root />
-      </div>
-    </ThemeProvider>
+    <MuiThemeProvider theme={lightTheme}>
+      <ThemeProvider theme={lightTheme}>
+        <Divider />
+        <div className="App">
+          <Root />
+        </div>
+      </ThemeProvider>
+    </MuiThemeProvider>
   );
 };
 

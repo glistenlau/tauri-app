@@ -1,16 +1,16 @@
 // @ts-ignore
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
 import { initApp, showNotification } from "../../actions";
+import { XmlTag } from "../../core/xmlParser";
 import xmlProcessor, {
-  XmlFile,
-  FAMILY,
   aggregateSameNamePair,
-  extractXmlFileIndex,
-  getAncestors,
+  extractXmlFileIndex, FAMILY,
+
+
+  getAncestors, XmlFile
 } from "../../core/xmlProcessor";
 import { AppThunk } from "../../reducers";
-import { XmlTag } from "../../core/xmlParser";
+
 
 export interface SchemaEditorState {
   activePair: [boolean, boolean];
@@ -101,6 +101,9 @@ const schemaEditor = createSlice({
       newPair[payload] = !newPair[payload];
       state.activePair = [newPair[0], newPair[1]];
     },
+    setActivePair(state, {payload}: PayloadAction<[boolean, boolean]>) {
+      state.activePair = payload;
+    },
     selectXmlNode(state, { payload }: PayloadAction<string>) {
       const id = payload;
       const rootIndex = extractXmlFileIndex(id);
@@ -156,6 +159,7 @@ export const {
   loadXmlList,
   changeSearchPath,
   changeSearchFile,
+  setActivePair,
   setActiveNodeId,
   setActiveNodePaths,
   setXmlFileTag,
