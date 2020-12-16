@@ -100,12 +100,10 @@ const DatabaseConsolePage = React.memo(
         let oraParams = getParameterMarkerPosition(oraStatement).map((p) => ({
           ...p,
           raw: "",
-          evaluated: {},
         }));
         let pgParams = getParameterMarkerPosition(pgStatement).map((p) => ({
           ...p,
           raw: "",
-          evaluated: {},
         }));
 
         const storedParams: any = null;

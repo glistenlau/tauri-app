@@ -3,10 +3,10 @@ import { red } from "@material-ui/core/colors";
 import Typography from "@material-ui/core/Typography";
 import { createStyles, makeStyles } from "@material-ui/styles";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { withSize } from "react-sizeme";
-import { Parameter } from "../containers/QueryRunner";
-import Editor from "./Editor";
+import { Parameter, ParameterValue } from "../features/queryScan/queryScanSlice";
+import Editor, { EditorHandle } from "./Editor";
 import "./SplitEditor.css";
 
 const useStyles = makeStyles((theme: any) =>
@@ -48,7 +48,7 @@ interface ParameterEditorPropsType {
   statement: string;
   parameter: Array<Parameter>;
   currentParameter: number;
-  onEditorBlur: any;
+  onEditorBlur: (paramVal: ParameterValue) => void;
   onCurrentParameterChange: any;
 }
 
@@ -62,8 +62,8 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     onCurrentParameterChange,
   } = props;
   const [markers, setMarkers]: [any, any] = useState([]);
-  const editorRef = useRef(null);
-  const rightEditorRef = useRef(null);
+  const editorRef: null | RefObject<EditorHandle> = useRef(null);
+  const rightEditorRef: null | RefObject<EditorHandle> = useRef(null);
 
   const handleBlur = React.useCallback(() => {
     if (!rightEditorRef.current || !onEditorBlur) {
@@ -71,20 +71,29 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     }
 
     const { editor } = rightEditorRef.current;
+    if (!editor) {
+      return;
+    }
+
     onEditorBlur({
       raw: editor.getValue(),
-      evaluated: {},
     });
   }, [onEditorBlur]);
 
-  const handleBeforeUnload = React.useCallback(() => {
-    handleBlur();
-  }, [handleBlur]);
+  const handleEditorClick = useCallback((e: monaco.editor.IEditorMouseEvent) => {
+    e.event.preventDefault();
+    const { position } = e.target;
+    if (!position) {
+      return;
+    }
+    const { column, lineNumber } = position;
+    const index = parameter.findIndex(param => param.row === lineNumber && (param.col === column || param.col + 1 === column));
+    if (index !== -1) {
+      onCurrentParameterChange(index);
+    }
+  }, [onCurrentParameterChange, parameter]);
 
-
-  const handleEditorClick = useCallback(() => {}, []);
-
-  React.useEffect(() => {
+  useEffect(() => {
     const editor = editorRef.current && editorRef.current.editor;
     if (editor) {
       const disposable = editor.onMouseDown(handleEditorClick);
@@ -117,9 +126,8 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
         let className = "clickableErrorMarker";
 
         if (
-          p.evaluated &&
-          p.evaluated.success &&
-          p.evaluated.value.length > 0
+          p.evaluated?.success &&
+          p.evaluated?.value?.length > 0
         ) {
           className = "clickableValidMarker";
         }
@@ -164,16 +172,18 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
 
   const evalVal = React.useMemo(
     () =>
-      (parameter[currentParameter] && parameter[currentParameter].evaluated) ||
-      {},
+      (parameter[currentParameter] && parameter[currentParameter].evaluated),
     [parameter, currentParameter]
   );
 
   const evalValStr = React.useMemo(() => {
+    if (!evalVal?.success) {
+      return '';
+    }
+
     return JSON.stringify(evalVal.value);
   }, [evalVal]);
 
-  console.log('got here')
   return (
     <div className={classes.container}>
       <Editor
@@ -192,11 +202,12 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
           language="javascript"
           height={height}
           width={width}
+          onBlur={handleBlur}
         />
         <Divider />
 
         <div className={classes.evalPanel}>
-          {evalVal.success && (
+          {evalVal?.success && (
             <Typography
               style={{
                 whiteSpace: "pre-line",
@@ -207,7 +218,7 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
               {evalValStr}
             </Typography>
           )}
-          {!evalVal.success && (
+          {(evalVal && !evalVal.success) && (
             <Typography
               style={{
                 whiteSpace: "pre-line",

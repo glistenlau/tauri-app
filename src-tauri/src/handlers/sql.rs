@@ -16,6 +16,7 @@ pub enum Action {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Payload<C> {
   statement: Option<String>,
+  schema: Option<String>,
   parameters: Option<Vec<Value>>,
   config: Option<C>,
 }
@@ -26,12 +27,15 @@ pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<d
       if payload.statement.is_none() {
         return Err(anyhow!("missing statement..."));
       }
-      if payload.parameters.is_none() {
-        return Err(anyhow!("missing parameters..."))
+      if payload.schema.is_none() {
+        return Err(anyhow!("missing schema..."))
       }
 
+      let statement = &payload.statement.unwrap().replace("COMPANY_", &format!(".{}", payload.schema.unwrap()));
+      let parameters = payload.parameters.unwrap_or(vec![]);
+
       log::debug!("dispatch sql execute statement...");
-      proxy.lock().unwrap().execute(&payload.statement.unwrap(), &payload.parameters.unwrap())
+      proxy.lock().unwrap().execute(statement, &parameters)
     },
     Action::SetConfig => {
       if payload.config.is_none() {

@@ -1,4 +1,4 @@
-import { requestAsync } from ".";
+import { requestAsync, Response } from ".";
 
 export interface SQLError {
   action?: string;
@@ -48,6 +48,7 @@ export enum DBType {
 
 interface Payload<C> {
   statement?: string;
+  schema?: string;
   parameters?: string[];
   config?: C;
 }
@@ -71,9 +72,14 @@ class SqlCommon<C> {
     return await requestAsync(this.handler, action, payload);
   };
 
-  execute = async (statement: string, parameters: any[]) => {
+  execute = async (
+    statement: string,
+    schema: string,
+    parameters?: any[]
+  ): Promise<Response<SQLResult>> => {
     const payload = {
       statement,
+      schema,
       parameters,
     };
 

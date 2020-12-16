@@ -1,8 +1,10 @@
+import { Response } from "../apis";
+import oracle from "../apis/oracle";
+import postgres from "../apis/postgres";
+import { SQLResult } from "../apis/sqlCommon";
 import { Parameter } from "../containers/QueryRunner";
+import { stringifySqlError } from "../util";
 import { DB_TYPE } from "./databaseConsole";
-import OracleClient from "./oracle";
-import PgClient from "./postgres";
-import QueryRunner, { QueryType } from "./queryRunner";
 
 const SQL_PATERN = /^sql\s*`([\s|\S]*)`$/i;
 
@@ -40,8 +42,7 @@ export const evaluateOracle = async (text: string, schema: string) => {
     text,
     schema,
     DB_TYPE.ORACLE,
-    async (q: QueryType) =>
-      await QueryRunner.runOracleQuery(q, OracleClient.query)
+    (statement: string) => oracle.execute(statement, schema)
   );
 };
 
@@ -50,8 +51,7 @@ export const evaluatePostgres = async (text: string, schema: string) => {
     text,
     schema,
     DB_TYPE.POSTGRES,
-    async (q: QueryType) =>
-      await QueryRunner.runPostgresQuery(q, PgClient.query)
+    (statement: string) => postgres.execute(statement, schema)
   );
 };
 
@@ -59,22 +59,27 @@ const evaluateCommon = async (
   text: string,
   schema: string,
   dbType: DB_TYPE,
-  queryFunc: any
+  queryFunc: (statement: string) => Promise<Response<SQLResult>>
 ) => {
   const trimmed = text.trim();
   try {
-    let evaled = evaluateJS(trimmed);
-    if (evaled?.type === 'sql') {
-      evaled = await evaluateSQL(evaled.value, schema, dbType, queryFunc);
+    let evaled: any = extractSqlQuery(trimmed);
+    if (evaled) {
+      if (!schema) {
+        throw new Error("No Schmea Specified.");
+      }
+      evaled = await evaluateSQL(evaled, schema, dbType, queryFunc);
+    } else {
+      evaled = evaluateJS(trimmed);
     }
     return {
       success: true,
-      value: evaled,
+      value: evaled
     };
   } catch (err) {
     return {
       success: false,
-      errorMessage: err.message,
+      errorMessage: err.message
     };
   }
 };
@@ -99,19 +104,28 @@ const evaluateSQL = async (
   statement: string,
   schema: string,
   dbType: DB_TYPE,
-  queryFunc: any
+  queryFunc: (statement: string) => Promise<Response<SQLResult>>
 ) => {
-  const queryRet = await queryFunc({
-    dbType,
-    statement,
-    schema,
-  });
+  const sqlResponse = await queryFunc(statement);
+  console.log("evaluate sql result:", sqlResponse);
 
-  if (!queryRet.success) {
-    throw queryRet.error;
+  if (!sqlResponse.success) {
+    throw new Error(sqlResponse.result.message);
   }
 
-  return generateListFromQueryResult(queryRet);
+  return generateListFromResultSet(sqlResponse.result);
+};
+
+const generateListFromResultSet = (rs?: SQLResult) => {
+  if (!rs) {
+    return [];
+  }
+  if (rs.error) {
+    throw new Error(stringifySqlError(rs.error));
+  }
+  if (rs.result) {
+    return rs.result.rows?.map((r) => r[0]) || [];
+  }
 };
 
 const generateListFromQueryResult = (qs: any) => {
@@ -128,4 +142,17 @@ export const evaluateParamsPair = async (
     return await evaluateParams(p, schema, EVAL_FUNC[i]);
   });
   return await Promise.all(pairPromise);
+};
+
+export const evaluateParamPair = async (
+  paramPair: [Parameter, Parameter],
+  schema: string
+) => {
+  console.log("evaluating param pair: ", paramPair);
+  const pairPromise = paramPair.map(async (p, i) => {
+    return await evaluateParams([p], schema, EVAL_FUNC[i]);
+  });
+
+  const resolved = await Promise.all(pairPromise);
+  return [resolved[0][0], resolved[1][0]];
 };

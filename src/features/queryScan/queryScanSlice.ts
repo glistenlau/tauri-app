@@ -7,17 +7,20 @@ export enum ParameterStatus {
   Error = "error",
 }
 
-type EvalatedParams =
+type EvaluatedParams =
   | {
       success: true;
       value: Array<any>;
     }
   | { success: false; errorMessage: string };
 
-export interface Parameter {
+export interface ParameterValue {
   raw: string;
-  evaluated: EvalatedParams;
+  evaluated?: EvaluatedParams;
   status?: ParameterStatus;
+}
+
+export interface Parameter extends ParameterValue {
   row: number;
   col: number;
 }
@@ -29,7 +32,7 @@ interface QueryScanState {
   activeSchema: string;
   statements: [string, string];
   sync: boolean;
-  parameters: [Parameter[], Parameter[]];
+  parametersPair: [Parameter[], Parameter[]];
 }
 
 const initialState: QueryScanState = {
@@ -39,11 +42,11 @@ const initialState: QueryScanState = {
   sync: false,
   selectedSchemas: [],
   statements: ["", ""],
-  parameters: [[], []],
+  parametersPair: [[], []],
 };
 
 const queryScan = createSlice({
-  name: "runnerContorl",
+  name: "runnerControl",
   initialState,
   reducers: {
     setOpenModal(state, { payload }: PayloadAction<boolean>) {
@@ -55,16 +58,19 @@ const queryScan = createSlice({
     setActiveSchema(state, { payload }: PayloadAction<string>) {
       state.activeSchema = payload;
     },
+    setParametersPair(state, {payload}: PayloadAction<[Parameter[], Parameter[]]>) {
+      state.parametersPair = payload;
+    },
     initQueryScan(state, { payload }: PayloadAction<[string, string]>) {
       state.statements = payload;
-      state.parameters = payload
+      state.parametersPair = payload
         .map(getParameterMarkerPosition)
         .map((paramsPos) =>
           paramsPos.map((paramPos) => ({ ...paramPos, raw: "", evaluated: {} }))
         ) as [Parameter[], Parameter[]];
-      state.sync = state.parameters[0].length === state.parameters[1].length 
-        && Array(state.parameters[0].length)
-        .filter((_, index) => state.parameters[0][index].raw !== state.parameters[1][index].raw).length === 0;
+      state.sync = state.parametersPair[0].length === state.parametersPair[1].length
+        && Array(state.parametersPair[0].length)
+        .filter((_, index) => state.parametersPair[0][index].raw !== state.parametersPair[1][index].raw).length === 0;
       state.cartesian = false;
       state.openModel = true;
     },
@@ -78,6 +84,7 @@ export const {
   initQueryScan,
   setActiveSchema,
   setOpenModal,
+  setParametersPair,
   setSelectedSchemas,
 } = queryScan.actions;
 

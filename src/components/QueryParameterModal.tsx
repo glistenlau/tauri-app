@@ -16,7 +16,7 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import { createStyles, makeStyles } from "@material-ui/styles";
 import React, { useCallback } from "react";
 import styled from "styled-components";
-import { Parameter } from "../containers/QueryRunner";
+import { Parameter } from "../features/queryScan/queryScanSlice";
 import SchemaSelect from "../features/queryScan/SchemaSelect";
 import { updateArrayElement } from "../util";
 import ParameterEditor from "./ParameterEditor";
@@ -85,14 +85,18 @@ export interface QueryParameterModalPropsType {
   open: boolean;
   cartesian: boolean;
   sync: boolean;
-  statements: Array<string>;
-  parameters: Array<Array<Parameter>>;
+  statements: [string, string];
+  parameters: [Parameter[], Parameter[]];
   onClose: any;
   onClickScan: () => void;
   onCartesianChange: any;
   onCopyParams: any;
   onSyncChange: any;
-  onEditorBlur: any;
+  onParametersPairChange: (
+    paramsPair: [Parameter[], Parameter[]],
+    pairIndex: number,
+    paramIndex: number
+  ) => Promise<void>;
 }
 
 const QueryParameterModal = React.memo(
@@ -108,7 +112,7 @@ const QueryParameterModal = React.memo(
       onClose,
       onCartesianChange,
       onSyncChange,
-      onEditorBlur,
+      onParametersPairChange,
     } = props;
     const classes = useStyles();
     const [curTab, setCurTab] = React.useState(0);
@@ -134,7 +138,8 @@ const QueryParameterModal = React.memo(
       let combination = 0;
       if (cartesian) {
         combination = parameters[curTab].reduce((agg: number, curP) => {
-          const curCount = curP.evaluated.value && curP.evaluated.value.length;
+          const curCount =
+            curP.evaluated?.success && curP.evaluated?.value?.length;
           if (!curCount) {
             return 0;
           }
@@ -143,7 +148,8 @@ const QueryParameterModal = React.memo(
         }, 1);
       } else {
         combination = parameters[curTab].reduce((agg: number, curP) => {
-          const curCount = curP.evaluated.value && curP.evaluated.value.length;
+          const curCount =
+            curP.evaluated?.success && curP.evaluated?.value?.length;
           if (!curCount || agg === 0) {
             return 0;
           }
@@ -157,39 +163,41 @@ const QueryParameterModal = React.memo(
 
     const handleEditorBlur = React.useCallback(
       async (paramUpdate: any) => {
+        console.log('handle editor blur.', paramUpdate);
         if (!paramUpdate) {
           return;
         }
 
-        let params;
+        let params: [Parameter[], Parameter[]];
+
+        if (paramUpdate.raw === parameters[curTab][curParam].raw) {
+          return;
+        }
 
         if (sync) {
-          const newOraParams = updateArrayElement(
-            parameters[0],
-            curParam,
-            Object.assign({}, parameters[0][curParam], paramUpdate)
+          const newParamsPair = parameters.map((params) =>
+            updateArrayElement(
+              params,
+              curParam,
+              Object.assign({}, params[curParam], paramUpdate)
+            )
           );
-          const newPgParams = updateArrayElement(
-            parameters[1],
-            curParam,
-            Object.assign({}, parameters[1][curParam], paramUpdate)
-          );
-          params = [newOraParams, newPgParams];
+          params = newParamsPair as [Parameter[], Parameter[]];
         } else {
-          if (paramUpdate.raw === parameters[curTab][curParam].raw) {
-            return;
-          }
           const curParams = updateArrayElement(
             parameters[curTab],
             curParam,
             Object.assign({}, parameters[curTab][curParam], paramUpdate)
           );
-          params = updateArrayElement(parameters, curTab, curParams);
+          params = updateArrayElement(parameters, curTab, curParams) as [
+            Parameter[],
+            Parameter[]
+          ];
         }
 
-        await onEditorBlur(params, curTab, curParam);
+        await onParametersPairChange(params, curTab, curParam);
       },
-      [curParam, curTab, parameters, sync, onEditorBlur]
+      [curParam, curTab, parameters, sync, onParametersPairChange]
     );
 
     const handleChangeTab = React.useCallback((e: any, val: number) => {

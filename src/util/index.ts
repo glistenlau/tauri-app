@@ -1,29 +1,28 @@
 import {
-  pink,
-  deepPurple,
-  lightBlue,
-  red,
-  purple,
-  indigo,
+  amber,
   blue,
+  brown,
   cyan,
-  teal,
+  deepPurple,
   green,
+  indigo,
+  lightBlue,
   lightGreen,
   lime,
-  amber,
   orange,
-  brown,
+  pink,
+  purple,
+  red,
+  teal
 } from "@material-ui/core/colors";
-import { TimeElapsed } from "../reducers/queryRunner";
 import crypto from "crypto";
 import glob from "glob";
+import { SQLError } from "../apis/sqlCommon";
+import { TimeElapsed } from "../reducers/queryRunner";
 
-export const getLogPath = () => {
-};
+export const getLogPath = () => {};
 
-export const getDBPath = () => {
-};
+export const getDBPath = () => {};
 
 const NS_PER_S = 1e9;
 export const isSpace = (c: string) => {
@@ -84,11 +83,11 @@ export const getRange = (
   endCol,
 });
 
-export const updateArrayElement = (
-  arr: Array<any>,
+export const updateArrayElement = <T>(
+  arr: Array<T>,
   index: number,
   updated: any
-) => {
+): Array<T> => {
   return [...arr.slice(0, index), updated, ...arr.slice(index + 1)];
 };
 
@@ -255,4 +254,18 @@ export const postgresIntevalToString = (pi: any) => {
     }`
   );
   return ret.join(" ");
+};
+
+export const stringifySqlError = (sqlError: SQLError) => {
+  const errorParts = [];
+  for (const [key, value] of Object.entries(sqlError)) {
+    if (value == null) {
+      continue;
+    }
+
+    const value_str =
+      typeof value === "string" ? value : JSON.stringify(value, null, 2);
+    errorParts.push(`${key}: ${value_str}`);
+  }
+  return errorParts.join("\r\n\r\n");
 };

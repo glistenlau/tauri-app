@@ -8,13 +8,11 @@ const getSyncedParam = (oraParam: Parameter, pgParam: Parameter) => {
   if (!oraParam.raw.trim()) {
     return {
       raw: pgParam.raw.trim(),
-      evaluated: {},
     };
   }
 
   return {
     raw: oraParam.raw.trim(),
-    evaluated: {},
   };
 };
 

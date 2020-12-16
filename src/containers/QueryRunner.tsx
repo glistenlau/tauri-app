@@ -1,18 +1,22 @@
-import React from "react";
 import { createStyles, withStyles } from "@material-ui/styles";
+import React from "react";
+import { connect } from "react-redux";
 import {
-  scanRunQuery,
-  closeParameterModal,
-  changeParameters,
+  changeParameters, closeParameterModal,
+
+
+
+  evaluateParameter, scanRunQuery,
+
+
   toggleCartesian,
   toggleSync,
-  evaluateParameter,
-  validateParameters,
+
+  validateParameters
 } from "../actions";
 import QueryParameterModal from "../components/QueryParameterModal";
-import { connect } from "react-redux";
-import { getEffectiveStatements, getParameterCount } from "../util";
 import { RootState } from "../reducers";
+import { getEffectiveStatements, getParameterCount } from "../util";
 
 const styles: any = (theme: any) => createStyles({});
 
@@ -28,9 +32,10 @@ type EvalatedParams =
       value: Array<any>;
     }
   | { success: false; errorMessage: string };
+
 export interface Parameter {
   raw: string;
-  evaluated: EvalatedParams;
+  evaluated?: EvalatedParams;
   status?: ParameterStatus;
   row: number;
   col: number;

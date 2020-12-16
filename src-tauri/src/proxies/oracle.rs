@@ -228,7 +228,7 @@ static START_PATTERN: &str = r"(?i)^\s*";
 impl SQLClient<OracleConfig> for OracleClient {
     fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
         log::debug!(
-            "execute oracle statement {}, parameters {:?}",
+            "execute oracle, statement {}, parameters {:?}",
             statement,
             parameters
         );

@@ -9,21 +9,26 @@
   z-index: 20;
 }
 .clickableActiveMarker {
-  border-bottom: 1px solid blue;
+  border-bottom: 3px solid blue;
+  font-weight: bold;
   background: rgba(33, 150, 243, 0.8);
   border-radius: 0%;
   cursor: pointer !important;
   pointer-events: auto;
 }
 .clickableValidMarker {
-  border-bottom: 1px solid blue;
+  border-bottom: 3px solid green;
+  font-weight: bold;
+	font-style: oblique;
   background: rgba(128, 226, 126, 0.8);
   border-radius: 0%;
   cursor: pointer !important;
   pointer-events: auto;
 }
 .clickableErrorMarker {
-  border-bottom: 1px solid blue;
+  border-bottom: 3px solid red;
+  font-weight: bold;
+	font-style: oblique;
   background: rgba(255, 121, 97, 0.8);
   border-radius: 0%;
   cursor: pointer !important;

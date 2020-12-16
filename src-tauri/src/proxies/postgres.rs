@@ -278,7 +278,6 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
     fn execute<'b>(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
         log::debug!("start executing postgres statement...");
 
-
         POSTGRES_RUNTIME.lock().unwrap().block_on(async {
             let client = self.get_connection().await?;
             let client_lock = client.lock().unwrap();

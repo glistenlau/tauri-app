@@ -17,6 +17,7 @@ import React, { useMemo } from "react";
 import { ValidateResult } from "../apis/javaProps";
 import RunnerControlToolBar from "../features/runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../features/transactionControl/TransactionControlToolBar";
+import { stringifySqlError } from "../util";
 import DiffToolBar from "./DiffToolbar";
 import ProcessIconButton from "./ProgressIconButton";
 
@@ -123,19 +124,7 @@ const EditorToolBar: React.FC<EditorToolBarPropsType> = ({
       return null;
     }
 
-    const errorParts = [];
-
-    for (const [key, value] of Object.entries(validateResult.error)) {
-      if (value == null) {
-        continue;
-      }
-
-      const value_str =
-        typeof value === "string" ? value : JSON.stringify(value, null, 2);
-      errorParts.push(`${key}: ${value_str}`);
-    }
-
-    return errorParts.join("\r\n\r\n");
+    return stringifySqlError(validateResult.error);
   }, [validateResult]);
 
   return (
