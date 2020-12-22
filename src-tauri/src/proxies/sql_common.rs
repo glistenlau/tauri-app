@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::Duration;
@@ -7,6 +7,39 @@ use std::{error::Error, fmt};
 use crate::utilities::find_position_line;
 
 use super::postgres::PostgresProxy;
+
+const COMPANY_PLACEHOLDER: &str = "company_";
+
+pub fn process_statement_schema(statement: &str, schema: &str) -> String {
+    let mut stmt = String::from(statement);
+    let mut stmt_lower = statement.to_lowercase();
+    loop {
+      let str_index = stmt_lower.find(COMPANY_PLACEHOLDER).unwrap_or(stmt_lower.len());
+      if str_index == stmt_lower.len() {
+        break;
+      }
+
+      stmt.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), schema);
+      stmt_lower.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), schema);
+    }
+
+    stmt
+}
+
+pub fn process_statement_params(statement: &str, param_sign: &str) -> String {
+    let mut new_stmt = String::with_capacity(statement.len());
+    let split = statement.split("?");
+    for (idx, part) in split.enumerate() {
+      if idx != 0 {
+        new_stmt.push_str(&format!("{}{}", param_sign, idx));
+      }
+      new_stmt.push_str(part);
+    }
+  
+    new_stmt
+  }
+
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum DBType {
@@ -18,14 +51,14 @@ pub enum DBType {
 pub struct SQLResultSet {
     row_count: usize,
     columns: Option<Vec<String>>,
-    rows: Option<Vec<Vec<String>>>,
+    rows: Option<Vec<Vec<Value>>>,
 }
 
 impl SQLResultSet {
     pub fn new(
         row_count: usize,
         columns: Option<Vec<String>>,
-        rows: Option<Vec<Vec<String>>>,
+        rows: Option<Vec<Vec<Value>>>,
     ) -> SQLResultSet {
         SQLResultSet {
             row_count,
@@ -157,6 +190,15 @@ impl SQLError {
     }
 }
 
+impl From<anyhow::Error> for SQLError {
+    fn from(error: anyhow::Error) -> Self {
+        SQLError {
+            message: error.to_string(),
+            ..Default::default()
+        }
+    }
+}
+
 impl From<oracle::Error> for SQLError {
     fn from(error: oracle::Error) -> Self {
         match error {
@@ -280,6 +322,6 @@ impl SQLReponse {
 }
 
 pub trait SQLClient<C> {
-    fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult>;
+    fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value]) -> Result<SQLResult>;
     fn set_config(&mut self, config: C) -> Result<SQLResult>;
 }

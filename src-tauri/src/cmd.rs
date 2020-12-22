@@ -1,5 +1,5 @@
 use crate::handlers::{dispath_async, Handler};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
 use tauri::Webview;
 
 #[derive(Deserialize, Debug)]

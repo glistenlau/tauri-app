@@ -6,16 +6,20 @@ use std::{
     sync::mpsc,
     sync::Arc,
     thread,
-    time::{self, Duration, Instant},
+    time::{Duration, Instant},
 };
 
+use oracle::sql_type::ToSql as OracleToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use tokio_postgres::types::ToSql as PgToSql;
 
 use super::sql_common::{SQLError, SQLResult, SQLResultSet};
 use crate::{
-    core::parameter_iterator::DBParamIter, core::parameter_iterator::ParameterIterator,
-    core::query_scanner::QueryScanner, handlers::query_runner::Query,
+    core::parameter_iterator::DBParamIter,
+    core::parameter_iterator::ParameterIterator,
+    core::{parameter_iterator::ParamSeeds, query_scanner::QueryScanner},
+    handlers::query_runner::Query,
 };
 use anyhow::Result;
 
@@ -68,6 +72,7 @@ impl ProgressInfo {
     }
 }
 
+#[derive(Debug)]
 enum Message {
     FinishQuery(
         usize,
@@ -137,68 +142,53 @@ pub fn scan_schema_queries(
         let query_clone = Arc::clone(query);
         thread::spawn(move || {
             log::debug!("start scan query: {:#?}", query_clone);
-            let oracle_seeds;
-            let postgres_seeds;
             let mode = query_clone.mode();
+            let oracle_seeds: Vec<Vec<Box<dyn OracleToSql>>>;
+            let postgres_seeds: Vec<Vec<Box<dyn PgToSql + Sync>>>;
 
-            let db_param_iter_ret = match query_clone.db_type() {
+            let param_seeds_ret = match query_clone.db_type() {
                 super::sql_common::DBType::Oracle => {
-                    match QueryScanner::map_oracle_param_seeds(
-                        schema_clone.clone(),
-                        query_clone.as_ref(),
-                    ) {
-                        Ok(os) => {
-                            if os.is_empty() {
-                                Ok(DBParamIter::Oracle(None))
-                            } else {
-                                oracle_seeds = os;
-                                let params_iter = ParameterIterator::new(&oracle_seeds, &mode);
-                                Ok(DBParamIter::Oracle(Some(RefCell::new(params_iter))))
-                            }
-                        }
-                        Err(err) => Err(SQLError::new(err.to_string())),
-                    }
+                    QueryScanner::map_oracle_param_seeds(schema_clone.clone(), query_clone.as_ref())
                 }
-                super::sql_common::DBType::Postgres => {
-                    match QueryScanner::map_postgres_param_seeds(
-                        schema_clone.clone(),
-                        query_clone.as_ref(),
-                    ) {
-                        Ok(ps) => {
-                            if ps.is_empty() {
-                                Ok(DBParamIter::Postgres(None))
-                            } else {
-                                postgres_seeds = ps;
-                                let params_iter = ParameterIterator::new(&postgres_seeds, &mode);
-                                Ok(DBParamIter::Postgres(Some(RefCell::new(params_iter))))
-                            }
-                        }
-                        Err(err) => Err(SQLError::new(err.to_string())),
-                    }
-                }
+                super::sql_common::DBType::Postgres => QueryScanner::map_postgres_param_seeds(
+                    schema_clone.clone(),
+                    query_clone.as_ref(),
+                ),
             };
 
-            let db_param_iter = match db_param_iter_ret {
-                Ok(dpi) => {
-                    log::debug!("mapped params iterator.");
-                    dpi
+            let mut query_scanner = match param_seeds_ret {
+                Ok(ParamSeeds::Oracle(prepared_statement, seeds)) => {
+                    oracle_seeds = seeds;
+                    let params_iter = ParameterIterator::new(&oracle_seeds, &mode, prepared_statement);
+                    let db_param_iter = DBParamIter::Oracle(RefCell::new(params_iter));
+                    QueryScanner::new(schema_clone.clone(), query_clone.as_ref(), db_param_iter)
+                }
+                Ok(ParamSeeds::Postgres(prepared_statement, seeds)) => {
+                    postgres_seeds = seeds;
+                    let params_iter = ParameterIterator::new(&postgres_seeds, &mode, prepared_statement);
+                    let db_param_iter = DBParamIter::Postgres(RefCell::new(params_iter));
+                    QueryScanner::new(schema_clone.clone(), query_clone.as_ref(), db_param_iter)
                 }
                 Err(err) => {
-                    log::debug!("map params iterator failed: {}", err);
-                    tx.send(Message::FinishQuery(
+                    log::error!("map params iterator failed: {}", err);
+                    match tx.send(Message::FinishQuery(
                         i,
-                        Err(err),
+                        Err(SQLError::from(err)),
                         None,
                         0,
                         Duration::default(),
-                    ));
+                    )) {
+                        Ok(_) => {
+                            log::debug!("send mag successfully.");
+                        }
+                        Err(e) => {
+                            log::error!("failed to send msg: {}", e);
+                        }
+                    };
                     return;
                 }
             };
 
-            let mut query_scanner =
-                QueryScanner::new(schema_clone.clone(), query_clone.as_ref(), db_param_iter)
-                    .unwrap();
             while !stop.load(Ordering::Acquire) {
                 log::debug!(
                     "{} scan params, finished: {}, total: {}, drained: {}",
@@ -222,7 +212,10 @@ pub fn scan_schema_queries(
                             tx.send(messge).unwrap();
                         }
                     }
-                    None => break,
+                    None => {
+                        log::debug!("got nothing from query scanner, stop the scanner.");
+                        break;
+                    }
                 }
             }
 
@@ -236,6 +229,7 @@ pub fn scan_schema_queries(
     let mut has_error = false;
 
     for msg in receiver {
+        log::debug!("receiver got msg: {:?}", msg);
         match msg {
             Message::FinishQuery(i, rs, cur_params, total, elapsed) => {
                 let sql_result = match rs {
@@ -349,6 +343,13 @@ fn emit_progress(
     let mut emitter = emitter_lock.lock().unwrap();
     emitter.emit(
         "scan_query_progress",
-        Some(ProgressMessage::new(schema, index, cur_params.as_ref(), finished, pending, total)),
+        Some(ProgressMessage::new(
+            schema,
+            index,
+            cur_params.as_ref(),
+            finished,
+            pending,
+            total,
+        )),
     );
 }

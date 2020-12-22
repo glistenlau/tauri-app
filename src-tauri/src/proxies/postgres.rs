@@ -4,9 +4,18 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
-use std::ops::{Deref, DerefMut};
 use tokio::{runtime::Runtime, spawn};
-use tokio_postgres::{error::DbError, Client, Error, NoTls};
+use tokio_postgres::{
+    error::DbError,
+    types::{ToSql},
+    Client, Error, NoTls, Statement,
+};
+
+
+use crate::{
+    core::{postgres_param_mapper::map_to_sql},
+    utilities::postgres::{get_row_values},
+};
 
 use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
 
@@ -75,7 +84,6 @@ pub struct PostgresProxy {
 //         &mut self
 //     }
 // }
-
 
 impl PostgresProxy {
     const fn new(config: ConnectionConfig) -> PostgresProxy {
@@ -151,76 +159,6 @@ impl PostgresProxy {
         }
     }
 
-    async fn execute(stmt: &str, client: &Client) -> Result<SQLResultSet, Error> {
-        let rsp = client.simple_query(stmt).await?;
-        let mut row_count = 0;
-
-        let mut res_columns: Vec<String> = Vec::new();
-        let mut res_rows: Vec<Vec<String>> = Vec::new();
-
-        for sqm in rsp {
-            match sqm {
-                tokio_postgres::SimpleQueryMessage::Row(row) => {
-                    let mut res_row = Vec::with_capacity(row.len());
-                    for i in 0..row.len() {
-                        res_row.push(String::from(row.try_get(i)?.unwrap_or_default()));
-                    }
-                    res_rows.push(res_row);
-                }
-                tokio_postgres::SimpleQueryMessage::CommandComplete(count) => {
-                    row_count = count as usize;
-                }
-                tokio_postgres::SimpleQueryMessage::Columns(columns) => {
-                    res_columns = columns;
-                }
-                _ => {}
-            }
-        }
-
-        Ok(SQLResultSet::new(
-            row_count,
-            Some(res_columns),
-            Some(res_rows),
-        ))
-    }
-
-    async fn execute_wrap(stmt: &str, client: &Client) -> Result<SQLResultSet, SQLError> {
-        match Self::execute(stmt, client).await {
-            Ok(rs) => Ok(rs),
-            Err(err) => Err(SQLError::new_postgres_error(err, stmt)),
-        }
-    }
-
-    pub async fn execute_mapped_statement(
-        stmt: &str,
-        params: Option<&[&String]>,
-        client: &Client,
-    ) -> Result<SQLResultSet, SQLError> {
-        let s = match params {
-            Some(ps) => {
-                let mut filled_stmt = String::with_capacity(stmt.len());
-                let mut stmt_iter = stmt.split("?");
-                let mut params_iter = ps.iter();
-
-                filled_stmt.push_str(stmt_iter.next().unwrap_or_default());
-
-                while let (Some(part), Some(param)) = (stmt_iter.next(), params_iter.next()) {
-                    filled_stmt.push_str(param);
-                    filled_stmt.push_str(part);
-                }
-                if (stmt_iter.next(), params_iter.next()) != (None, None) {
-                    return Err(SQLError::new(
-                        "parameters are not matched with the statement...".to_string(),
-                    ));
-                }
-                String::from(filled_stmt)
-            }
-            None => String::from(stmt),
-        };
-        
-        Self::execute_wrap(&s, client).await
-    }
-
     pub fn map_to_db_error(error: Error) -> Result<DbError, Error> {
         if error.code().is_none() {
             // Not a db error, throw it.
@@ -238,71 +176,83 @@ impl PostgresProxy {
         }
     }
 
-    fn map_params(params: &[Value]) -> Result<Vec<String>> {
-        let mut mapped_params = Vec::with_capacity(params.len());
-        for param in params {
-            mapped_params.push(Self::map_param(param)?);
+    pub async fn execute_string_statement(
+        stmt: &str,
+        params: &[Value],
+        client: &Client,
+    ) -> Result<SQLResultSet, SQLError> {
+        let prepared_stmt = client.prepare(&stmt).await?;
+        let stmt_params = prepared_stmt.params();
+
+        if params.len() != stmt_params.len() {
+            return Err(SQLError::from(anyhow!(
+                "The number of params not matched, expect {}, actual {}",
+                stmt_params.len(),
+                params.len()
+            )));
         }
 
-        Ok(mapped_params)
+        let mut mapped_params = Vec::with_capacity(params.len());
+
+        for (idx, param) in params.iter().enumerate() {
+            mapped_params.push(map_to_sql(param, &stmt_params[idx])?);
+        }
+        let mut mapped_params_unbox = Vec::with_capacity(mapped_params.len());
+        for param_box in &mapped_params {
+            mapped_params_unbox.push(param_box.as_ref());
+        }
+
+        Self::execute_prepared(&prepared_stmt, &mapped_params_unbox, client).await
     }
 
-    pub fn map_param(param: &Value) -> Result<String> {
-        let mapped_param = match param {
-            Value::Null => String::from("null"),
-            Value::Bool(val) => val.to_string(),
-            Value::Number(val) => {
-                if val.is_f64() {
-                    val.as_f64().unwrap().to_string()
-                } else {
-                    val.as_i64().unwrap().to_string()
-                }
+    pub async fn execute_prepared(
+        stmt: &Statement,
+        params: &[&(dyn ToSql + Sync)],
+        client: &Client,
+    ) -> Result<SQLResultSet, SQLError> {
+        let result_set = if stmt.columns().len() == 0 {
+            let result = client.execute(stmt, params).await?;
+            SQLResultSet::new(result as usize, None, None)
+        } else {
+            let result = client.query(stmt, params).await?;
+            let columns = stmt.columns();
+            let mut rows = Vec::with_capacity(result.len());
+            for row in &result {
+                rows.push(get_row_values(row, columns)?)
             }
-            Value::String(val) => format!("'{}'", val),
-            Value::Array(arr) => {
-                let mut mapped_arr = Vec::with_capacity(arr.len());
-                for val in arr {
-                    mapped_arr.push(Self::map_param(val)?);
-                }
+            let column_strs = columns
+                .iter()
+                .map(|column| String::from(column.name()))
+                .collect();
 
-                mapped_arr.join(",")
-            }
-            Value::Object(_) => return Err(anyhow!("not support object param for postgres.")),
+            log::debug!("Got postgres query result: {:?}", rows);
+
+            SQLResultSet::new(rows.len(), Some(column_strs), Some(rows))
         };
 
-        Ok(mapped_param)
+        Ok(result_set)
     }
 }
 
 impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
-    fn execute<'b>(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
+    fn execute<'b>(
+        &mut self,
+        statement: &str,
+        schema: &str,
+        parameters: &[Value],
+    ) -> Result<SQLResult> {
         log::debug!("start executing postgres statement...");
 
         POSTGRES_RUNTIME.lock().unwrap().block_on(async {
             let client = self.get_connection().await?;
             let client_lock = client.lock().unwrap();
-            let mapped_params: Vec<String> = if parameters.len() > 0 {
-                match Self::map_params(parameters) {
-                    Ok(mapped_params) => mapped_params,
-                    Err(e) => {
-                        return Err(anyhow!("map parameters error: {}", e));
-                    }
-                }
-            } else {
-                vec![]
-            };
-            let mut mapped_params_ref: Vec<&String> = vec![];
 
-            for i in 0..mapped_params.len() {
-                mapped_params_ref.push(mapped_params.get(i).unwrap())
-            }
-
-            match Self::execute_mapped_statement(&statement, Some(&mapped_params_ref), &client_lock)
-                .await
-            {
-                Ok(rs) => Ok(SQLResult::new_result(Some(rs))),
-                Err(e) => Ok(SQLResult::new_error(e)),
-            }
+            let result =
+                match Self::execute_string_statement(&statement, &parameters, &client_lock).await {
+                    Ok(rs) => SQLResult::new_result(Some(rs)),
+                    Err(e) => SQLResult::new_error(e),
+                };
+            Ok(result)
         })
     }
 

@@ -68,9 +68,11 @@ const queryScan = createSlice({
         .map((paramsPos) =>
           paramsPos.map((paramPos) => ({ ...paramPos, raw: "", evaluated: {} }))
         ) as [Parameter[], Parameter[]];
+
       state.sync = state.parametersPair[0].length === state.parametersPair[1].length
         && Array(state.parametersPair[0].length)
         .filter((_, index) => state.parametersPair[0][index].raw !== state.parametersPair[1][index].raw).length === 0;
+
       state.cartesian = false;
       state.openModel = true;
     },

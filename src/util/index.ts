@@ -269,3 +269,10 @@ export const stringifySqlError = (sqlError: SQLError) => {
   }
   return errorParts.join("\r\n\r\n");
 };
+
+export const isEmptyObjectOrNull = (obj?: object): boolean => {
+  if (!obj) {
+    return true;
+  }
+  return Object.keys(obj).length === 0 && obj.constructor === Object;
+};

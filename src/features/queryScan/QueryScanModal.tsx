@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import QueryParameterModal from "../../components/QueryParameterModal";
-import { evaluateParamPair } from "../../core/parameterEvaluator";
+import { evaluateRawParamsPair } from "../../core/parameterEvaluator";
+import { useIsMounted } from "../../hooks/useIsMounted";
 import { RootState } from "../../reducers";
-import { updateArrayElement } from "../../util";
 import { Parameter, setOpenModal, setParametersPair } from "./queryScanSlice";
 
 const QueryScanModal: React.FC = () => {
@@ -20,7 +20,7 @@ const QueryScanModal: React.FC = () => {
     (state: RootState) => state.queryScan.statements
   );
 
-  const parameters = useSelector(
+  const parametersPair = useSelector(
     (state: RootState) => state.queryScan.parametersPair
   );
 
@@ -28,6 +28,7 @@ const QueryScanModal: React.FC = () => {
     (state: RootState) => state.queryScan.activeSchema
   );
 
+  const isMounted = useIsMounted();
 
   const dispatch = useDispatch();
 
@@ -43,18 +44,24 @@ const QueryScanModal: React.FC = () => {
       pairIndex: number,
       paramIndex: number
     ) => {
-      console.log('Test')
-      const evaled = await evaluateParamPair(
-        [paramsPair[0][paramIndex], paramsPair[1][paramIndex]],
-        activeSchema
-      );
-      
-      const newParamsPair = paramsPair.map((params, index) => updateArrayElement(params, paramIndex, evaled[index]));
-
-      dispatch(setParametersPair(newParamsPair as [Parameter[], Parameter[]]));
+      dispatch(setParametersPair(paramsPair));
     },
-    [activeSchema, dispatch]
+    [dispatch]
   );
+
+  const evalRawParamsPair = useCallback(async () => {
+    const evaledPair = await evaluateRawParamsPair(
+      parametersPair,
+      activeSchema
+    );
+    if (isMounted.current) {
+      dispatch(setParametersPair(evaledPair as [Parameter[], Parameter[]]));
+    }
+  }, [activeSchema, dispatch, isMounted, parametersPair]);
+
+  useEffect(() => {
+    evalRawParamsPair();
+  }, [evalRawParamsPair]);
 
   return (
     <QueryParameterModal
@@ -62,7 +69,7 @@ const QueryScanModal: React.FC = () => {
       sync={sync}
       open={openModel}
       statements={statements}
-      parameters={parameters || [[], []]}
+      parameters={parametersPair || [[], []]}
       onClose={handleModalClose}
       onClickScan={handleClickScan}
       onCartesianChange={() => {}}

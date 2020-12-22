@@ -1,3 +1,6 @@
+pub mod oracle;
+pub mod postgres;
+
 pub fn find_position_line(statement: &str, pos: u32) -> u32 {
     let mut char_count = 0;
     for (i, line) in statement.split('\n').enumerate() {

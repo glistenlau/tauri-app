@@ -5,16 +5,14 @@ use tauri::{WebviewMut, event::emit};
 use lazy_static::lazy_static;
 
 
-pub struct Emitter<'a> {
+pub struct Emitter {
   webview: Option<WebviewMut>,
-  test: &'a str,
 }
 
-impl<'a> Emitter<'a> {
+impl Emitter {
   fn new() -> Self {
     Self {
       webview: None,
-      test: "test",
     }
   }
 
@@ -23,15 +21,20 @@ impl<'a> Emitter<'a> {
   }
 
   pub fn emit<S>(&mut self, event: &str, payload: Option<S>) where S: Serialize {
-    let mut wv = self.webview.as_mut().unwrap();
-    emit(wv, event.to_string(), payload);
+    let wv = self.webview.as_mut().unwrap();
+    match emit(wv, event.to_string(), payload) {
+        Ok(_) => {}
+        Err(err) => {
+          log::error!("emit msg error: {}", err);
+        }
+    }
   }
 }
 
 lazy_static! {
-  static ref INSTANCE: Arc<Mutex<Emitter<'static>>> = Arc::new(Mutex::new(Emitter::new()));
+  static ref INSTANCE: Arc<Mutex<Emitter>> = Arc::new(Mutex::new(Emitter::new()));
 }
 
-pub fn get_emitter() -> Arc<Mutex<Emitter<'static>>> {
+pub fn get_emitter() -> Arc<Mutex<Emitter>> {
   Arc::clone(&INSTANCE)
 }

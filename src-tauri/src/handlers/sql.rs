@@ -21,6 +21,8 @@ pub struct Payload<C> {
   config: Option<C>,
 }
 
+const COMPANY_PLACEHOLDER: &str = "company_";
+
 pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<dyn SQLClient<C>>>) -> Result<SQLResult> {
   match action {
     Action::ExecuteStatement => {
@@ -31,11 +33,24 @@ pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<d
         return Err(anyhow!("missing schema..."))
       }
 
-      let statement = &payload.statement.unwrap().replace("COMPANY_", &format!(".{}", payload.schema.unwrap()));
+      let schema = payload.schema.unwrap();
+      let schema_str = format!("{}.", &schema);
+      let mut statement = String::from(&payload.statement.unwrap());
+      let mut statement_lower = statement.to_lowercase();
+      loop {
+        let str_index = statement_lower.find(COMPANY_PLACEHOLDER).unwrap_or(statement_lower.len());
+        if str_index == statement_lower.len() {
+          break;
+        }
+
+        statement.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &schema_str);
+        statement_lower.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &schema_str);
+      }
+
       let parameters = payload.parameters.unwrap_or(vec![]);
 
-      log::debug!("dispatch sql execute statement...");
-      proxy.lock().unwrap().execute(statement, &parameters)
+      log::debug!("dispatch sql execute statement: {}...", &statement);
+      proxy.lock().unwrap().execute(&statement, &schema, &parameters)
     },
     Action::SetConfig => {
       if payload.config.is_none() {

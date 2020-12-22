@@ -3,7 +3,7 @@ import oracle from "../apis/oracle";
 import postgres from "../apis/postgres";
 import { SQLResult } from "../apis/sqlCommon";
 import { Parameter } from "../containers/QueryRunner";
-import { stringifySqlError } from "../util";
+import { isEmptyObjectOrNull, stringifySqlError } from "../util";
 import { DB_TYPE } from "./databaseConsole";
 
 const SQL_PATERN = /^sql\s*`([\s|\S]*)`$/i;
@@ -20,19 +20,23 @@ const extractSqlQuery = (text: string) => {
   return "";
 };
 
-export const evaluateParams = async (
+export const evaluateRawParams = async (
   params: Array<Parameter>,
   schema: string,
   evalFunc: any
 ) => {
   const paramPromises = params.map(async (p) => {
+    if (!isEmptyObjectOrNull(p.evaluated)) {
+      return p.evaluated;
+    }
     return await evalFunc(p.raw, schema);
   });
+
   const paramRets = await Promise.all(paramPromises);
 
   return params.map((p, i) =>
     Object.assign({}, p, {
-      evaluated: paramRets[i],
+      evaluated: paramRets[i]
     })
   );
 };
@@ -139,7 +143,26 @@ export const evaluateParamsPair = async (
   schema: string
 ) => {
   const pairPromise = paramsPair.map(async (p, i) => {
-    return await evaluateParams(p, schema, EVAL_FUNC[i]);
+    return await evaluateRawParams(p, schema, EVAL_FUNC[i]);
+  });
+  return await Promise.all(pairPromise);
+};
+
+export const evaluateRawParamsPair = async (
+  paramsPair: Array<Array<Parameter>>,
+  schema: string
+) => {
+  if (
+    paramsPair[0].filter((param) => isEmptyObjectOrNull(param.evaluated))
+      .length === 0 &&
+    paramsPair[1].filter((param) => isEmptyObjectOrNull(param.evaluated))
+      .length === 0
+  ) {
+    return paramsPair;
+  }
+
+  const pairPromise = paramsPair.map(async (p, i) => {
+    return await evaluateRawParams(p, schema, EVAL_FUNC[i]);
   });
   return await Promise.all(pairPromise);
 };
@@ -148,9 +171,8 @@ export const evaluateParamPair = async (
   paramPair: [Parameter, Parameter],
   schema: string
 ) => {
-  console.log("evaluating param pair: ", paramPair);
   const pairPromise = paramPair.map(async (p, i) => {
-    return await evaluateParams([p], schema, EVAL_FUNC[i]);
+    return await evaluateRawParams([p], schema, EVAL_FUNC[i]);
   });
 
   const resolved = await Promise.all(pairPromise);

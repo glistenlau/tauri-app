@@ -1,3 +1,6 @@
+use oracle::{ColumnInfo, Statement};
+use crate::{core::oracle_param_mapper::map_params, utilities::oracle::get_row_values};
+
 use super::sql_common::{SQLClient, SQLError, SQLReponse, SQLResult, SQLResultSet};
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
@@ -5,10 +8,7 @@ use oracle::{sql_type::ToSql, Connection, Error};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::{cell::RefCell, sync::{Arc, Mutex}, time::Instant};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OracleConfig {
@@ -65,7 +65,7 @@ impl OracleClient {
     fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet, SQLError> {
         let conn_wrap = self.get_connection()?;
         let conn = conn_wrap.lock().unwrap();
-        let mapped_params = self.map_params(Some(stmt), params, &conn)?;
+        let mapped_params = map_params(Some(stmt), params, &conn)?;
         let mut unboxed_params = Vec::with_capacity(mapped_params.len());
         for b in &mapped_params {
             unboxed_params.push(b.as_ref());
@@ -81,107 +81,50 @@ impl OracleClient {
                 replaced_stmt.push_str(part);
                 i += 1;
             }
-            self.execute_stmt_mapped(&replaced_stmt, &unboxed_params, &conn)
+            Self::execute_stmt_mapped(&replaced_stmt, &unboxed_params, &conn)
         } else {
-            self.execute_stmt_mapped(stmt, &unboxed_params, &conn)
+            Self::execute_stmt_mapped(stmt, &unboxed_params, &conn)
         }
     }
 
     pub fn execute_stmt_mapped(
-        &self,
         stmt_str: &str,
         params: &[&dyn ToSql],
         conn: &Connection,
     ) -> Result<SQLResultSet, SQLError> {
         let mut prepared_stmt = conn.prepare(stmt_str, &[])?;
-        let res;
 
-        if prepared_stmt.is_query() {
-            let result_set = prepared_stmt.query(params)?;
+        Self::execute_prepared(&mut prepared_stmt, params, conn)
+    }
+
+    pub fn execute_prepared(stmt: &mut Statement, params: &[&dyn ToSql], conn: &Connection) -> Result<SQLResultSet, SQLError> {
+        let res = if stmt.is_query() {
+            let mut result_set = stmt.query(params)?;
             let mut row_count = 0;
+            let column_info:Vec<ColumnInfo> = result_set.column_info().iter().map(|ci| ci.clone()).collect();
             let mut columns: Vec<String> = Vec::new();
-            let mut rows: Vec<Vec<String>> = Vec::with_capacity(row_count);
+            let mut rows: Vec<Vec<Value>> = Vec::with_capacity(row_count);
 
-            for info in result_set.column_info() {
+            for info in &column_info {
                 columns.push(String::from(info.name()));
             }
 
-            for row_result in result_set {
+            for row_result in result_set.by_ref() {
                 row_count += 1;
                 let row = row_result?;
-                let row_str = row.sql_values().iter().map(|val| val.to_string()).collect();
-                rows.push(row_str);
+                let row_values = get_row_values(&row, &column_info)?;
+                rows.push(row_values);
             }
 
-            res = SQLResultSet::new(row_count, Some(columns), Some(rows));
+            SQLResultSet::new(row_count, Some(columns), Some(rows))
         } else {
-            let execute_stmt = conn.execute(stmt_str, params)?;
-            let row_count = execute_stmt.row_count()? as usize;
+            stmt.execute(params)?;
+            let row_count = stmt.row_count()? as usize;
 
-            res = SQLResultSet::new(row_count, None, None);
-        }
-
-        Ok(res)
-    }
-
-    pub fn map_params(
-        &self,
-        statement: Option<&str>,
-        parameters: &[Value],
-        conn: &Connection,
-    ) -> Result<Vec<Box<dyn ToSql>>, SQLError> {
-        let mut mapped_params = Vec::with_capacity(parameters.len());
-        let params_iter = parameters.iter().enumerate();
-        let mut mapped_param;
-
-        for (index, param) in params_iter {
-            mapped_param = self.map_param(statement, Some(index), param, conn)?;
-            mapped_params.push(mapped_param);
-        }
-
-        Ok(mapped_params)
-    }
-
-    pub fn map_param(
-        &self,
-        statement: Option<&str>,
-        pos: Option<usize>,
-        param: &Value,
-        conn: &Connection,
-    ) -> Result<Box<dyn ToSql>, SQLError> {
-        println!("map param {}", param);
-        let parsed_val = match param {
-            Value::Number(val) => {
-                if val.is_f64() {
-                    Box::new(val.as_f64().unwrap()) as Box<dyn ToSql>
-                } else if val.is_u64() {
-                    Box::new(val.as_u64().unwrap()) as Box<dyn ToSql>
-                } else {
-                    Box::new(val.as_i64().unwrap()) as Box<dyn ToSql>
-                }
-            }
-            Value::Null => Box::new(Option::<String>::None) as Box<dyn ToSql>,
-            Value::Bool(val) => Box::new(*val) as Box<dyn ToSql>,
-            Value::String(val) => Box::new(val.to_string()) as Box<dyn ToSql>,
-            Value::Array(arr) => {
-                let collection_name = extract_collection_name(statement, pos)?;
-                let collection_type = conn.object_type(&collection_name)?;
-                let mut collection = collection_type.new_collection()?;
-                let mapped_arr = self.map_params(None, &arr, conn)?;
-
-                for val in mapped_arr {
-                    collection.push(val.as_ref())?
-                }
-
-                Box::new(collection) as Box<dyn ToSql>
-            }
-
-            Value::Object(_) => {
-                return Err(SQLError::new_str("not support object param for oracle."))
-            }
+            SQLResultSet::new(row_count, None, None)
         };
 
-        Ok(parsed_val)
+        Ok(res)
     }
 }
 
@@ -226,7 +169,7 @@ static PARAM_PATTERN: &str = r"(?:[^?]*\?[^?]*)";
 static START_PATTERN: &str = r"(?i)^\s*";
 
 impl SQLClient<OracleConfig> for OracleClient {
-    fn execute(&mut self, statement: &str, parameters: &[Value]) -> Result<SQLResult> {
+    fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value]) -> Result<SQLResult> {
         log::debug!(
             "execute oracle, statement {}, parameters {:?}",
             statement,

@@ -170,11 +170,11 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     size.height,
   ]);
 
-  const evalVal = React.useMemo(
-    () =>
-      (parameter[currentParameter] && parameter[currentParameter].evaluated),
-    [parameter, currentParameter]
-  );
+  const evalVal = React.useMemo(() => parameter[currentParameter]?.evaluated, [
+    parameter,
+    currentParameter
+  ]);
+  console.log("evalVal", parameter, currentParameter, evalVal);
 
   const evalValStr = React.useMemo(() => {
     if (!evalVal?.success) {

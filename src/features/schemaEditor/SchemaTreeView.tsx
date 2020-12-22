@@ -1,16 +1,13 @@
+import { createStyles, makeStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import clsx from "clsx";
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import { FixedSizeTree } from "react-vtree";
-import { withSize } from "react-sizeme";
-
-import xmlProcessor, { XmlFile } from "../../core/xmlProcessor";
-import { createStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-import SchemaTreeViewNode from "./SchemaTreeViewNode";
-import { RootState } from "../../reducers";
-import TextField from "@material-ui/core/TextField";
+import { withSize } from "react-sizeme";
 import { XmlTag } from "../../core/xmlParser";
+import xmlProcessor, { XmlFile } from "../../core/xmlProcessor";
+import { RootState } from "../../reducers";
+
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -163,7 +160,7 @@ const SchemaTreeView = ({ className, size }: any): any => {
         variant="outlined"
         onChange={handleSearchTextChange}
       />
-      <FixedSizeTree
+      {/* <FixedSizeTree
         ref={listRef}
         itemSize={24}
         treeWalker={treeWalker}
@@ -171,7 +168,7 @@ const SchemaTreeView = ({ className, size }: any): any => {
         itemData={itemData}
       >
         {SchemaTreeViewNode}
-      </FixedSizeTree>
+      </FixedSizeTree> */}
     </div>
   );
 };
