@@ -1,4 +1,4 @@
-use anyhow::{Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::Duration;
@@ -14,13 +14,21 @@ pub fn process_statement_schema(statement: &str, schema: &str) -> String {
     let mut stmt = String::from(statement);
     let mut stmt_lower = statement.to_lowercase();
     loop {
-      let str_index = stmt_lower.find(COMPANY_PLACEHOLDER).unwrap_or(stmt_lower.len());
-      if str_index == stmt_lower.len() {
-        break;
-      }
+        let str_index = stmt_lower
+            .find(COMPANY_PLACEHOLDER)
+            .unwrap_or(stmt_lower.len());
+        if str_index == stmt_lower.len() {
+            break;
+        }
 
-      stmt.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &format!("{}.", schema));
-      stmt_lower.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &format!("{}.", schema));
+        stmt.replace_range(
+            str_index..str_index + COMPANY_PLACEHOLDER.len(),
+            &format!("{}.", schema),
+        );
+        stmt_lower.replace_range(
+            str_index..str_index + COMPANY_PLACEHOLDER.len(),
+            &format!("{}.", schema),
+        );
     }
 
     stmt
@@ -30,15 +38,14 @@ pub fn process_statement_params(statement: &str, param_sign: &str) -> String {
     let mut new_stmt = String::with_capacity(statement.len());
     let split = statement.split("?");
     for (idx, part) in split.enumerate() {
-      if idx != 0 {
-        new_stmt.push_str(&format!("{}{}", param_sign, idx));
-      }
-      new_stmt.push_str(part);
+        if idx != 0 {
+            new_stmt.push_str(&format!("{}{}", param_sign, idx));
+        }
+        new_stmt.push_str(part);
     }
-  
-    new_stmt
-  }
 
+    new_stmt
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -326,6 +333,7 @@ impl SQLReponse {
 }
 
 pub trait SQLClient<C> {
-    fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value]) -> Result<SQLResult>;
+    fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value])
+        -> Result<SQLResult>;
     fn set_config(&mut self, config: C) -> Result<SQLResult>;
 }
