@@ -19,8 +19,8 @@ pub fn process_statement_schema(statement: &str, schema: &str) -> String {
         break;
       }
 
-      stmt.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), schema);
-      stmt_lower.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), schema);
+      stmt.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &format!("{}.", schema));
+      stmt_lower.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &format!("{}.", schema));
     }
 
     stmt
@@ -65,6 +65,10 @@ impl SQLResultSet {
             columns,
             rows,
         }
+    }
+
+    pub fn rows(&self) -> &Option<Vec<Vec<Value>>> {
+        &self.rows
     }
 }
 #[derive(Clone, Serialize, Debug, Deserialize)]

@@ -151,20 +151,20 @@ export const evaluateParamsPair = async (
 export const evaluateRawParamsPair = async (
   paramsPair: Array<Array<Parameter>>,
   schema: string
-) => {
+): Promise<[Parameter[], Parameter[]]> => {
   if (
     paramsPair[0].filter((param) => isEmptyObjectOrNull(param.evaluated))
       .length === 0 &&
     paramsPair[1].filter((param) => isEmptyObjectOrNull(param.evaluated))
       .length === 0
   ) {
-    return paramsPair;
+    return paramsPair as [Parameter[], Parameter[]];
   }
 
   const pairPromise = paramsPair.map(async (p, i) => {
     return await evaluateRawParams(p, schema, EVAL_FUNC[i]);
   });
-  return await Promise.all(pairPromise);
+  return ((await Promise.all(pairPromise))) as [Parameter[], Parameter[]];
 };
 
 export const evaluateParamPair = async (

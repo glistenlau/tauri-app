@@ -12,10 +12,10 @@ mod utilities;
 
 
 fn main() {
-  match core::log::setup_logger() {
-    Ok(()) => println!("logger setup successfully."),
-    Err(e) => print!("logger setup failed: {}", e),
-  }
+  // match core::log::setup_logger() {
+  //   Ok(()) => println!("logger setup successfully."),
+  //   Err(e) => print!("logger setup failed: {}", e),
+  // }
   tauri::AppBuilder::new().setup(|_webview, _source|{
     let webview_mut = _webview.as_mut();
     event::get_emitter().lock().unwrap().set_webview(webview_mut);

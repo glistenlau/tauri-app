@@ -1,10 +1,15 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import QueryParameterModal from "../../components/QueryParameterModal";
 import { evaluateRawParamsPair } from "../../core/parameterEvaluator";
 import { useIsMounted } from "../../hooks/useIsMounted";
 import { RootState } from "../../reducers";
-import { Parameter, setOpenModal, setParametersPair } from "./queryScanSlice";
+import {
+  Parameter,
+  setOpenModal,
+  setParametersPair,
+  startQueryScan
+} from "./queryScanSlice";
 
 const QueryScanModal: React.FC = () => {
   const cartesian = useSelector(
@@ -28,6 +33,10 @@ const QueryScanModal: React.FC = () => {
     (state: RootState) => state.queryScan.activeSchema
   );
 
+  const selectedSchemas = useSelector(
+    (state: RootState) => state.queryScan.selectedSchemas
+  );
+
   const isMounted = useIsMounted();
 
   const dispatch = useDispatch();
@@ -36,7 +45,9 @@ const QueryScanModal: React.FC = () => {
     dispatch(setOpenModal(false));
   }, [dispatch]);
 
-  const handleClickScan = useCallback(() => {}, []);
+  const handleClickScan = useCallback(async () => {
+    await dispatch(startQueryScan());
+  }, [dispatch]);
 
   const handleParametersPairChange = useCallback(
     async (
@@ -59,6 +70,17 @@ const QueryScanModal: React.FC = () => {
     }
   }, [activeSchema, dispatch, isMounted, parametersPair]);
 
+  const scanDisabled = useMemo(() => {
+    return (
+      activeSchema == null ||
+      parametersPair
+        .map((params) =>
+          params.every((param) => param.evaluated?.success === true)
+        )
+        .reduce((pre, cur) => !pre && !cur, true)
+    );
+  }, [activeSchema, parametersPair]);
+
   useEffect(() => {
     evalRawParamsPair();
   }, [evalRawParamsPair]);
@@ -66,6 +88,7 @@ const QueryScanModal: React.FC = () => {
   return (
     <QueryParameterModal
       cartesian={cartesian}
+      scanDisabled={scanDisabled}
       sync={sync}
       open={openModel}
       statements={statements}

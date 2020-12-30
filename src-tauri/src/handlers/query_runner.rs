@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashMap};
 
 use crate::{
     core::parameter_iterator::ParameterGenerateStrategy,
@@ -38,8 +38,7 @@ impl Query {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Payload {
-    schemas: Vec<String>,
-    queries: Vec<Query>,
+    schema_queries: HashMap<String, Vec<Query>>,
     diff_results: bool,
 }
 
@@ -49,9 +48,15 @@ pub enum Action {
     ScanQueries,
 }
 
-pub fn handle_command(action: Action, Payload { schemas, queries, diff_results }: Payload) -> Result<RunResults> {
+pub fn handle_command(
+    action: Action,
+    Payload {
+        schema_queries,
+        diff_results,
+    }: Payload,
+) -> Result<RunResults> {
     log::debug!("got query runner command.");
     match action {
-        Action::ScanQueries => Ok(scan_queries(schemas, queries, diff_results)),
+        Action::ScanQueries => Ok(scan_queries(schema_queries, diff_results)),
     }
 }

@@ -1,4 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  ProgressMessage,
+  ScanProcess,
+  ScanResult,
+  ScanSchemaResult
+} from "../../apis/queryRunner";
 import { DiffResultType } from "../../core/dbResultDiff";
 
 export type TimeElapsed = [number, number];
@@ -14,7 +20,10 @@ export interface RunnerResultState {
   processedRowCount: number;
   totalCount: number;
   timeElapsedPair: TimeElapsedPair;
-  resultPair: [DiffResultType, DiffResultType];
+  resultPair: [DiffResultType | null, DiffResultType | null];
+  schemaResults: ScanResult;
+  schemaProgress: { [schema: string]: [ScanProcess, ScanProcess] };
+  selectedSchema: string;
 }
 
 const initialState: RunnerResultState = {
@@ -24,12 +33,15 @@ const initialState: RunnerResultState = {
   panelHeight: 200,
   processedCount: 0,
   processedRowCount: 0,
+  schemaProgress: {},
+  schemaResults: {},
+  selectedSchema: '',
   totalCount: 0,
   timeElapsedPair: [
     [0, 0],
-    [0, 0],
+    [0, 0]
   ],
-  resultPair: [null, null],
+  resultPair: [null, null]
 };
 
 const runnerResult = createSlice({
@@ -69,7 +81,49 @@ const runnerResult = createSlice({
     changeTimeElapsedPair(state, { payload }: PayloadAction<TimeElapsedPair>) {
       state.timeElapsedPair = payload;
     },
-  },
+    startNewResults(state, { payload }: PayloadAction<string[]>) {
+      if (payload.length === 0) {
+        return;
+      }
+
+      const progressMap: { [schema: string]: [ScanProcess, ScanProcess] } = {};
+      payload.forEach(
+        (schema) =>
+          (progressMap[schema] = [
+            { total: 0, pending: 0, finished: 0, parameters: null },
+            { total: 0, pending: 0, finished: 0, parameters: null }
+          ])
+      );
+      state.schemaProgress = progressMap;
+      state.schemaResults = {};
+      state.selectedSchema = payload[0];
+    },
+    updateProgress(state, { payload }: PayloadAction<ProgressMessage>) {
+      const oldProgress = state.schemaProgress[payload.schema];
+      if (!oldProgress) {
+        return;
+      }
+
+      const newProgress = {
+        total: payload.total,
+        pending: payload.pending,
+        finished: payload.finished,
+        parameters: payload.parameters
+      };
+      const newProgressPair = [...oldProgress];
+      newProgressPair[payload.index] = newProgress;
+      state.schemaProgress = Object.assign({}, state.schemaProgress, {
+        [payload.schema]: newProgressPair
+      });
+    },
+    setSchemaResults(state, {payload}: PayloadAction<ScanResult>) {
+      state.schemaResults = payload;
+    },
+    updateSchemaResult(state, {payload}: PayloadAction<[string, ScanSchemaResult]>) {
+      const [schema, schemaResult] = payload;
+      state.schemaResults = Object.assign({}, state.schemaResults, {[schema]: schemaResult});
+    }
+  }
 });
 
 export const {
@@ -82,6 +136,10 @@ export const {
   changeResultPair,
   changeTotalCount,
   changeTimeElapsedPair,
+  setSchemaResults,
+  startNewResults,
+  updateProgress,
+  updateSchemaResult,
 } = runnerResult.actions;
 
 export default runnerResult.reducer;

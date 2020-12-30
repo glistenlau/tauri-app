@@ -12,12 +12,12 @@ pub enum ParameterGenerateStrategy {
 }
 
 pub enum DBParamIter<'a> {
-    Oracle(RefCell<ParameterIterator<'a, Box<dyn oracle_ToSql>, Option<oracle_Statement<'a>>>>),
+    Oracle(RefCell<ParameterIterator<'a, Box<dyn oracle_ToSql>, String>>),
     Postgres(RefCell<ParameterIterator<'a, Box<dyn pg_ToSql + Sync>, pg_Statement>>),
 }
 
-pub enum ParamSeeds<'a> {
-    Oracle(Option<oracle_Statement<'a>>, Vec<Vec<Box<dyn oracle_ToSql>>>),
+pub enum ParamSeeds {
+    Oracle(String, Vec<Vec<Box<dyn oracle_ToSql>>>),
     Postgres(pg_Statement, Vec<Vec<Box<dyn pg_ToSql + Sync>>>),
 }
 
@@ -41,16 +41,15 @@ impl<'a, S, PS> Iterator for ParameterIterator<'a, S, PS> {
     type Item = Vec<&'a S>;
 
     fn next(&mut self) -> Option<Vec<&'a S>> {
-        if self.next_indexes().is_none() {
-            return None;
-        }
-
         let parameters = self
             .current_indexes
             .iter()
             .enumerate()
             .map(|(i, &ci)| self.seeds[i].get(ci).unwrap())
             .collect();
+
+        self.next_indexes();
+
         Some(parameters)
     }
 }
@@ -118,22 +117,15 @@ impl<'a, T, PS> ParameterIterator<'a, T, PS> {
     }
 
 
-    fn next_indexes(&mut self) -> Option<()> {
+    fn next_indexes(&mut self) {
+        if self.seeds.is_empty() {
+            self.drained = true;
+        }
+
         match self.mode {
             ParameterGenerateStrategy::Normal => self.next_normal_indexes(),
             ParameterGenerateStrategy::Cartesian => self.next_cartesian_indexes(),
         }
-
-        if self.drained {
-            return None;
-        }
-
-        if self.seeds.is_empty() {
-            self.drained = true;
-            return None;
-        }
-
-        Some(())
     }
 
     fn next_normal_indexes(&mut self) {

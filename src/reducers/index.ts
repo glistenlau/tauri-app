@@ -2,7 +2,7 @@ import {
   Action,
   AnyAction,
   combineReducers,
-  ThunkAction,
+  ThunkAction
 } from "@reduxjs/toolkit";
 import { persistReducer } from "redux-persist";
 import { ActionType } from "../actions";
@@ -55,7 +55,6 @@ const rootReducer = (
   if (action.type === ActionType.RESET_APP) {
     state = undefined;
   }
-
   return appReducer(state, action);
 };
 

@@ -113,7 +113,7 @@ impl<'a> QueryScanner<'a> {
 
     fn next_oracle_result(
         &self,
-        params_iter: &RefCell<ParameterIterator<Box<dyn oracle_ToSql>, Option<OracleStmt>>>,
+        params_iter: &RefCell<ParameterIterator<Box<dyn oracle_ToSql>, String>>,
     ) -> Result<SQLResultSet, SQLError> {
         let mut param_iter_ref = params_iter.borrow_mut();
         let next_params_opt = param_iter_ref.next();
@@ -130,9 +130,9 @@ impl<'a> QueryScanner<'a> {
             params_unboxed.push(next_params[i].as_ref());
         }
 
-        let prepared_stmt = param_iter_ref.prepared_stmt();
+        let stmt = param_iter_ref.prepared_stmt();
 
-        OracleClient::execute_stmt_mapped(&self.statement, &params_unboxed, &conn_lock)
+        OracleClient::execute_stmt_mapped(stmt, &params_unboxed, &conn_lock)
     }
 
     fn next_postgres_result(
@@ -212,7 +212,7 @@ impl<'a> QueryScanner<'a> {
             mapped_params.push(mapped_p);
         }
 
-        Ok(ParamSeeds::Oracle(None, mapped_params))
+        Ok(ParamSeeds::Oracle(processed_stmt, mapped_params))
     }
 
     pub fn map_postgres_param_seeds(schema: String, query: &Query) -> Result<ParamSeeds> {

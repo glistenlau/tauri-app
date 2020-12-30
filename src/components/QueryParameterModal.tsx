@@ -87,6 +87,7 @@ const useStyles = makeStyles((theme: any) =>
 export interface QueryParameterModalPropsType {
   open: boolean;
   cartesian: boolean;
+  scanDisabled: boolean;
   sync: boolean;
   statements: [string, string];
   parameters: [Parameter[], Parameter[]];
@@ -106,6 +107,7 @@ const QueryParameterModal = React.memo(
   (props: QueryParameterModalPropsType) => {
     const {
       open,
+      scanDisabled,
       statements,
       parameters,
       cartesian,
@@ -167,6 +169,9 @@ const QueryParameterModal = React.memo(
     const handleEditorBlur = React.useCallback(
       async (paramUpdate: ParameterValue) => {
         if (!paramUpdate) {
+          return;
+        }
+        if (!parameters) {
           return;
         }
 
@@ -299,24 +304,6 @@ const QueryParameterModal = React.memo(
             >
               {`Total ${total} combination`}
             </Typography>
-
-            <Button
-              className={classes.button}
-              variant='contained'
-              color='primary'
-              disabled={total === 0}
-              onClick={() => onClose(true)}
-            >
-              Run
-            </Button>
-            <Button
-              className={classes.button}
-              variant='outlined'
-              color='secondary'
-              onClick={() => onClose(false)}
-            >
-              Cancel
-            </Button>
           </div>
           <Divider />
           <div className={classes.toolbarContainer}>
@@ -383,7 +370,11 @@ const QueryParameterModal = React.memo(
             <Button autoFocus onClick={onClose} color='primary'>
               Cancel
             </Button>
-            <Button onClick={onClickScan} color='primary'>
+            <Button
+              disabled={total <= 0}
+              onClick={onClickScan}
+              color='primary'
+            >
               Scan
             </Button>
           </DialogActions>

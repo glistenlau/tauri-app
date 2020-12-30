@@ -1,10 +1,10 @@
-import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
-import QueryTable from "./QueryTable";
-
+import { makeStyles } from "@material-ui/core/styles";
+import React, { useMemo } from "react";
+import { ScanSchemaResult } from "../apis/queryRunner";
+import { DiffResultType, mapToView } from "../core/dbResultDiff";
 import { TimeElapsedPair } from "../reducers/queryRunner";
-import { DiffResultType } from "../core/dbResultDiff";
+import QueryTable from "./QueryTable";
 
 const styles = makeStyles((theme) => ({
   container: {
@@ -12,7 +12,7 @@ const styles = makeStyles((theme) => ({
     flex: 1,
     display: "flex",
     flexDirection: "row",
-    width: "100%",
+    width: "100%"
   },
   tableContainer: {
     backgroundColor: theme.palette.background.paper,
@@ -20,11 +20,11 @@ const styles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "row",
     height: "100%",
-    width: "40%",
+    width: "40%"
   },
   hide: {
-    height: 0,
-  },
+    height: 0
+  }
 }));
 
 interface SplitQueryTableProps {
@@ -35,6 +35,7 @@ interface SplitQueryTableProps {
   diff: boolean;
   parameters: Array<any>;
   timeElapsedPair: TimeElapsedPair;
+  value?: ScanSchemaResult;
 }
 
 const SplitQueryTable = React.memo((props: SplitQueryTableProps) => {
@@ -47,37 +48,35 @@ const SplitQueryTable = React.memo((props: SplitQueryTableProps) => {
     show,
     parameters,
     timeElapsedPair,
+    value
   } = props;
   const tableWidth = React.useMemo(() => Math.floor((width - 12) / 2), [width]);
 
+  const queryData = useMemo(() => mapToView(value), [value]);
+
   return (
     <div className={show ? classes.container : classes.hide} style={{ height }}>
-      {data &&
-        data.map((d, i) => (
-          <div
-            key={i}
-            className={classes.tableContainer}
-            style={{
-              marginRight: i !== data.length - 1 ? 10 : 0,
-            }}
-          >
-            {i === data.length - 1 && (
-              <Divider orientation="vertical" flexItem />
-            )}
-            <QueryTable
-              diff={diff}
-              data={d}
-              height={height}
-              width={tableWidth}
-              iconName={i === 0 ? "database" : "postgres"}
-              parameter={parameters[i]}
-              timeElapsed={timeElapsedPair[i]}
-            />
-            {i !== data.length - 1 && (
-              <Divider orientation="vertical" flexItem />
-            )}
-          </div>
-        ))}
+      {queryData.viewValues.map((d, i) => (
+        <div
+          key={i}
+          className={classes.tableContainer}
+          style={{
+            marginRight: i !== data.length - 1 ? 10 : 0
+          }}
+        >
+          {i === data.length - 1 && <Divider orientation='vertical' flexItem />}
+          <QueryTable
+            diff={diff}
+            data={d}
+            height={height}
+            width={tableWidth}
+            iconName={i === 0 ? "database" : "postgres"}
+            parameter={parameters[i]}
+            timeElapsed={timeElapsedPair[i]}
+          />
+          {i !== data.length - 1 && <Divider orientation='vertical' flexItem />}
+        </div>
+      ))}
     </div>
   );
 });

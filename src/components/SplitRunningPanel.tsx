@@ -1,10 +1,9 @@
-import React from "react";
+import Divider from "@material-ui/core/Divider";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import LinearProgress from "@material-ui/core/LinearProgress";
-
-import Divider from "@material-ui/core/Divider";
-
+import React from "react";
+import { ScanProcess } from "../apis/queryRunner";
 import SVGIcon from "./SVGIcon";
 
 const styles = makeStyles((theme) => ({
@@ -14,14 +13,14 @@ const styles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "row",
     height: "80%",
-    width: "100%",
+    width: "100%"
   },
   tableContainer: {
     flex: 1,
     display: "flex",
     flexDirection: "row",
     height: "100%",
-    width: "40%",
+    width: "40%"
   },
   content: {
     flex: 1,
@@ -30,14 +29,14 @@ const styles = makeStyles((theme) => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    width: "40%",
+    width: "40%"
   },
   hide: {
-    height: 0,
+    height: 0
   },
   process: {
     width: "50%",
-    marginTop: 10,
+    marginTop: 10
   },
   ellipsis: {
     textOverflow: "ellipsis",
@@ -45,23 +44,23 @@ const styles = makeStyles((theme) => ({
     flex: 1,
     overflow: "hidden",
     whiteSpace: "nowrap",
-    textAlign: "center",
-  },
+    textAlign: "center"
+  }
 }));
 
 interface SplitRunningPanelProps {
-  runningParameters: Array<Array<any>>;
+  runningProgress?: [ScanProcess, ScanProcess];
   show: boolean;
 }
 
 const SplitRunningPanel = (props: SplitRunningPanelProps) => {
   const classes = styles();
-  const { runningParameters, show } = props;
+  const { show, runningProgress } = props;
 
   return (
     <div className={show ? classes.container : classes.hide}>
-      {runningParameters &&
-        runningParameters.map((Params, i) => (
+      {runningProgress &&
+        runningProgress.map((progress, i) => (
           <div key={i} className={classes.tableContainer}>
             <div className={classes.content}>
               <div
@@ -71,7 +70,7 @@ const SplitRunningPanel = (props: SplitRunningPanelProps) => {
                   alignItems: "center",
                   justifyContent: "center",
                   padding: 10,
-                  width: "100%",
+                  width: "100%"
                 }}
               >
                 <Typography className={classes.ellipsis}>
@@ -83,16 +82,24 @@ const SplitRunningPanel = (props: SplitRunningPanelProps) => {
                   />
 
                   {`Running query with parameters ${JSON.stringify(
-                    Params
+                    progress.parameters
                   )} ...`}
                 </Typography>
               </div>
-              <LinearProgress
-                className={classes.process}
-                color={i === 0 ? "secondary" : "primary"}
-              />
+              {progress.total > 0 && (
+                <LinearProgress
+                  className={classes.process}
+                  variant='buffer'
+                  value={(progress.finished / progress.total) * 100}
+                  valueBuffer={
+                    (100 * (progress.finished + progress.pending)) /
+                    progress.total
+                  }
+                  color={i === 0 ? "secondary" : "primary"}
+                />
+              )}
             </div>
-            <Divider orientation="vertical" flexItem />
+            <Divider orientation='vertical' flexItem />
           </div>
         ))}
     </div>

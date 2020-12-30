@@ -92,6 +92,7 @@ impl OracleClient {
         params: &[&dyn ToSql],
         conn: &Connection,
     ) -> Result<SQLResultSet, SQLError> {
+        log::debug!("execute oracle statement: {}", stmt_str);
         let mut prepared_stmt = conn.prepare(stmt_str, &[])?;
 
         Self::execute_prepared(&mut prepared_stmt, params, conn)

@@ -1,7 +1,7 @@
 import Divider from "@material-ui/core/Divider";
 import { makeStyles } from "@material-ui/core/styles";
 import { Resizable } from "re-resizable";
-import React from "react";
+import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SizeMeProps, withSize } from "react-sizeme";
 import styled from "styled-components";
@@ -12,20 +12,27 @@ import TabContent from "../../components/TabContent";
 import { RootState } from "../../reducers";
 import { changePanelExpand, changePanelHeight } from "./runnerResultSlice";
 
-
 const Container = styled(TabContent)`
   background-color: ${({ theme }) => theme.palette.background.default};
   display: flex;
   flex-direction: column;
+  flex: none;
+  height: unset;
 `;
 
 const styles = makeStyles((theme) => ({
+  container: {
+    backgroundColor: theme.palette.background.default,
+    display: "flex",
+    flexDirection: "column",
+    width: "100%"
+  },
   tableContainer: {
     flex: 1,
     display: "flex",
     flexDirection: "row",
     height: "100%",
-    width: "40%",
+    width: "40%"
   },
   content: {
     flex: 1,
@@ -34,15 +41,15 @@ const styles = makeStyles((theme) => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    width: "40%",
+    width: "40%"
   },
   hide: {
-    height: 0,
+    height: 0
   },
   process: {
     width: "50%",
-    marginTop: 10,
-  },
+    marginTop: 10
+  }
 }));
 
 interface ResultPanelProps {
@@ -52,7 +59,7 @@ interface ResultPanelProps {
 
 const THRESHOLD = 160;
 
-const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
+const ResultPanel = ({ active, size }: ResultPanelProps) => {
   const classes = styles();
   const [diff, setDiff] = React.useState(false);
 
@@ -87,6 +94,28 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
     (rootState: RootState) => rootState.runnerResult.timeElapsedPair
   );
 
+  const schemaProgress = useSelector(
+    (rootState: RootState) => rootState.runnerResult.schemaProgress
+  );
+
+  const selectedSchema = useSelector(
+    (rootState: RootState) => rootState.runnerResult.selectedSchema
+  );
+
+  const schemaResults = useSelector(
+    (rootState: RootState) => rootState.runnerResult.schemaResults
+  );
+
+  const currentProgress = useMemo(() => schemaProgress[selectedSchema], [
+    schemaProgress,
+    selectedSchema
+  ]);
+
+  const currentResults = useMemo(() => schemaResults && schemaResults[selectedSchema], [
+    schemaResults,
+    selectedSchema
+  ]);
+
   const dispatch = useDispatch();
   const handlePanelResize = React.useCallback(
     (e: any, direction: any, ref: any, d: any) => {
@@ -103,9 +132,7 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
     dispatch(changePanelExpand(!panelExpand));
   }, [dispatch, panelExpand]);
 
-  if (resultPair[0] === null && resultPair[1] === null) {
-    return null;
-  }
+  console.log("active", active);
 
   return (
     <Container active={active}>
@@ -114,10 +141,10 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
         onResizeStop={handlePanelResize}
         size={{
           height: panelExpand ? panelHeight : 48,
-          width: "100%",
+          width: "100%"
         }}
         minHeight={panelExpand ? THRESHOLD : 48}
-        maxHeight="50vh"
+        maxHeight='50vh'
         enable={{
           top: panelExpand,
           right: false,
@@ -126,7 +153,7 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
           topRight: false,
           bottomRight: false,
           bottomLeft: false,
-          topLeft: false,
+          topLeft: false
         }}
       >
         <RunnerStatusBar
@@ -142,13 +169,13 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
           total={totalCount}
         />
         <Divider />
-        {isRunning && (
+        {isRunning && panelExpand && (
           <SplitRunningPanel
-            runningParameters={currentParametersPair}
+            runningProgress={currentProgress}
             show={panelExpand}
           />
         )}
-        {!isRunning && (
+        {!isRunning && panelExpand && (
           <SplitQueryTable
             parameters={currentParametersPair}
             diff={diff}
@@ -156,13 +183,14 @@ const ResultPanel = React.memo(({ active, size }: ResultPanelProps) => {
             width={size.width}
             show={panelExpand}
             data={resultPair}
+            value={currentResults}
             timeElapsedPair={timeElapsedPair}
           />
         )}
       </Resizable>
     </Container>
   );
-});
+};
 
 export default withSize({ monitorHeight: true, monitorWidth: true })(
   ResultPanel

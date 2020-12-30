@@ -1,8 +1,9 @@
+import { ScanSchemaResult } from "../apis/queryRunner";
 import { getTextWidth } from "../util";
 import { ResultType } from "./queryRunner";
 
-const HEADER_FONT = "700 14px Source Code Pro";
-const ROW_FONT = "400 14px Source Code Pro";
+const HEADER_FONT = "700 14px monospace";
+const ROW_FONT = "400 14px monospace";
 const EXTRA_WIDTH = 41;
 
 export type ProcessedRowType = {
@@ -24,6 +25,106 @@ export type DiffResultViewType = {
   diffCount: number;
   rowCount: number;
   viewValues: [DiffResultType, DiffResultType];
+};
+
+export const mapToView = (value?: ScanSchemaResult): DiffResultViewType => {
+  let rowCount = 0;
+  let diffCount = 0;
+  let viewValues = [
+    {
+      success: false,
+      error: "No SQL results."
+    },
+    {
+      success: false,
+      error: "No SQL results."
+    }
+  ];
+  if (!value) {
+    return {
+      rowCount,
+      diffCount,
+      viewValues
+    };
+  }
+  const { diffResults } = value;
+  diffCount = diffResults == null ? 0 : Object.keys(diffResults).length;
+  viewValues = value.queryResults.map((rst) => {
+    const sqlResult = rst?.results;
+    if (sqlResult == null) {
+      return {
+        success: false,
+        error: "No SQL results."
+      };
+    }
+    const success = sqlResult.error == null;
+    if (!success) {
+      return {
+        success,
+        error: sqlResult.error
+      };
+    }
+
+    let columns = sqlResult.result?.columns;
+    let mappedColumns =
+      columns?.map((column, index) => ({
+        id: `${index}`,
+        name: column,
+        width: getTextWidth(column, HEADER_FONT) + EXTRA_WIDTH
+      })) || [];
+    let rows: string[][] = sqlResult.result?.rows || [];
+    let mappedRows = null;
+
+    rowCount = Math.max(rows.length, rowCount);
+    if (columns != null && columns.length > 0) {
+      mappedColumns = [
+        {
+          name: "",
+          id: "-1",
+          sticky: "left",
+          width: getTextWidth(`${rows.length}`, HEADER_FONT) + EXTRA_WIDTH
+        },
+        ...mappedColumns
+      ];
+    }
+
+    if (rows != null && rows.length > 0) {
+      mappedRows = rows.map((row, rowIndex) => {
+        const rowDiffs = diffResults && diffResults[rowIndex];
+        const errorArray = Array(row.length + 1).fill(false);
+        if (rowDiffs) {
+          rowDiffs.forEach((cellIndex) => {
+            errorArray[cellIndex + 1] = true;
+          });
+        }
+        row.forEach((cell, index) => {
+          const mappedCol = mappedColumns[index + 1];
+          mappedCol.width = Math.max(
+            mappedCol.width,
+            getTextWidth(`${cell}`, ROW_FONT) + EXTRA_WIDTH
+          );
+        });
+        return {
+          data: [rowIndex, ...row],
+          containsError: rowDiffs != null,
+          errorArray
+        };
+      });
+    }
+
+    return {
+      success,
+      columns: mappedColumns,
+      rows: mappedRows,
+      rowsAffected: sqlResult.result?.rowCount
+    };
+  });
+
+  return {
+    diffCount,
+    rowCount,
+    viewValues
+  };
 };
 
 export function diffAndMapToView(
@@ -98,8 +199,8 @@ export function diffAndMapToView(
     rowCount: len,
     viewValues: [
       oraData ? oraData : oracleResult,
-      pgData ? pgData : postgresResult,
-    ],
+      pgData ? pgData : postgresResult
+    ]
   };
 }
 
@@ -126,15 +227,15 @@ const generateProcessedResult = (
           id: "-1",
           sticky: "left",
           width:
-            getTextWidth(`${processedRows.length}`, HEADER_FONT) + EXTRA_WIDTH,
+            getTextWidth(`${processedRows.length}`, HEADER_FONT) + EXTRA_WIDTH
         },
         ...originResult.fields.map((f: any, i: number) => ({
           ...f,
           width: headersWidth[i],
-          id: `${i}`,
-        })),
+          id: `${i}`
+        }))
       ],
-      rows: processedRows,
+      rows: processedRows
     };
 
   if (ret && originResult && originResult.error) {
@@ -179,7 +280,7 @@ const buildViewRow = (
 ) => {
   const newRow: any = {
     data: [rowIndex + 1, ...rowData],
-    containsError,
+    containsError
   };
 
   if (containsError) {

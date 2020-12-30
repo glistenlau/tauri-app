@@ -1,12 +1,12 @@
-import React from "react";
+import { Divider, Tooltip } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import TableContainer from "@material-ui/core/TableContainer";
 import Typography from "@material-ui/core/Typography";
-
-import DataTable from "./DataTable";
-import { Divider, Tooltip } from "@material-ui/core";
-import { TimeElapsed } from "../reducers/queryRunner";
+import React from "react";
 import { DiffResultType } from "../core/dbResultDiff";
+import { TimeElapsed } from "../reducers/queryRunner";
+import DataTable from "./DataTable";
+
 
 const NS_PER_MS = 1e6;
 
@@ -116,6 +116,8 @@ const QueryTable = React.memo((props: QueryTablePropsType) => {
   if (!data) {
     return null;
   }
+
+  console.log("query table", data);
 
   return (
     <div className={classes.root}>
