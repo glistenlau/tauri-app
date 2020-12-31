@@ -1,33 +1,32 @@
+import { createAction } from "@reduxjs/toolkit";
 import { VariantType } from "notistack";
-
+import { Parameter } from "../containers/QueryRunner";
+import { DB_TYPE } from "../core/databaseConsole";
+import { diffAndMapToView, DiffResultViewType } from "../core/dbResultDiff";
+import oracleClient from "../core/oracle";
+import { evaluateOracle, evaluatePostgres } from "../core/parameterEvaluator";
+import postgresClient from "../core/postgres";
 import {
   loadOracleProperties,
   loadPostgresProperties,
   writeOracleProp,
-  writePgProp,
+  writePgProp
 } from "../core/propertiesLoader";
 import QueryRunner from "../core/queryRunner";
-import { evaluateOracle, evaluatePostgres } from "../core/parameterEvaluator";
-import { PropsObj } from "../reducers/editor";
-import { Parameter } from "../containers/QueryRunner";
-import { diffAndMapToView, DiffResultViewType } from "../core/dbResultDiff";
-import { updateArrayElement, addTimeElapsed } from "../util";
-import oracleClient from "../core/oracle";
-import postgresClient from "../core/postgres";
-import { changeIsRunning } from "../features/runnerControl/runnerControlSlice";
-import { changeUncommitCount } from "../features/transactionControl/transactionControlSlice";
 import {
-  changePanelExpand,
+  changeCurrentParametersPair, changeDiffRowCount, changePanelExpand,
   changeProcessedCount,
-  changeTotalCount,
+
   changeProcessedRowCount,
-  changeDiffRowCount,
+
   changeResultPair,
-  changeCurrentParametersPair,
-  changeTimeElapsedPair,
+
+  changeTimeElapsedPair, changeTotalCount
 } from "../features/runnerResult/runnerResultSlice";
-import { createAction } from "@reduxjs/toolkit";
-import { DB_TYPE } from "../core/databaseConsole";
+import { changeUncommitCount } from "../features/transactionControl/transactionControlSlice";
+import { PropsObj } from "../reducers/editor";
+import { addTimeElapsed, updateArrayElement } from "../util";
+
 
 export enum ActionType {
   LOAD_PROPS_FILES = "LOAD_PROPS_FILES",

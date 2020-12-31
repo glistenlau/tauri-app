@@ -1,6 +1,6 @@
 import { Divider } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
-import React from "react";
+import React, { createContext, useState } from "react";
 import { ThemeProvider } from "styled-components";
 import Root from "./containers/Root";
 import { initLogger } from "./core/logger";
@@ -16,8 +16,8 @@ const lightTheme = createMuiTheme({
       "Menlo",
       "DejaVu Sans Mono",
       "Cascadia Code",
-      "Consolas",
-    ].join(","),
+      "Consolas"
+    ].join(",")
   },
   palette: {
     type: "light", // Switching the dark mode on is a single property value change.
@@ -26,15 +26,15 @@ const lightTheme = createMuiTheme({
       light: "#71a4ff",
       main: "#3576cc",
       dark: "#004b9a",
-      contrastText: "#ffffff",
+      contrastText: "#ffffff"
     },
     secondary: {
       light: "#ff7961",
       main: "#f44336",
       dark: "#ba000d",
-      contrastText: "#000000",
-    },
-  },
+      contrastText: "#000000"
+    }
+  }
 });
 
 const darkTheme = createMuiTheme({
@@ -44,22 +44,31 @@ const darkTheme = createMuiTheme({
       light: "#56454e",
       main: "#ff9abe",
       dark: "#a21547",
-      contrastText: "#ffffff",
+      contrastText: "#ffffff"
     },
     secondary: {
-      main: "#ff9abe",
-    },
-  },
+      main: "#ff9abe"
+    }
+  }
+});
+
+export const GlobalContext = createContext({
+  isRunning: false,
+  setIsRunning: (value: boolean): void => {}
 });
 
 const App = () => {
+  const [isRunning, setIsRunning] = useState(false);
+
   return (
     <MuiThemeProvider theme={lightTheme}>
       <ThemeProvider theme={lightTheme}>
-        <Divider />
-        <div className="App">
-          <Root />
-        </div>
+        <GlobalContext.Provider value={{ isRunning, setIsRunning }}>
+          <Divider />
+          <div className='App'>
+            <Root />
+          </div>
+        </GlobalContext.Provider>
       </ThemeProvider>
     </MuiThemeProvider>
   );

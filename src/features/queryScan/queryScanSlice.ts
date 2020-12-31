@@ -10,7 +10,6 @@ import { DBType } from "../../apis/sqlCommon";
 import { evaluateRawParamsPair } from "../../core/parameterEvaluator";
 import { RootState } from "../../reducers";
 import { getParameterMarkerPosition } from "../../util";
-import { changeIsRunning } from "../runnerControl/runnerControlSlice";
 import {
   setSchemaResults,
   startNewResults,
@@ -108,7 +107,6 @@ export const startQueryScan = createAsyncThunk<
   }
   console.log("schema query map", schemaQueriesMap);
   dispatch(setOpenModal(false));
-  dispatch(changeIsRunning(true));
   dispatch(startNewResults(selectedSchemas));
 
   const handleUpdateProgress = (progress: ProgressMessage): void => {
@@ -127,7 +125,6 @@ export const startQueryScan = createAsyncThunk<
     dispatch(setSchemaResults(scanResults));
     return scanResults;
   } finally {
-    dispatch(changeIsRunning(false));
     queryRunner.removeSchemaResultListener(handleUpdateSchemaResult);
     queryRunner.removeProgressListener(handleUpdateProgress);
   }

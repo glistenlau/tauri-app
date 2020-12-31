@@ -2,9 +2,9 @@ import React, { useMemo } from "react";
 import styled from "styled-components";
 
 const ActiveContent = styled.div`
-  height: 50%;
   width: 100%;
   overflow: hidden;
+  height: 100%;
   flex: 1;
 `;
 

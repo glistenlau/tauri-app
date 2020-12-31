@@ -5,17 +5,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use tokio::{runtime::Runtime, spawn};
-use tokio_postgres::{
-    error::DbError,
-    types::{ToSql},
-    Client, Error, NoTls, Statement,
-};
+use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
 
-
-use crate::{
-    core::{postgres_param_mapper::map_to_sql},
-    utilities::postgres::{get_row_values},
-};
+use crate::{core::postgres_param_mapper::map_to_sql, utilities::postgres::get_row_values};
 
 use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
 
@@ -70,20 +62,6 @@ pub struct PostgresProxy {
     config: ConnectionConfig,
     client: Option<Arc<Mutex<Client>>>,
 }
-
-// impl Deref for PostgresProxy {
-//     type Target = Self;
-
-//     fn deref(&self) -> &Self::Target {
-//         &self
-//     }
-// }
-
-// impl DerefMut for PostgresProxy {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self
-//     }
-// }
 
 impl PostgresProxy {
     const fn new(config: ConnectionConfig) -> PostgresProxy {
@@ -243,27 +221,41 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
     ) -> Result<SQLResult> {
         log::debug!("start executing postgres statement...");
 
-        POSTGRES_RUNTIME.lock().unwrap().block_on(async {
-            let client = self.get_connection().await?;
-            let client_lock = client.lock().unwrap();
+        POSTGRES_RUNTIME
+            .lock()
+            .or_else(|e| {
+                log::error!("failed to get postgres runtime: {}", e);
+                Err(anyhow!("failed to get postgres runtime: {}", e))
+            })?
+            .block_on(async {
+                let client = self.get_connection().await?;
+                let client_lock = client.lock().unwrap();
 
-            let result =
-                match Self::execute_string_statement(&statement, &parameters, &client_lock).await {
-                    Ok(rs) => SQLResult::new_result(Some(rs)),
-                    Err(e) => SQLResult::new_error(e),
-                };
-            Ok(result)
-        })
+                let result =
+                    match Self::execute_string_statement(&statement, &parameters, &client_lock)
+                        .await
+                    {
+                        Ok(rs) => SQLResult::new_result(Some(rs)),
+                        Err(e) => SQLResult::new_error(e),
+                    };
+                Ok(result)
+            })
     }
 
     fn set_config(&mut self, config: ConnectionConfig) -> Result<SQLResult> {
-        POSTGRES_RUNTIME.lock().unwrap().block_on(async {
-            self.config = config;
-            match self.get_connection().await {
-                Ok(_) => Ok(SQLResult::new_result(None)),
-                Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
-            }
-        })
+        POSTGRES_RUNTIME
+            .lock()
+            .or_else(|e| {
+                log::error!("failed to get postgres runtime: {}", e);
+                Err(anyhow!("failed to get postgres runtime: {}", e))
+            })?
+            .block_on(async {
+                self.config = config;
+                match self.get_connection().await {
+                    Ok(_) => Ok(SQLResult::new_result(None)),
+                    Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
+                }
+            })
     }
 }
 

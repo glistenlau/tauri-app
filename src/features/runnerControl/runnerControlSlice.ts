@@ -4,14 +4,12 @@ interface RunnerControlState {
   schema: string;
   schemas: [string[], string[]];
   sortResults: boolean;
-  isRunning: boolean;
 }
 
 const initialState: RunnerControlState = {
   schema: "greenco",
   schemas: [[], []],
-  sortResults: false,
-  isRunning: false,
+  sortResults: false
 };
 
 const runnerControl = createSlice({
@@ -47,20 +45,12 @@ const runnerControl = createSlice({
 
       state.schema = payload;
     },
-    changeIsRunning(state, { payload }: PayloadAction<boolean>) {
-      state.isRunning = payload;
-    },
     changeSortResults(state, { payload }: PayloadAction<boolean>) {
       state.sortResults = payload;
-    },
-  },
+    }
+  }
 });
 
-export const {
-  changeSchema,
-  changeIsRunning,
-  changeSortResults,
-  setSchemas,
-} = runnerControl.actions;
+export const { changeSchema, changeSortResults, setSchemas } = runnerControl.actions;
 
 export default runnerControl.reducer;

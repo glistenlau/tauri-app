@@ -1,23 +1,24 @@
 import Divider from "@material-ui/core/Divider";
 import { makeStyles } from "@material-ui/core/styles";
 import { Resizable } from "re-resizable";
-import React, { useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SizeMeProps, withSize } from "react-sizeme";
 import styled from "styled-components";
+import { GlobalContext } from "../../App";
 import RunnerStatusBar from "../../components/RunnerStatusBar";
 import SplitQueryTable from "../../components/SplitQueryTable";
 import SplitRunningPanel from "../../components/SplitRunningPanel";
-import TabContent from "../../components/TabContent";
 import { RootState } from "../../reducers";
 import { changePanelExpand, changePanelHeight } from "./runnerResultSlice";
 
-const Container = styled(TabContent)`
+const Container = styled.div<{ isActive: boolean }>`
   background-color: ${({ theme }) => theme.palette.background.default};
   display: flex;
   flex-direction: column;
-  flex: none;
-  height: unset;
+  height: ${({ isActive }) => (isActive ? "auto" : "0px")};
+  width: ${(isActive) => (isActive ? "100%" : "0px")};
+  overflow: hidden;
 `;
 
 const styles = makeStyles((theme) => ({
@@ -63,9 +64,7 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
   const classes = styles();
   const [diff, setDiff] = React.useState(false);
 
-  const isRunning = useSelector(
-    (rootState: RootState) => rootState.runnerControl.isRunning
-  );
+  const { isRunning } = useContext(GlobalContext);
   const currentParametersPair = useSelector(
     (rootState: RootState) => rootState.runnerResult.currentParametersPair
   );
@@ -111,10 +110,10 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
     selectedSchema
   ]);
 
-  const currentResults = useMemo(() => schemaResults && schemaResults[selectedSchema], [
-    schemaResults,
-    selectedSchema
-  ]);
+  const currentResults = useMemo(
+    () => schemaResults && schemaResults[selectedSchema],
+    [schemaResults, selectedSchema]
+  );
 
   const dispatch = useDispatch();
   const handlePanelResize = React.useCallback(
@@ -135,7 +134,7 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
   console.log("active", active);
 
   return (
-    <Container active={active}>
+    <Container isActive={active}>
       <Resizable
         className={classes.container}
         onResizeStop={handlePanelResize}
@@ -156,6 +155,7 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
           topLeft: false
         }}
       >
+        <Divider />
         <RunnerStatusBar
           diff={diff}
           diffRowCount={diffRowCount}
@@ -168,7 +168,7 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
           processed={processedCount}
           total={totalCount}
         />
-        <Divider />
+        {panelExpand && <Divider />}
         {isRunning && panelExpand && (
           <SplitRunningPanel
             runningProgress={currentProgress}

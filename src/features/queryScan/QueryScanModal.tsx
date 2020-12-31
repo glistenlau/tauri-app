@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { GlobalContext } from "../../App";
 import QueryParameterModal from "../../components/QueryParameterModal";
 import { evaluateRawParamsPair } from "../../core/parameterEvaluator";
 import { useIsMounted } from "../../hooks/useIsMounted";
@@ -36,6 +37,7 @@ const QueryScanModal: React.FC = () => {
   const selectedSchemas = useSelector(
     (state: RootState) => state.queryScan.selectedSchemas
   );
+  const { isRunning, setIsRunning } = useContext(GlobalContext);
 
   const isMounted = useIsMounted();
 
@@ -46,8 +48,16 @@ const QueryScanModal: React.FC = () => {
   }, [dispatch]);
 
   const handleClickScan = useCallback(async () => {
-    await dispatch(startQueryScan());
-  }, [dispatch]);
+    if (isRunning) {
+      return;
+    }
+    setIsRunning(true);
+    try {
+      await dispatch(startQueryScan());
+    } finally {
+      setIsRunning(false);
+    }
+  }, [dispatch, isRunning, setIsRunning]);
 
   const handleParametersPairChange = useCallback(
     async (

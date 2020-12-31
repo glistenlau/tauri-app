@@ -4,8 +4,9 @@ import { createStyles, makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import SettingsBackupRestoreIcon from "@material-ui/icons/SettingsBackupRestore";
 import clsx from "clsx";
-import React from "react";
+import React, { useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { GlobalContext } from "../../App";
 import ProcessIconButton from "../../components/ProgressIconButton";
 import SVGIcon from "../../components/SVGIcon";
 import databaseConsole from "../../core/databaseConsole";
@@ -13,9 +14,8 @@ import { RootState } from "../../reducers";
 import {
   changeTransactionMode,
   changeUncommitCount,
-  TransactionMode,
+  TransactionMode
 } from "./transactionControlSlice";
-
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -23,18 +23,18 @@ const useStyles = makeStyles((theme) =>
       display: "flex",
       backgroundColor: theme.palette.background.default,
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "center"
     },
     select: {
       backgroundColor: theme.palette.background.paper,
-      width: 150,
+      width: 150
     },
     commit: {
-      color: purple[500],
+      color: purple[500]
     },
     rollback: {
-      color: cyan[500],
-    },
+      color: cyan[500]
+    }
   })
 );
 
@@ -52,9 +52,8 @@ const TransactionControlToolBar = React.memo(
     const uncommitCount = useSelector(
       (rootState: RootState) => rootState.transactionControl.uncommitCount
     );
-    const isRunning = useSelector(
-      (rootState: RootState) => rootState.runnerControl.isRunning
-    );
+
+    const { isRunning } = useContext(GlobalContext);
 
     const classes = useStyles();
     const dispatch = useDispatch();
@@ -110,12 +109,12 @@ const TransactionControlToolBar = React.memo(
           className={classes.select}
           select
           disabled={isRunning}
-          color="primary"
-          id="schema"
-          label="Tx"
-          size="small"
-          variant="outlined"
-          margin="dense"
+          color='primary'
+          id='schema'
+          label='Tx'
+          size='small'
+          variant='outlined'
+          margin='dense'
           onChange={handleTransactionModeChange}
           value={transactionMode}
         >
@@ -125,19 +124,19 @@ const TransactionControlToolBar = React.memo(
         </TextField>
 
         <ProcessIconButton
-          title="Commit"
+          title='Commit'
           onClick={handleClickCommit}
           disabled={buttonsDisabled}
         >
           <SVGIcon
-            name="plane"
+            name='plane'
             color={buttonsDisabled ? "disabled" : undefined}
             fill={pink[500]}
           />
         </ProcessIconButton>
 
         <ProcessIconButton
-          title="Rollback"
+          title='Rollback'
           onClick={handleClickRollback}
           disabled={buttonsDisabled}
         >

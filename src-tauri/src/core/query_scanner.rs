@@ -219,7 +219,10 @@ impl<'a> QueryScanner<'a> {
         let emptry_params = vec![];
         crate::proxies::postgres::get_runtime()
             .lock()
-            .unwrap()
+            .or_else(|e|{
+                log::error!("try to get postgres runtime error: {}", e);
+                Err(anyhow!("Something was wrong: {}", e))
+            })?
             .block_on(async {
                 log::debug!("got postgres runtime lock.");
                 let proxy_lock = crate::proxies::postgres::get_proxy();

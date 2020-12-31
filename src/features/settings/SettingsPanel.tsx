@@ -12,7 +12,7 @@ import {
   OracleSettings,
   PostgreSettings,
   setOracleConfig,
-  setPostgresConfig,
+  setPostgresConfig
 } from "./settingsSlice";
 
 const Container = styled(TabContent)`

@@ -3,10 +3,11 @@ import { green } from "@material-ui/core/colors";
 import TextField from "@material-ui/core/TextField";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import clsx from "clsx";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import QueryRunner from "../../apis/queryRunner";
+import { GlobalContext } from "../../App";
 import LabelWithDdIcons from "../../components/LabelWithDbIcons";
 import ProcessIconButton from "../../components/ProgressIconButton";
 import { RootState } from "../../reducers";
@@ -73,9 +74,7 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
     (state: RootState) => state.runnerControl.schemas
   );
 
-  const isRunning = useSelector(
-    (state: RootState) => state.runnerControl.isRunning
-  );
+  const { isRunning } = useContext(GlobalContext);
 
   const fetchSchemas = useCallback(
     async (e) => {
