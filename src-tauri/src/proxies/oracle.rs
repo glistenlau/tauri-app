@@ -1,14 +1,14 @@
-use oracle::{ColumnInfo, Statement};
 use crate::{core::oracle_param_mapper::map_params, utilities::oracle::get_row_values};
+use oracle::{ColumnInfo, Statement};
 
-use super::sql_common::{SQLClient, SQLError, SQLReponse, SQLResult, SQLResultSet};
-use anyhow::{anyhow, Result};
+use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
+use anyhow::Result;
 use lazy_static::lazy_static;
-use oracle::{sql_type::ToSql, Connection, Error};
-use regex::Regex;
+use oracle::{sql_type::ToSql, Connection};
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{cell::RefCell, sync::{Arc, Mutex}, time::Instant};
+use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OracleConfig {
@@ -98,11 +98,19 @@ impl OracleClient {
         Self::execute_prepared(&mut prepared_stmt, params, conn)
     }
 
-    pub fn execute_prepared(stmt: &mut Statement, params: &[&dyn ToSql], conn: &Connection) -> Result<SQLResultSet, SQLError> {
+    pub fn execute_prepared(
+        stmt: &mut Statement,
+        params: &[&dyn ToSql],
+        conn: &Connection,
+    ) -> Result<SQLResultSet, SQLError> {
         let res = if stmt.is_query() {
             let mut result_set = stmt.query(params)?;
             let mut row_count = 0;
-            let column_info:Vec<ColumnInfo> = result_set.column_info().iter().map(|ci| ci.clone()).collect();
+            let column_info: Vec<ColumnInfo> = result_set
+                .column_info()
+                .iter()
+                .map(|ci| ci.clone())
+                .collect();
             let mut columns: Vec<String> = Vec::new();
             let mut rows: Vec<Vec<Value>> = Vec::with_capacity(row_count);
 
@@ -129,48 +137,13 @@ impl OracleClient {
     }
 }
 
-fn extract_collection_name(stmt: Option<&str>, pos: Option<usize>) -> Result<String, SQLError> {
-    if None == stmt || None == pos {
-        return Err(SQLError::new_str(
-            "missing info to retrieve name of the collection type.",
-        ));
-    }
-
-    let (stmt, pos) = (stmt.unwrap(), pos.unwrap());
-
-    let mut pattern = String::from(START_PATTERN);
-    if pos > 0 {
-        pattern.push_str(PARAM_PATTERN);
-        pattern.push_str(&format!("{{{}}}", pos));
-    }
-
-    pattern.push_str(COLLECTION_PATTERN);
-    println!("collection regex pattern: {}", &pattern);
-    let re = match Regex::new(&pattern) {
-        Ok(r) => r,
-        Err(e) => {
-            return Err(SQLError::new(format!(
-                "collection regex pattern error: {}",
-                e
-            )))
-        }
-    };
-
-    if let Some(cap) = re.captures(stmt) {
-        return Ok(String::from(&cap[1]));
-    }
-    Err(SQLError::new(format!(
-        "No collection found for parameter {}",
-        pos
-    )))
-}
-
-static COLLECTION_PATTERN: &str = r"[^?]*CAST\s*\(\s*\?\s*AS\s*(.*)\s*\)";
-static PARAM_PATTERN: &str = r"(?:[^?]*\?[^?]*)";
-static START_PATTERN: &str = r"(?i)^\s*";
-
 impl SQLClient<OracleConfig> for OracleClient {
-    fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value]) -> Result<SQLResult> {
+    fn execute(
+        &mut self,
+        statement: &str,
+        schema: &str,
+        parameters: &[Value],
+    ) -> Result<SQLResult> {
         log::debug!(
             "execute oracle, statement {}, parameters {:?}",
             statement,

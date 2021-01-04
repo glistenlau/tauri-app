@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use oracle::{Statement as oracle_Statement, sql_type::ToSql as oracle_ToSql};
+use oracle::{sql_type::ToSql as oracle_ToSql};
 use serde::{Deserialize, Serialize};
 use tokio_postgres::{Statement as pg_Statement, types::ToSql as pg_ToSql};
 
@@ -19,11 +19,6 @@ pub enum DBParamIter<'a> {
 pub enum ParamSeeds {
     Oracle(String, Vec<Vec<Box<dyn oracle_ToSql>>>),
     Postgres(pg_Statement, Vec<Vec<Box<dyn pg_ToSql + Sync>>>),
-}
-
-pub enum PreparedStatement<'a> {
-    Oracle(oracle_Statement<'a>),
-    Postgres(pg_Statement),
 }
 
 pub struct ParameterIterator<'a, S: 'a, PS> {

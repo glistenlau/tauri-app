@@ -1,12 +1,16 @@
-use crate::proxies::{oracle::OracleClient, postgres::PostgresProxy, sql_common::{process_statement_schema, SQLClient}};
-use crate::{
-    utilities::{oracle::process_statement as process_oracle_statement, postgres::process_statement as process_pg_statement},
+use crate::proxies::{
+    oracle::OracleClient,
+    postgres::PostgresProxy,
 };
-use std::{cell::RefCell, rc::Rc, sync::Arc};
+use crate::utilities::{
+    oracle::process_statement as process_oracle_statement,
+    postgres::process_statement as process_pg_statement,
+};
+use std::{cell::RefCell};
 
 use super::{
     oracle_param_mapper::map_param,
-    parameter_iterator::{DBParamIter, ParamSeeds, ParameterIterator, PreparedStatement},
+    parameter_iterator::{DBParamIter, ParamSeeds, ParameterIterator},
     postgres_param_mapper::map_to_sql,
 };
 use crate::{
@@ -14,10 +18,10 @@ use crate::{
     proxies::sql_common::{SQLError, SQLResultSet},
 };
 use anyhow::{anyhow, Result};
-use oracle::{Statement as OracleStmt, sql_type::ToSql as oracle_ToSql};
+use oracle::{sql_type::ToSql as oracle_ToSql};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tokio_postgres::{Statement as PgStmt, types::ToSql as pg_ToSql};
+use tokio_postgres::{types::ToSql as pg_ToSql, Statement as PgStmt};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ParameterGenerateStrategy {
@@ -47,7 +51,7 @@ impl<'a> Iterator for QueryScanner<'a> {
 }
 
 impl<'a> QueryScanner<'a> {
-    pub fn new (schema: String, query: &'a Query, params_iter: DBParamIter<'a>) -> Self {
+    pub fn new(schema: String, query: &'a Query, params_iter: DBParamIter<'a>) -> Self {
         let statement = query
             .statement()
             .replace("COMPANY_", &format!("{}.", schema));
@@ -75,7 +79,6 @@ impl<'a> QueryScanner<'a> {
         let cur_idx = match &self.params_iter {
             DBParamIter::Oracle(params_iter) => params_iter.borrow().current_indexes(),
             DBParamIter::Postgres(params_iter) => params_iter.borrow().current_indexes(),
-            _ => return None,
         };
         let empty_params = vec![];
 
@@ -96,12 +99,8 @@ impl<'a> QueryScanner<'a> {
     fn next_result(&mut self) -> Result<SQLResultSet, SQLError> {
         let param_iter = &self.params_iter;
         let result = match param_iter {
-            DBParamIter::Oracle(params_iter) => {
-                self.next_oracle_result(params_iter)
-            }
-            DBParamIter::Postgres(params_iter) => {
-                self.next_postgres_result(params_iter)
-            }
+            DBParamIter::Oracle(params_iter) => self.next_oracle_result(params_iter),
+            DBParamIter::Postgres(params_iter) => self.next_postgres_result(params_iter),
         };
         self.finished += 1;
         if self.finished == self.total() || result.is_err() {
@@ -180,7 +179,7 @@ impl<'a> QueryScanner<'a> {
     }
 
     fn map_param_seeds(schema: String, query: &Query) -> Result<ParamSeeds> {
-        let paramSeeds = match query.db_type() {
+        let param_seeds = match query.db_type() {
             crate::proxies::sql_common::DBType::Oracle => {
                 Self::map_oracle_param_seeds(schema, query)?
             }
@@ -189,7 +188,7 @@ impl<'a> QueryScanner<'a> {
             }
         };
 
-        Ok(paramSeeds)
+        Ok(param_seeds)
     }
 
     pub fn map_oracle_param_seeds(schema: String, query: &Query) -> Result<ParamSeeds> {
@@ -219,7 +218,7 @@ impl<'a> QueryScanner<'a> {
         let emptry_params = vec![];
         crate::proxies::postgres::get_runtime()
             .lock()
-            .or_else(|e|{
+            .or_else(|e| {
                 log::error!("try to get postgres runtime error: {}", e);
                 Err(anyhow!("Something was wrong: {}", e))
             })?

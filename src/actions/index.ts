@@ -2,7 +2,7 @@ import { createAction } from "@reduxjs/toolkit";
 import { VariantType } from "notistack";
 import { Parameter } from "../containers/QueryRunner";
 import { DB_TYPE } from "../core/databaseConsole";
-import { diffAndMapToView, DiffResultViewType } from "../core/dbResultDiff";
+import { DiffResultViewType } from "../core/dbResultDiff";
 import oracleClient from "../core/oracle";
 import { evaluateOracle, evaluatePostgres } from "../core/parameterEvaluator";
 import postgresClient from "../core/postgres";

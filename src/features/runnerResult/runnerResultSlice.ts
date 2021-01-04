@@ -122,6 +122,9 @@ const runnerResult = createSlice({
     updateSchemaResult(state, {payload}: PayloadAction<[string, ScanSchemaResult]>) {
       const [schema, schemaResult] = payload;
       state.schemaResults = Object.assign({}, state.schemaResults, {[schema]: schemaResult});
+    },
+    setSelectedSchema(state, {payload}: PayloadAction<string>) {
+      state.selectedSchema = payload;
     }
   }
 });
@@ -136,10 +139,11 @@ export const {
   changeResultPair,
   changeTotalCount,
   changeTimeElapsedPair,
+  setSelectedSchema,
   setSchemaResults,
   startNewResults,
   updateProgress,
-  updateSchemaResult,
+  updateSchemaResult
 } = runnerResult.actions;
 
 export default runnerResult.reducer;

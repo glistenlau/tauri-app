@@ -1,14 +1,21 @@
-import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import LinearProgress from "@material-ui/core/LinearProgress";
+import { green, red } from "@material-ui/core/colors";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import IconButton from "@material-ui/core/IconButton";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import { makeStyles } from "@material-ui/core/styles";
+import Switch from "@material-ui/core/Switch";
+import Typography from "@material-ui/core/Typography";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import Switch from "@material-ui/core/Switch";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import { green, red } from "@material-ui/core/colors";
-import { DiffResultType } from "../core/dbResultDiff";
+import React, { useMemo } from "react";
+import styled from "styled-components";
+import { ScanProcess, ScanSchemaResult } from "../apis/queryRunner";
+import SchemaSelect from "../features/runnerResult/SchemaSelect";
+
+const SelectContainer = styled.div`
+  margin-left: 5px;
+  margin-right: 5px;
+`;
 
 const styles = makeStyles((theme) => ({
   runnerToolBar: {
@@ -16,78 +23,139 @@ const styles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    position: "relative",
+    position: "relative"
   },
   button: {
     width: 48,
-    height: 48,
+    height: 48
   },
   runningProcess: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    right: 0,
+    right: 0
   },
   ellipsis: {
     textOverflow: "ellipsis",
     width: "40%",
     overflow: "hidden",
-    whiteSpace: "nowrap",
-  },
+    whiteSpace: "nowrap"
+  }
 }));
 
-interface RunnerStatusBar {
+interface RunnerStatusBarProps {
   diff: boolean;
-  diffRowCount: number;
   expand: boolean;
   isRunning: boolean;
   onDiffChange: any;
   onToggleExpand(): void;
-  processed: number;
-  resultPair: [DiffResultType, DiffResultType];
-  rowCount: number;
-  total: number;
+  runningProgress?: [ScanProcess, ScanProcess];
+  finishedResults?: ScanSchemaResult;
 }
 
-const RunnerStatusBar = React.memo((props: RunnerStatusBar) => {
+const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
   const classes = styles();
   const {
-    diffRowCount,
     expand,
-    isRunning,
-    processed,
-    rowCount,
-    total,
     diff,
-    resultPair,
     onDiffChange,
     onToggleExpand,
+    runningProgress,
+    finishedResults,
+    isRunning
   } = props;
 
-  const hasError = React.useMemo(
+  const hasError = useMemo(
     () =>
-      (resultPair[0] && !resultPair[0].success) ||
-      (resultPair[1] && !resultPair[1].success),
-    [resultPair]
+      finishedResults?.queryResults.reduce(
+        (pre, cur) => pre || cur?.results.error != null,
+        false
+      ) || false,
+    [finishedResults?.queryResults]
   );
 
   const hasResult = React.useMemo(
-    () => resultPair[0] !== null || resultPair[1] !== null,
-    [resultPair]
+    () =>
+      finishedResults?.queryResults.reduce(
+        (pre, cur) => pre || cur?.results.result != null,
+        false
+      ) || false,
+    [finishedResults?.queryResults]
   );
+
+  const isRunningLocal = useMemo(() => {
+    if (!isRunning) {
+      return false;
+    }
+
+    return (
+      finishedResults?.queryResults.reduce(
+        (pre, cur) => pre || cur?.results == null,
+        false
+      ) || false
+    );
+  }, [finishedResults?.queryResults, isRunning]);
+
+  const [processed, total] = useMemo(() => {
+    const fromResults = finishedResults?.queryResults.reduce(
+      (pre, cur) => {
+        if (cur == null) {
+          return pre;
+        }
+        return [
+          Math.max(pre[0], cur.progress.finished),
+          Math.max(pre[1], cur.progress.total)
+        ];
+      },
+      [0, 0]
+    );
+    const fromProgress = runningProgress?.reduce(
+      (pre, cur) => {
+        return [Math.max(pre[0], cur.finished), Math.max(pre[1], cur.total)];
+      },
+      [0, 0]
+    );
+
+    if (fromResults == null && fromProgress == null) {
+      return [0, 0];
+    } else if (fromProgress == null) {
+      return fromResults || [0, 0];
+    } else if (fromResults == null) {
+      return fromProgress || [0, 0];
+    } else {
+      return [
+        Math.max(fromResults[0], fromProgress[0]),
+        Math.max(fromResults[1], fromProgress[1])
+      ];
+    }
+  }, [finishedResults?.queryResults, runningProgress]);
+
+  const [rowCount, diffRowCount] = useMemo(() => {
+    const rc =
+      finishedResults?.queryResults.reduce(
+        (pre, cur) => Math.max(cur?.results.result?.rowCount || 0, pre),
+        0
+      ) || 0;
+    const dc = Object.keys(finishedResults?.diffResults || {}).length;
+    return [rc, dc];
+  }, [finishedResults?.diffResults, finishedResults?.queryResults]);
 
   return (
     <div className={classes.runnerToolBar}>
       <IconButton className={classes.button} onClick={onToggleExpand}>
         {expand ? <ExpandMoreIcon /> : <ExpandLessIcon />}
       </IconButton>
+      <SelectContainer>
+        <SchemaSelect isRunning={isRunning} />
+      </SelectContainer>
       <Typography
         className={classes.ellipsis}
         style={{
-          color: isRunning ? green[500] : undefined,
+          color: isRunningLocal ? green[500] : undefined
         }}
       >
-        {`${processed} / ${total} ` + (isRunning ? "Running..." : "Finished")}
+        {`${processed} / ${total} ` +
+          (isRunningLocal ? "Running..." : "Finished")}
       </Typography>
       {hasResult && !hasError && (
         <Typography
@@ -95,12 +163,12 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBar) => {
           style={{
             flex: 1,
             textAlign: "end",
-            color: diffRowCount > 0 ? red[500] : green[500],
+            color: diffRowCount > 0 ? red[500] : green[500]
           }}
         >
           {diffRowCount > 1
-            ? `Processed ${rowCount} rows, there are ${diffRowCount} different rows.`
-            : `Processed ${rowCount} rows, there is ${diffRowCount} differnt row.`}
+            ? `${diffRowCount} different rows`
+            : `${diffRowCount} differnt row`}
         </Typography>
       )}
       {hasResult && hasError && (
@@ -109,7 +177,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBar) => {
           style={{
             flex: 1,
             textAlign: "end",
-            color: red[500],
+            color: red[500]
           }}
         >
           Error occurred.
@@ -118,13 +186,13 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBar) => {
 
       <FormControlLabel
         style={{ justifySelf: "end", marginLeft: "auto" }}
-        control={<Switch checked={diff} onChange={onDiffChange} value="diff" />}
-        label="Diff"
+        control={<Switch checked={diff} onChange={onDiffChange} value='diff' />}
+        label='Diff'
       />
-      {isRunning && (
+      {isRunningLocal && (
         <LinearProgress
           className={classes.runningProcess}
-          variant="buffer"
+          variant='buffer'
           value={(processed * 100) / total}
           valueBuffer={((processed + 1) * 100) / total}
         />

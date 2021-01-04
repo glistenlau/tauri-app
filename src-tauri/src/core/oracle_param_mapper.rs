@@ -1,4 +1,4 @@
-use chrono::{Date, DateTime, NaiveDate, NaiveDateTime, ParseError, Utc};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, ParseError, Utc};
 use oracle::{sql_type::ToSql, Connection};
 use regex::Regex;
 use serde_json::Value;

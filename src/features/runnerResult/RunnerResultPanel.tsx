@@ -115,12 +115,17 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
     [schemaResults, selectedSchema]
   );
 
+  const [height, width] = useMemo(() => [size.height || 0, size.width || 0], [
+    size.height,
+    size.width
+  ]);
+
   const dispatch = useDispatch();
   const handlePanelResize = React.useCallback(
     (e: any, direction: any, ref: any, d: any) => {
-      dispatch(changePanelHeight(size.height));
+      dispatch(changePanelHeight(height));
     },
-    [dispatch, size.height]
+    [dispatch, height]
   );
 
   const toggleDiff = React.useCallback(() => {
@@ -158,15 +163,12 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
         <Divider />
         <RunnerStatusBar
           diff={diff}
-          diffRowCount={diffRowCount}
           expand={panelExpand}
           isRunning={isRunning}
           onDiffChange={toggleDiff}
           onToggleExpand={toogleExpand}
-          resultPair={resultPair}
-          rowCount={processedRowCount}
-          processed={processedCount}
-          total={totalCount}
+          runningProgress={currentProgress}
+          finishedResults={currentResults}
         />
         {panelExpand && <Divider />}
         {isRunning && panelExpand && (
@@ -177,14 +179,11 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
         )}
         {!isRunning && panelExpand && (
           <SplitQueryTable
-            parameters={currentParametersPair}
             diff={diff}
             height={panelHeight - 49}
-            width={size.width}
+            width={width}
             show={panelExpand}
-            data={resultPair}
             value={currentResults}
-            timeElapsedPair={timeElapsedPair}
           />
         )}
       </Resizable>

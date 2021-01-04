@@ -4,8 +4,8 @@ use std::collections::{HashMap, HashSet};
 
 use crate::core::java_props::parse_prop_file;
 
-pub fn search_files(searchPath: &str, filename: &str) -> Result<Paths> {
-    let search_pattern = format!("{}/**/{}", searchPath, filename);
+pub fn search_files(search_path: &str, filename: &str) -> Result<Paths> {
+    let search_pattern = format!("{}/**/{}", search_path, filename);
     let options = MatchOptions {
         case_sensitive: false,
         require_literal_separator: false,

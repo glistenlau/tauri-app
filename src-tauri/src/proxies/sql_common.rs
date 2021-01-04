@@ -55,6 +55,7 @@ pub enum DBType {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SQLResultSet {
     row_count: usize,
     columns: Option<Vec<String>>,

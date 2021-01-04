@@ -2,8 +2,7 @@ import Divider from "@material-ui/core/Divider";
 import { makeStyles } from "@material-ui/core/styles";
 import React, { useMemo } from "react";
 import { ScanSchemaResult } from "../apis/queryRunner";
-import { DiffResultType, mapToView } from "../core/dbResultDiff";
-import { TimeElapsedPair } from "../reducers/queryRunner";
+import { mapToView } from "../core/dbResultDiff";
 import QueryTable from "./QueryTable";
 
 const styles = makeStyles((theme) => ({
@@ -30,29 +29,18 @@ const styles = makeStyles((theme) => ({
 interface SplitQueryTableProps {
   height: number;
   width: number;
-  data: [DiffResultType, DiffResultType];
   show: boolean;
   diff: boolean;
-  parameters: Array<any>;
-  timeElapsedPair: TimeElapsedPair;
   value?: ScanSchemaResult;
 }
 
 const SplitQueryTable = React.memo((props: SplitQueryTableProps) => {
   const classes = styles();
-  const {
-    data,
-    diff,
-    height,
-    width,
-    show,
-    parameters,
-    timeElapsedPair,
-    value
-  } = props;
+  const { diff, height, width, show, value } = props;
   const tableWidth = React.useMemo(() => Math.floor((width - 12) / 2), [width]);
 
   const queryData = useMemo(() => mapToView(value), [value]);
+  const queryLen = useMemo(() => queryData.viewValues.length, [queryData.viewValues.length]);
 
   return (
     <div className={show ? classes.container : classes.hide} style={{ height }}>
@@ -61,20 +49,22 @@ const SplitQueryTable = React.memo((props: SplitQueryTableProps) => {
           key={i}
           className={classes.tableContainer}
           style={{
-            marginRight: i !== data.length - 1 ? 10 : 0
+            marginRight: i !== queryLen - 1 ? 10 : 0
           }}
         >
-          {i === data.length - 1 && <Divider orientation='vertical' flexItem />}
+          {i === queryLen - 1 && (
+            <Divider orientation='vertical' flexItem />
+          )}
           <QueryTable
             diff={diff}
             data={d}
             height={height}
             width={tableWidth}
             iconName={i === 0 ? "database" : "postgres"}
-            parameter={parameters[i]}
-            timeElapsed={timeElapsedPair[i]}
           />
-          {i !== data.length - 1 && <Divider orientation='vertical' flexItem />}
+          {i !== queryLen - 1 && (
+            <Divider orientation='vertical' flexItem />
+          )}
         </div>
       ))}
     </div>

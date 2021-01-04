@@ -1,18 +1,11 @@
 use anyhow::{anyhow, Error, Result};
-use chrono::{Date, FixedOffset, NaiveDate, NaiveTime, Utc};
-use chrono::{DateTime, Local, NaiveDateTime};
-use core::fmt::Display;
+use chrono::{DateTime, NaiveDateTime};
+use chrono::{FixedOffset, NaiveDate, NaiveTime, Utc};
 use log::debug;
-use serde::Serialize;
-use serde_json::{json, Value};
-use std::{convert::TryFrom, time::SystemTime};
-use tokio_postgres::row::RowIndex;
-use tokio_postgres::types::FromSql;
-use tokio_postgres::types::{to_sql_checked, ToSql, Type};
-use tokio_postgres::Row;
+use serde_json::Value;
+use std::convert::TryFrom;
+use tokio_postgres::types::{ToSql, Type};
 use uuid::Uuid;
-
-use crate::handlers::sql;
 
 fn generate_error(param: &Value, sql_type: &Type) -> Error {
     anyhow!(
@@ -196,12 +189,8 @@ fn map_to_sql_bool(param: &Value) -> Result<Option<bool>> {
 fn map_to_sql_timestamp(param: &Value) -> Result<Option<NaiveDateTime>> {
     let val = match param {
         Value::Null => Option::<NaiveDateTime>::None,
-        Value::String(str_val) => {
-            Some(str_val.parse::<NaiveDateTime>()?)
-        }
-        _ => {
-            return Err(generate_error(param, &Type::TIMESTAMP))
-        }
+        Value::String(str_val) => Some(str_val.parse::<NaiveDateTime>()?),
+        _ => return Err(generate_error(param, &Type::TIMESTAMP)),
     };
 
     Ok(val)
@@ -210,12 +199,8 @@ fn map_to_sql_timestamp(param: &Value) -> Result<Option<NaiveDateTime>> {
 fn map_to_sql_timestamptz(param: &Value) -> Result<Option<DateTime<Utc>>> {
     let val = match param {
         Value::Null => Option::<DateTime<Utc>>::None,
-        Value::String(str_val) => {
-            Some(str_val.parse::<DateTime<Utc>>()?)
-        }
-        _ => {
-            return Err(generate_error(param, &Type::TIMESTAMPTZ))
-        }
+        Value::String(str_val) => Some(str_val.parse::<DateTime<Utc>>()?),
+        _ => return Err(generate_error(param, &Type::TIMESTAMPTZ)),
     };
 
     Ok(val)
@@ -224,12 +209,8 @@ fn map_to_sql_timestamptz(param: &Value) -> Result<Option<DateTime<Utc>>> {
 fn map_to_sql_date(param: &Value) -> Result<Option<NaiveDate>> {
     let val = match param {
         Value::Null => Option::<NaiveDate>::None,
-        Value::String(str_val) => {
-            Some(str_val.parse::<NaiveDate>()?)
-        }
-        _ => {
-            return Err(generate_error(param, &Type::DATE))
-        }
+        Value::String(str_val) => Some(str_val.parse::<NaiveDate>()?),
+        _ => return Err(generate_error(param, &Type::DATE)),
     };
 
     Ok(val)
@@ -238,12 +219,8 @@ fn map_to_sql_date(param: &Value) -> Result<Option<NaiveDate>> {
 fn map_to_sql_time(param: &Value) -> Result<Option<NaiveTime>> {
     let val = match param {
         Value::Null => Option::<NaiveTime>::None,
-        Value::String(str_val) => {
-            Some(str_val.parse::<NaiveTime>()?)
-        }
-        _ => {
-            return Err(generate_error(param, &Type::TIME))
-        }
+        Value::String(str_val) => Some(str_val.parse::<NaiveTime>()?),
+        _ => return Err(generate_error(param, &Type::TIME)),
     };
 
     Ok(val)
@@ -320,8 +297,7 @@ pub fn map_to_sql(param: &Value, sql_type: &Type) -> Result<Box<dyn ToSql + Sync
                 mapped_param = Box::new(map_to_sql_date(param)?);
             } else if *sql_type == Type::TIME {
                 mapped_param = Box::new(map_to_sql_time(param)?);
-            } 
-            else {
+            } else {
                 mapped_param = Box::new(map_to_sql_text(param, sql_type)?);
             }
         }

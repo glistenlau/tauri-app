@@ -64,10 +64,9 @@
     ]
   },
   "devDependencies": {
+    "@types/react-window": "^1.8.2",
     "@types/redux-logger": "^3.0.8",
-    "@types/remote-redux-devtools": "^0.5.4",
     "customize-cra": "^1.0.0",
-    "react-app-rewired": "^2.1.8",
-    "remote-redux-devtools": "^0.5.16"
+    "react-app-rewired": "^2.1.8"
   }
 }

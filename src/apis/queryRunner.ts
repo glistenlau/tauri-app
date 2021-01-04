@@ -1,5 +1,6 @@
 import { listen } from "tauri/api/event";
 import { requestAsync } from ".";
+import Duration from "./duration";
 import { DBType, SQLResult } from "./sqlCommon";
 
 enum Action {
@@ -25,7 +26,12 @@ export interface ProgressMessage extends ScanProcess {
 
 export interface ScanSchemaQueryResult {
   parameters: any[] | null;
-  progress: { finished: number; total: number; pending: number; elapsed: any };
+  progress: {
+    finished: number;
+    total: number;
+    pending: number;
+    elapsed: Duration;
+  };
   results: SQLResult;
 }
 
