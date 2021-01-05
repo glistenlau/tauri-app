@@ -25,7 +25,7 @@ import search from "./search";
 const persistConfig = {
   key: "root",
   storage: dataStore,
-  timeout: 0,
+  timeout: 0
   // throttle: 60000,
 };
 
@@ -43,7 +43,7 @@ const appReducer = combineReducers({
   runnerControl,
   runnerResult,
   schemaEditor,
-  propsEditor,
+  propsEditor
 });
 
 export type RootState = ReturnType<typeof appReducer>;

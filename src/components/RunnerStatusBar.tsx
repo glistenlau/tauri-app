@@ -1,9 +1,7 @@
 import { green, red } from "@material-ui/core/colors";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
 import IconButton from "@material-ui/core/IconButton";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import { makeStyles } from "@material-ui/core/styles";
-import Switch from "@material-ui/core/Switch";
 import Typography from "@material-ui/core/Typography";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
@@ -11,6 +9,7 @@ import React, { useMemo } from "react";
 import styled from "styled-components";
 import { ScanProcess, ScanSchemaResult } from "../apis/queryRunner";
 import SchemaSelect from "../features/runnerResult/SchemaSelect";
+import DiffToolBar from "./DiffToolbar";
 
 const SelectContainer = styled.div`
   margin-left: 5px;
@@ -51,15 +50,19 @@ interface RunnerStatusBarProps {
   onToggleExpand(): void;
   runningProgress?: [ScanProcess, ScanProcess];
   finishedResults?: ScanSchemaResult;
+  activePair: [boolean, boolean];
+  onActivePairChange: (value: [boolean, boolean]) => void;
 }
 
 const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
   const classes = styles();
   const {
+    activePair,
     expand,
     diff,
     onDiffChange,
     onToggleExpand,
+    onActivePairChange,
     runningProgress,
     finishedResults,
     isRunning
@@ -184,10 +187,11 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
         </Typography>
       )}
 
-      <FormControlLabel
-        style={{ justifySelf: "end", marginLeft: "auto" }}
-        control={<Switch checked={diff} onChange={onDiffChange} value='diff' />}
-        label='Diff'
+      <DiffToolBar
+        diffMode={diff}
+        onToogleDiff={onDiffChange}
+        activePair={activePair}
+        onActivePairChange={onActivePairChange}
       />
       {isRunningLocal && (
         <LinearProgress

@@ -3,26 +3,39 @@ import { requestAsync } from ".";
 enum Action {
   GET = "get",
   PUT = "put",
-  DELETE = "delete",
+  DELETE = "delete"
+}
+
+interface Response {
+  success: boolean;
+  value?: string;
 }
 
 class DataStore {
-  sendRequest = async (action: Action, key: string, val?: string) => {
+  sendRequest = async (
+    
+    action: Action,
+  
+     key: string,
+  
+     val?: string
+  
+  ): Promise<string | undefined> => {
     const payload: any = {
-      key,
+      key
     };
 
     if (val) {
       payload.val = val;
     }
 
-    const rsp = await requestAsync("rocksDB", action, payload);
+    const rsp = (await requestAsync("rocksDB", action, payload)) as Response;
     if (rsp.success) {
       return rsp.value;
     }
   };
 
-  getItem = async (key: string) => {
+  getItem = async (key: string): Promise<string | undefined> => {
     return await this.sendRequest(Action.GET, key);
   };
 

@@ -121,7 +121,7 @@ const SchemaSelect: React.FC<SchemaSelectProps> = ({ isRunning }) => {
 
       const isRunning = isSchemaRunning(result);
       const hasError = schemaHasError(result);
-      const hasDiff = Object.keys(result.diffResults || {}).length > 0;
+      const hasDiff = Object.keys(result?.diffResults || {}).length > 0;
       const [finished, total] = getSchemaProgress(result, progress);
 
       return (

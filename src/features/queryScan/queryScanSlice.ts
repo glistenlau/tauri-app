@@ -8,6 +8,7 @@ import queryRunner, {
 } from "../../apis/queryRunner";
 import { DBType } from "../../apis/sqlCommon";
 import { evaluateRawParamsPair } from "../../core/parameterEvaluator";
+import { saveParamsPair } from "../../core/paramStore";
 import { RootState } from "../../reducers";
 import { getParameterMarkerPosition } from "../../util";
 import {
@@ -68,7 +69,9 @@ export const startQueryScan = createAsyncThunk<
 >("queryScan/queryScanStatus", async (arg, thunkApi) => {
   const { dispatch, getState } = thunkApi;
   const {
-    queryScan: { parametersPair, selectedSchemas, statements }
+    queryScan: { parametersPair, selectedSchemas, statements },
+    navigator: { activeView },
+    propsEditor: { selectedClassName, selectedPropName }
   } = getState();
 
   const unEvaled = parametersPair.map((params) =>
@@ -78,6 +81,22 @@ export const startQueryScan = createAsyncThunk<
       raw: param.raw
     }))
   );
+
+  // Save parmas to database
+  if (activeView === 0) {
+    await saveParamsPair({
+      propPath: selectedClassName,
+      propName: selectedPropName,
+      stmts: statements,
+      paramsPair: parametersPair
+    });
+  } else if (activeView === 1) {
+    await saveParamsPair({
+      stmts: statements,
+      paramsPair: parametersPair
+    });
+  }
+
   const schemaQueriesMap: { [name: string]: Query[] } = {};
 
   for (let schema of selectedSchemas) {

@@ -1,7 +1,7 @@
 import Divider from "@material-ui/core/Divider";
 import { makeStyles } from "@material-ui/core/styles";
 import { Resizable } from "re-resizable";
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SizeMeProps, withSize } from "react-sizeme";
 import styled from "styled-components";
@@ -10,7 +10,11 @@ import RunnerStatusBar from "../../components/RunnerStatusBar";
 import SplitQueryTable from "../../components/SplitQueryTable";
 import SplitRunningPanel from "../../components/SplitRunningPanel";
 import { RootState } from "../../reducers";
-import { changePanelExpand, changePanelHeight } from "./runnerResultSlice";
+import {
+  changePanelExpand,
+  changePanelHeight,
+  setResultActivePair
+} from "./runnerResultSlice";
 
 const Container = styled.div<{ isActive: boolean }>`
   background-color: ${({ theme }) => theme.palette.background.default};
@@ -104,6 +108,9 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
   const schemaResults = useSelector(
     (rootState: RootState) => rootState.runnerResult.schemaResults
   );
+  const resultActivePair = useSelector(
+    (rootState: RootState) => rootState.runnerResult.resultActivePair
+  );
 
   const currentProgress = useMemo(() => schemaProgress[selectedSchema], [
     schemaProgress,
@@ -136,7 +143,12 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
     dispatch(changePanelExpand(!panelExpand));
   }, [dispatch, panelExpand]);
 
-  console.log("active", active);
+  const handleActivePairChange = useCallback(
+    (value) => {
+      dispatch(setResultActivePair(value));
+    },
+    [dispatch]
+  );
 
   return (
     <Container isActive={active}>
@@ -162,9 +174,11 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
       >
         <Divider />
         <RunnerStatusBar
+          activePair={resultActivePair}
           diff={diff}
           expand={panelExpand}
           isRunning={isRunning}
+          onActivePairChange={handleActivePairChange}
           onDiffChange={toggleDiff}
           onToggleExpand={toogleExpand}
           runningProgress={currentProgress}
@@ -179,6 +193,7 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
         )}
         {!isRunning && panelExpand && (
           <SplitQueryTable
+            resultActivePair={resultActivePair}
             diff={diff}
             height={panelHeight - 49}
             width={width}

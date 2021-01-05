@@ -24,9 +24,10 @@ export interface RunnerResultState {
   schemaResults: ScanResult;
   schemaProgress: { [schema: string]: [ScanProcess, ScanProcess] };
   selectedSchema: string;
+  resultActivePair: [boolean, boolean];
 }
 
-const initialState: RunnerResultState = {
+export const initialState: RunnerResultState = {
   currentParametersPair: [[], []],
   diffRowCount: 0,
   panelExpand: false,
@@ -35,13 +36,14 @@ const initialState: RunnerResultState = {
   processedRowCount: 0,
   schemaProgress: {},
   schemaResults: {},
-  selectedSchema: '',
+  selectedSchema: "",
   totalCount: 0,
   timeElapsedPair: [
     [0, 0],
     [0, 0]
   ],
-  resultPair: [null, null]
+  resultPair: [null, null],
+  resultActivePair: [true, true]
 };
 
 const runnerResult = createSlice({
@@ -125,6 +127,9 @@ const runnerResult = createSlice({
     },
     setSelectedSchema(state, {payload}: PayloadAction<string>) {
       state.selectedSchema = payload;
+    },
+    setResultActivePair(state, {payload}: PayloadAction<[boolean, boolean]>) {
+      state.resultActivePair = payload;
     }
   }
 });
@@ -139,6 +144,7 @@ export const {
   changeResultPair,
   changeTotalCount,
   changeTimeElapsedPair,
+  setResultActivePair,
   setSelectedSchema,
   setSchemaResults,
   startNewResults,
