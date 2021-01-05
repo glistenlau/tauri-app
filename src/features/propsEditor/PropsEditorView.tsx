@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
-import { initQueryScan } from "../queryScan/queryScanSlice";
+import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
 import PropsListView from "./PropsListView";
 import SplitEditorView from "./SplitEditorView";
@@ -49,7 +49,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
       snackbar.enqueueSnackbar("There is no query to run.", { variant: 'warning' });
       return;
     }
-    await dispatch(initQueryScan(values));
+    await dispatch(loadQueryScan(values));
   }, [dispatch, snackbar]);
 
   return (

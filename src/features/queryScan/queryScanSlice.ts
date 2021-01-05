@@ -8,7 +8,12 @@ import queryRunner, {
 } from "../../apis/queryRunner";
 import { DBType } from "../../apis/sqlCommon";
 import { evaluateRawParamsPair } from "../../core/parameterEvaluator";
-import { saveParamsPair } from "../../core/paramStore";
+import {
+  GetParamReturn,
+  getParamsPair,
+  saveParamsPair,
+  StoredParams
+} from "../../core/paramStore";
 import { RootState } from "../../reducers";
 import { getParameterMarkerPosition } from "../../util";
 import {
@@ -61,6 +66,59 @@ const initialState: QueryScanState = {
   statements: ["", ""],
   parametersPair: [[], []]
 };
+
+export const loadQueryScan = createAsyncThunk<
+  void,
+  [string, string],
+  { state: RootState }
+>("queryScan/loadQueryScan", async (stmtPair, thunkApi) => {
+  const { dispatch, getState } = thunkApi;
+  const {
+    navigator: { activeView },
+    propsEditor: { selectedClassName, selectedPropName }
+  } = getState();
+
+  let storedParamsPair: GetParamReturn | null;
+
+  if (activeView === 0) {
+    storedParamsPair = await getParamsPair({
+      propPath: selectedClassName,
+      propName: selectedPropName,
+      stmts: stmtPair
+    });
+  } else if (activeView === 1) {
+    storedParamsPair = await getParamsPair({
+      stmts: stmtPair
+    });
+  }
+
+  const paramsPair = stmtPair
+    .map(getParameterMarkerPosition)
+    .map((paramsPos, pairIndex) => {
+      let storedValue: StoredParams | undefined;
+      if (storedParamsPair != null) {
+        const fromPropsList = storedParamsPair.fromProps?.[pairIndex];
+        const fromProps = fromPropsList?.[fromPropsList.length - 1];
+        const fromStmtList = storedParamsPair.fromStmts?.[pairIndex];
+        const fromStmt = fromStmtList?.[fromStmtList.length - 1];
+
+        storedValue = fromProps;
+        if (
+          storedValue == null ||
+          (fromStmt != null && fromStmt.timestamp > storedValue.timestamp)
+        ) {
+          storedValue = fromStmt;
+        }
+      }
+
+      return paramsPos.map((paramPos, paramIndex) => {
+        let raw = storedValue?.value[paramIndex] || "";
+        return { ...paramPos, raw, evaluated: {} };
+      });
+    }) as [Parameter[], Parameter[]];
+
+  dispatch(initQueryScan({ stmtPair, paramsPair }));
+});
 
 export const startQueryScan = createAsyncThunk<
   ScanResult,
@@ -168,13 +226,18 @@ const queryScan = createSlice({
     ) {
       state.parametersPair = payload;
     },
-    initQueryScan(state, { payload }: PayloadAction<[string, string]>) {
-      state.statements = payload;
-      state.parametersPair = payload
-        .map(getParameterMarkerPosition)
-        .map((paramsPos) =>
-          paramsPos.map((paramPos) => ({ ...paramPos, raw: "", evaluated: {} }))
-        ) as [Parameter[], Parameter[]];
+    initQueryScan(
+      state,
+      {
+        payload
+      }: PayloadAction<{
+        stmtPair: [string, string];
+        paramsPair: [Parameter[], Parameter[]];
+      }>
+    ) {
+      const { stmtPair, paramsPair } = payload;
+      state.statements = stmtPair;
+      state.parametersPair = paramsPair;
 
       state.sync =
         state.parametersPair[0].length === state.parametersPair[1].length &&
@@ -186,8 +249,7 @@ const queryScan = createSlice({
 
       state.cartesian = false;
       state.openModel = true;
-    },
-    startScan(state) {}
+    }
   }
 });
 

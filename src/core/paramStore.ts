@@ -7,14 +7,14 @@ interface GetParamArgument {
   propName?: string;
   stmts: string[];
 }
-interface GetParamReturn {
+export interface GetParamReturn {
   fromProps?: StoredParamsPair;
   fromStmts?: StoredParamsPair;
 }
 interface SaveParamArgument extends GetParamArgument {
   paramsPair: [ParameterValue[], ParameterValue[]];
 }
-type StoredParams = {
+export type StoredParams = {
   timestamp: number;
   value: string[];
 };
@@ -68,11 +68,11 @@ const getParamPairFromProps = async (
   propPath: string,
   propName: string,
   paramCountPair: [number, number]
-): Promise<StoredParamsPair> => {
+): Promise<StoredParamsPair | null> => {
   const propsKey = `${propPath}#${propName}`;
   const storedParamsString = await dataStore.getItem(propsKey);
   if (storedParamsString == null) {
-    return [[], []];
+    return null;
   }
 
   const storedParamsPair: StoredParamsPair = JSON.parse(storedParamsString);
@@ -109,27 +109,38 @@ export const getParamsPair = async ({
   propPath,
   propName,
   stmts
-}: GetParamArgument): Promise<GetParamReturn> => {
+}: GetParamArgument): Promise<GetParamReturn | null> => {
   const ret: GetParamReturn = {};
   const paramCountPair = stmts.map((stmt) => stmt.split("?").length - 1) as [
     number,
     number
   ];
   if (propPath != null && propName != null) {
-    ret.fromProps = await getParamPairFromProps(
+    const fromProps = await getParamPairFromProps(
       propPath,
       propName,
       paramCountPair
     );
+    if (fromProps != null && fromProps.length > 0) {
+      ret.fromProps = fromProps;
+    }
   }
 
   const stmtKeyPair = stmts.map(mapStmtKeyPair);
 
-  ret.fromStmts = (await Promise.all(
+  const fromStmts = (await Promise.all(
     stmtKeyPair.map((stmtKey, index) =>
       getStmtParamsList(stmtKey, paramCountPair[index])
     )
   )) as StoredParamsPair;
+
+  if (fromStmts.filter((paramsList) => paramsList.length > 0).length > 0) {
+    ret.fromStmts = fromStmts;
+  }
+
+  if (Object.keys(ret).length === 0) {
+    return null;
+  }
 
   return ret;
 };
@@ -140,7 +151,10 @@ export const saveParamsPair = async ({
   stmts,
   paramsPair
 }: SaveParamArgument) => {
-  if (paramsPair == null) {
+  if (
+    paramsPair == null ||
+    paramsPair.filter((params) => params.length > 0).length === 0
+  ) {
     return;
   }
 

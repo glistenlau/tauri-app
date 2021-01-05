@@ -34,7 +34,7 @@ interface SplitEditorProps {
   defaultValues?: [string, string];
   valuePair?: [string, string];
   onChange?: (valuePair: [string, string]) => void;
-  onBlur?: (valuePair: [string, string]) => void;
+  onBlur?: () => void;
   onEditorRef?: Function;
   diff: boolean;
   mode?: "sql" | "xml";
