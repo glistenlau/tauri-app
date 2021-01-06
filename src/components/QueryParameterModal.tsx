@@ -39,6 +39,10 @@ const ContentContainer = styled.div`
   flex-direction: column;
 `;
 
+const ErrorTypography = styled(Typography)`
+  margin-right: auto;
+`;
+
 const useStyles = makeStyles((theme: any) =>
   createStyles({
     modal: {
@@ -87,6 +91,7 @@ const useStyles = makeStyles((theme: any) =>
 export interface QueryParameterModalPropsType {
   open: boolean;
   cartesian: boolean;
+  errorMsg?: string;
   scanDisabled: boolean;
   sync: boolean;
   statements: [string, string];
@@ -107,6 +112,7 @@ const QueryParameterModal = React.memo(
   (props: QueryParameterModalPropsType) => {
     const {
       open,
+      errorMsg,
       scanDisabled,
       statements,
       parameters,
@@ -367,14 +373,13 @@ const QueryParameterModal = React.memo(
           <Divider />
 
           <DialogActions>
+            {errorMsg != null && errorMsg.length > 0 && (
+              <ErrorTypography color="error" align="left">{errorMsg}</ErrorTypography>
+            )}
             <Button autoFocus onClick={onClose} color='primary'>
               Cancel
             </Button>
-            <Button
-              disabled={total <= 0}
-              onClick={onClickScan}
-              color='primary'
-            >
+            <Button disabled={total <= 0} onClick={onClickScan} color='primary'>
               Scan
             </Button>
           </DialogActions>

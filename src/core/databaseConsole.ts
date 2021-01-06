@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { TransactionMode } from "../features/transactionControl/transactionControlSlice";
-import PgClient, { POSTGRES_EVENT } from "./postgres";
 import OraClient from "./oracle";
+import PgClient from "./postgres";
 
 export enum EVENTS {
   POSTGRES_DISCONNECT = "POSTGRES_DISCONNECT",
@@ -214,13 +214,11 @@ class DatabaseConsole extends EventEmitter {
       }
 
       const ret = await OraClient.execute(statement, parameter, conn, options);
-      console.log("finish");
       return ret;
     } finally {
       if (curTx === TransactionMode.Auto) {
         await OraClient.closeConnection(conn);
       } else {
-        console.log("reset status", 0);
         this.connectionStatusPair[DB_TYPE.ORACLE] = CONN_STATUS.IDLE;
       }
     }
@@ -240,7 +238,6 @@ class DatabaseConsole extends EventEmitter {
       if (curTx === TransactionMode.Auto) {
         await PgClient.closeConnection(conn);
       } else {
-        console.log("reset status", 1);
         this.connectionStatusPair[DB_TYPE.POSTGRES] = CONN_STATUS.IDLE;
       }
     }

@@ -33,15 +33,14 @@ const SettingsPanel = React.memo(({ active }: any) => {
 
   const updateDBConfig = useCallback(
     async <C, T extends SqlCommon<C>>(config: C, api: T, dbName: string) => {
-      console.log("update db config...", config);
       try {
-        console.log(await api.setConfig(config));
+        await api.setConfig(config);
         snackBar.enqueueSnackbar(`Successfully connected to the ${dbName}.`, {
-          variant: "success",
+          variant: "success"
         });
       } catch (e) {
         snackBar.enqueueSnackbar(`Failed to connect to ${dbName}: ${e}`, {
-          variant: "error",
+          variant: "error"
         });
       }
     },

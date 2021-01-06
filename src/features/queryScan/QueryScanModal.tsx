@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { GlobalContext } from "../../App";
 import QueryParameterModal from "../../components/QueryParameterModal";
@@ -13,6 +19,7 @@ import {
 } from "./queryScanSlice";
 
 const QueryScanModal: React.FC = () => {
+  const [errorMsg, setErrorMsg] = useState("");
   const cartesian = useSelector(
     (state: RootState) => state.queryScan.cartesian
   );
@@ -51,13 +58,19 @@ const QueryScanModal: React.FC = () => {
     if (isRunning) {
       return;
     }
+    if (selectedSchemas.length === 0) {
+      setErrorMsg("Please select at least 1 schema.");
+      return;
+    }
+    setErrorMsg("");
+
     setIsRunning(true);
     try {
       await dispatch(startQueryScan());
     } finally {
       setIsRunning(false);
     }
-  }, [dispatch, isRunning, setIsRunning]);
+  }, [dispatch, isRunning, selectedSchemas.length, setIsRunning]);
 
   const handleParametersPairChange = useCallback(
     async (
@@ -98,6 +111,7 @@ const QueryScanModal: React.FC = () => {
   return (
     <QueryParameterModal
       cartesian={cartesian}
+      errorMsg={errorMsg}
       scanDisabled={scanDisabled}
       sync={sync}
       open={openModel}

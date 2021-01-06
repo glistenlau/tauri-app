@@ -23,13 +23,11 @@ export const requestAsync = async (
     handler: {
       name: handlerName,
       action,
-      payload,
-    },
+      payload
+    }
   };
 
-  console.log('send request: ', args);
   const res = JSON.parse(await promisified(args));
-  console.log('got response: ', res);
 
   return res;
 };

@@ -111,7 +111,6 @@ const evaluateSQL = async (
   queryFunc: (statement: string) => Promise<Response<SQLResult>>
 ) => {
   const sqlResponse = await queryFunc(statement);
-  console.log("evaluate sql result:", sqlResponse);
 
   if (!sqlResponse.success) {
     throw new Error(sqlResponse.result.message);

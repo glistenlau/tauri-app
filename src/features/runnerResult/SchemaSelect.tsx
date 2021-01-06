@@ -95,7 +95,7 @@ const SchemaSelect: React.FC<SchemaSelectProps> = ({ isRunning }) => {
         schemaResult?.queryResults.reduce(
           (pre, cur) => pre || cur?.results == null,
           false
-        ) || false
+        ) || true
       );
     },
     [isRunning]

@@ -1,12 +1,9 @@
-use crate::proxies::{
-    oracle::OracleClient,
-    postgres::PostgresProxy,
-};
+use crate::proxies::{oracle::OracleClient, postgres::PostgresProxy};
 use crate::utilities::{
     oracle::process_statement as process_oracle_statement,
     postgres::process_statement as process_pg_statement,
 };
-use std::{cell::RefCell};
+use std::cell::RefCell;
 
 use super::{
     oracle_param_mapper::map_param,
@@ -18,7 +15,7 @@ use crate::{
     proxies::sql_common::{SQLError, SQLResultSet},
 };
 use anyhow::{anyhow, Result};
-use oracle::{sql_type::ToSql as oracle_ToSql};
+use oracle::sql_type::ToSql as oracle_ToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio_postgres::{types::ToSql as pg_ToSql, Statement as PgStmt};
@@ -71,7 +68,6 @@ impl<'a> QueryScanner<'a> {
         match params_iter {
             DBParamIter::Oracle(pi) => pi.borrow().total(),
             DBParamIter::Postgres(pi) => pi.borrow().total(),
-            _ => 1,
         }
     }
 
@@ -257,64 +253,4 @@ impl<'a> QueryScanner<'a> {
                 Ok(ParamSeeds::Postgres(prepared_stmt, mapped_params))
             })
     }
-
-    // fn build_parameters_iterator(schema: &str, query: &Query) -> Result<DBParamIter> {
-    //     let params_iter = match query.db_type() {
-    //         crate::proxies::sql_common::DBType::Oracle => {
-    //             if query.parameters().is_none() {
-    //                 DBParamIter::Oracle(None)
-    //             } else {
-    //                 Self::build_oracle_parameters_iterator(schema, query)?
-    //             }
-    //         }
-    //         crate::proxies::sql_common::DBType::Postgres => {
-    //             if query.parameters().is_none() {
-    //                 DBParamIter::Postgres(None)
-    //             } else {
-    //                 Self::build_postgres_parameters_iterator(schema, query)?
-    //             }
-    //         }
-    //     };
-
-    //     Ok(params_iter)
-    // }
-
-    // fn build_oracle_parameters_iterator(schema: &str, query: &Query) -> Result<DBParamIter> {
-    //     let client = crate::proxies::oracle::get_proxy().lock().unwrap();
-    //     let conn = client.get_connection()?.lock().unwrap();
-    //     let params = query.parameters().unwrap();
-    //     let mut mapped_params = Vec::with_capacity(params.len());
-    //     let statement = query
-    //         .statement()
-    //         .replace("COMPANY_", &format!("{}.", schema));
-
-    //     for (i, pp) in params.iter().enumerate() {
-    //         let mut mapped_p = Vec::with_capacity(pp.len());
-    //         for p in pp {
-    //             mapped_p.push(client.map_param(Some(&statement), Some(i), p, &conn)?)
-    //         }
-    //         mapped_params.push(mapped_p);
-    //     }
-
-    //     let params_iter = ParameterIterator::new(&mapped_params, &query.mode());
-
-    //     Ok(DBParamIter::Oracle(Some(params_iter)))
-    // }
-
-    // fn build_postgres_parameters_iterator(schema: &str, query: &Query) -> Result<DBParamIter> {
-    //     let params = query.parameters().unwrap();
-    //     let mut mapped_params = Vec::with_capacity(params.len());
-
-    //     for (i, pp) in params.iter().enumerate() {
-    //         let mut mapped_p = Vec::with_capacity(pp.len());
-    //         for p in pp {
-    //             mapped_p.push(crate::proxies::postgres::PostgresProxy::map_param(p)?);
-    //         }
-    //         mapped_params.push(mapped_p);
-    //     }
-
-    //     let params_iter = ParameterIterator::new(&mapped_params, &query.mode());
-
-    //     Ok(DBParamIter::Postgres(Some(params_iter)))
-    // }
 }

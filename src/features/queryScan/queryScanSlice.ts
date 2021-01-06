@@ -182,7 +182,6 @@ export const startQueryScan = createAsyncThunk<
 
     schemaQueriesMap[schema] = queries;
   }
-  console.log("schema query map", schemaQueriesMap);
   dispatch(setOpenModal(false));
   dispatch(startNewResults(selectedSchemas));
 

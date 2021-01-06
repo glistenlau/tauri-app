@@ -226,14 +226,14 @@ pub fn scan_schema_queries(
                     query_scanner.drained()
                 );
                 let cur_params = query_scanner.current_params();
-                let start_msg = Message::StartQuery(i, cur_params, query_scanner.total());
+                let start_msg = Message::StartQuery(i, cur_params.clone(), query_scanner.total());
                 tx.send(start_msg).unwrap();
                 let now = Instant::now();
                 match query_scanner.next() {
                     Some(rs) => {
                         let elapsed = now.elapsed();
                         let messge =
-                            Message::FinishQuery(i, rs, None, query_scanner.total(), elapsed);
+                            Message::FinishQuery(i, rs, cur_params, query_scanner.total(), elapsed);
                         if !stop.load(Ordering::Acquire) {
                             tx.send(messge).unwrap();
                         }
@@ -310,6 +310,8 @@ pub fn scan_schema_queries(
                         SQLResult::new_error(err)
                     }
                 };
+
+                log::debug!("finished {} query for {}, cur_params: {:?}", i, schema, cur_params);
 
                 let (pending_delta, finished_delta) = if diff_results { (0, 0) } else { (0, 1) };
 

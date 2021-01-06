@@ -88,9 +88,7 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
   const handleClickRun = React.useCallback(async () => {
     try {
       await onClickRun({ mode: RunMode.DUAL });
-    } catch (e) {
-      console.log("run errror: ", e);
-    }
+    } catch (e) {}
   }, [onClickRun]);
 
   const handleSchemaChange = useCallback(

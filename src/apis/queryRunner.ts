@@ -68,7 +68,6 @@ class QueryRunner {
     };
 
     const rsp = await requestAsync("queryRunner", action, payload);
-    console.log(rsp);
     if (rsp.success) {
       return rsp.result;
     }

@@ -2,9 +2,9 @@ import React, { useCallback } from "react";
 import styled from "styled-components";
 import EditorSettingsPanel from "../features/editorSettings/EditorSetttinsPanel";
 import {
-    isOracleSettings,
-    OracleSettings,
-    PostgreSettings
+  isOracleSettings,
+  OracleSettings,
+  PostgreSettings
 } from "../features/settings/settingsSlice";
 import DBSettings from "./DBSettings";
 
@@ -14,6 +14,7 @@ const Container = styled.div`
   padding: 10px;
   align-items: center;
   overflow: scroll;
+  height: 100%;
 `;
 
 interface SettingsProps {

@@ -174,7 +174,6 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     parameter,
     currentParameter
   ]);
-  console.log("evalVal", parameter, currentParameter, evalVal);
 
   const evalValStr = React.useMemo(() => {
     if (!evalVal?.success) {

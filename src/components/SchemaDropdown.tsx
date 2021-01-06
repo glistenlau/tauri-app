@@ -3,7 +3,6 @@ import {
   Chip,
   CircularProgress,
   FormControl,
-  Input,
   InputLabel,
   MenuItem,
   Select
@@ -13,10 +12,13 @@ import React, { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import LabelWithDbIcons from "./LabelWithDbIcons";
 
+const Container = styled.div`
+  background-color: ${({ theme }) => theme.palette.background.default};
+`;
+
 const StyledFormControl = styled(FormControl)`
-  min-width: 20%;
+  width: 100%;
   margin-top: 10px;
-  margin-bottom: 10px;
 `;
 const StyledChip = styled(Chip)`
   margin-left: 10px;
@@ -62,9 +64,9 @@ export interface SchemaDropdownProps {
 const MenuProps = {
   PaperProps: {
     style: {
-      maxHeight: 500,
-    },
-  },
+      maxHeight: 500
+    }
+  }
 };
 
 const REFRESH_VALUE = "__refresh__";
@@ -77,9 +79,12 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
     onClickRefresh,
     onClickSchema,
     selectedSchemas,
-    schemas,
+    schemas
   }) => {
     const [refreshingSchema, setRefreshingSchema] = useState(false);
+    const hasError = useMemo(() => selectedSchemas.length === 0, [
+      selectedSchemas.length
+    ]);
 
     const schemaMap = useMemo(() => {
       if (!schemas) {
@@ -92,7 +97,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
         schemaMap.set(lowwerSchema, {
           value: lowwerSchema,
           showOracleIcon: true,
-          showPostgresIcon: false,
+          showPostgresIcon: false
         });
       });
 
@@ -103,7 +108,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
           mappedSchema = {
             value: lowwerSchema,
             showOracleIcon: false,
-            showPostgresIcon: true,
+            showPostgresIcon: true
           };
           schemaMap.set(lowwerSchema, mappedSchema);
         } else {
@@ -119,21 +124,23 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
         return null;
       }
 
-      return Array.from(schemaMap.values()).sort((a, b) => a.value.localeCompare(b.value)).map((mappedSchema) => {
-        return (
-          <MenuItem dense key={mappedSchema.value} value={mappedSchema.value}>
-            <Checkbox
-              checked={selectedSchemas.indexOf(mappedSchema.value) > -1}
-            />
-            <LabelWithDbIcons
-              showOracleIcon={mappedSchema.showOracleIcon}
-              showPostgresIcon={mappedSchema.showPostgresIcon}
-            >
-              {mappedSchema.value}
-            </LabelWithDbIcons>
-          </MenuItem>
-        );
-      });
+      return Array.from(schemaMap.values())
+        .sort((a, b) => a.value.localeCompare(b.value))
+        .map((mappedSchema) => {
+          return (
+            <MenuItem dense key={mappedSchema.value} value={mappedSchema.value}>
+              <Checkbox
+                checked={selectedSchemas.indexOf(mappedSchema.value) > -1}
+              />
+              <LabelWithDbIcons
+                showOracleIcon={mappedSchema.showOracleIcon}
+                showPostgresIcon={mappedSchema.showPostgresIcon}
+              >
+                {mappedSchema.value}
+              </LabelWithDbIcons>
+            </MenuItem>
+          );
+        });
     }, [schemaMap, selectedSchemas]);
 
     const handleChange = useCallback(
@@ -141,7 +148,6 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
         const { value } = event.target;
         const clickRefresh = value.indexOf(REFRESH_VALUE) > -1;
         if (clickRefresh) {
-          console.log("click refresh", clickRefresh);
           return;
         }
 
@@ -185,10 +191,9 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
                   event.stopPropagation();
                 }}
                 onClick={(e) => {
-                  console.log(e);
                   onClickSchema(selectedSchema);
                 }}
-                size="small"
+                size='small'
                 key={selectedSchema}
                 label={
                   <LabelWithDbIcons
@@ -214,27 +219,36 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
     );
 
     return (
-      <div>
-        <StyledFormControl>
+      <Container>
+        <StyledFormControl error={hasError}>
           <StyledInputLabel>Schemas</StyledInputLabel>
           <Select
             autoWidth
             multiple
+            label='Schemas'
             value={selectedSchemas}
             onChange={handleChange}
-            input={<Input />}
             renderValue={renderValue}
           >
-            <MenuItem dense disabled={refreshingSchema} key={REFRESH_VALUE} value={REFRESH_VALUE}>
+            <MenuItem
+              dense
+              disabled={refreshingSchema}
+              key={REFRESH_VALUE}
+              value={REFRESH_VALUE}
+            >
               <RefreshContainer onClick={handleClickReresh}>
-                {refreshingSchema ? <CircularProgress size={24} />: <RefreshIcon />}
+                {refreshingSchema ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <RefreshIcon />
+                )}
                 <RefreshText>Refresh</RefreshText>
               </RefreshContainer>
             </MenuItem>
             {schemaMenuItems}
           </Select>
         </StyledFormControl>
-      </div>
+      </Container>
     );
   }
 );
