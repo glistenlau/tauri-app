@@ -126,6 +126,48 @@ class QueryRunner {
     return [mapped_result[0], mapped_result[1]];
   };
 
+  getTransactionStatus = async (): Promise<[number, number]> => {
+    const oracleQuery: Query = {
+      dbType: DBType.Oracle,
+      statement: `
+      SELECT COUNT(*)
+      FROM v$transaction t
+      INNER JOIN v$session s ON t.SES_ADDR = s.SADDR
+      INNER JOIN v$mystat m ON s.SID = m.SID
+      WHERE ROWNUM = 1
+      `,
+      mode: ParameterGenerateStrategy.Normal
+    };
+    const postgresQuery: Query = {
+      dbType: DBType.Postgres,
+      statement: `
+      select count(*)
+      from pg_locks
+      where transactionid::text = (txid_current() % (2 ^ 32)::bigint)::text
+      and locktype = 'transactionid'
+      and mode = 'ExclusiveLock'
+      `,
+      mode: ParameterGenerateStrategy.Normal
+    };
+
+    const result = await this.scanQueries(
+      { anaconda: [oracleQuery, postgresQuery] },
+      false
+    );
+
+    const mapped_result = result["anaconda"].queryResults.map(
+      (schemaResult) => {
+        const sqlResult = schemaResult?.results.result;
+        if (sqlResult?.rows) {
+          return sqlResult.rows.flat()[0];
+        }
+        return 0;
+      }
+    );
+
+    return mapped_result as [number, number];
+  };
+
   addProgressListener = (handler: (progress: ProgressMessage) => void) => {
     this.scanProgressListeners.push(handler);
   };

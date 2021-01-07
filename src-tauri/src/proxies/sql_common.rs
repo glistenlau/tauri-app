@@ -337,4 +337,7 @@ pub trait SQLClient<C> {
     fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value])
         -> Result<SQLResult>;
     fn set_config(&mut self, config: C) -> Result<SQLResult>;
+    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
+    fn commit(&mut self) -> Result<SQLResult>;
+    fn rollback(&mut self) -> Result<SQLResult>;
 }

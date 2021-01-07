@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 #[serde(rename_all = "camelCase")]
 pub enum Action {
   ExecuteStatement,
+  SetAutocommit,
   Rollback,
   Commit,
   SetConfig,
@@ -19,6 +20,7 @@ pub struct Payload<C> {
   schema: Option<String>,
   parameters: Option<Vec<Value>>,
   config: Option<C>,
+  autocommit: Option<bool>,
 }
 
 const COMPANY_PLACEHOLDER: &str = "company_";
@@ -66,6 +68,18 @@ pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<d
           }
           Err(err) => Err(err)
       }
+    },
+    Action::SetAutocommit => {
+      if payload.autocommit.is_none() {
+        return Err(anyhow!("missing autocommit"));
+      }
+      proxy.lock().unwrap().set_autocommit(payload.autocommit.unwrap())
+    },
+    Action::Commit => {
+      proxy.lock().unwrap().commit()
+    },
+    Action::Rollback => {
+      proxy.lock().unwrap().rollback()
     }
     _ => Err(anyhow!("The action is not supported."))
   }

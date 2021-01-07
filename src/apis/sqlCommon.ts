@@ -39,6 +39,9 @@ export interface SQLResult {
 enum Action {
   ExecuteStatement = "executeStatement",
   SetConfig = "setConfig",
+  SetAutocomit = "setAutocommit",
+  Commit = "commit",
+  Rollback = "rollback"
 }
 
 export enum DBType {
@@ -51,6 +54,7 @@ interface Payload<C> {
   schema?: string;
   parameters?: string[];
   config?: C;
+  autocommit?: boolean;
 }
 
 class SqlCommon<C> {
@@ -62,7 +66,7 @@ class SqlCommon<C> {
 
   sendRequest = async (action: Action, payload?: Payload<C>) => {
     const args: any = {
-      action,
+      action
     };
 
     if (payload) {
@@ -80,7 +84,7 @@ class SqlCommon<C> {
     const payload = {
       statement,
       schema,
-      parameters,
+      parameters
     };
 
     return await this.sendRequest(Action.ExecuteStatement, payload);
@@ -88,7 +92,7 @@ class SqlCommon<C> {
 
   setConfig = async (config: C) => {
     const payload = {
-      config,
+      config
     };
 
     const res = await this.sendRequest(Action.SetConfig, payload);
@@ -96,6 +100,30 @@ class SqlCommon<C> {
       return res;
     }
     throw new Error(res.result.message);
+  };
+
+  setAutocommit = async (autocommit: boolean) => {
+    const res = await this.sendRequest(Action.SetAutocomit, { autocommit });
+
+    if (!res.success) {
+      throw new Error(res.result.message);
+    }
+  };
+
+  commit = async () => {
+    const res = await this.sendRequest(Action.Commit, {});
+
+    if (!res.success) {
+      throw new Error(res.result.message);
+    }
+  };
+
+  rollback = async () => {
+    const res = await this.sendRequest(Action.Rollback, {});
+
+    if (!res.success) {
+      throw new Error(res.result.message);
+    }
   };
 }
 

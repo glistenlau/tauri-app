@@ -4,12 +4,13 @@ import { createStyles, makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import SettingsBackupRestoreIcon from "@material-ui/icons/SettingsBackupRestore";
 import clsx from "clsx";
-import React, { useContext } from "react";
+import React, { useCallback, useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Oracle from "../../apis/oracle";
+import Postgres from "../../apis/postgres";
 import { GlobalContext } from "../../App";
 import ProcessIconButton from "../../components/ProgressIconButton";
 import SVGIcon from "../../components/SVGIcon";
-import databaseConsole from "../../core/databaseConsole";
 import { RootState } from "../../reducers";
 import {
   changeTransactionMode,
@@ -58,6 +59,20 @@ const TransactionControlToolBar = React.memo(
     const classes = useStyles();
     const dispatch = useDispatch();
 
+    const setAutocommit = useCallback(
+      async (autocommit) => {
+        try {
+          await Postgres.setAutocommit(autocommit);
+        } catch {}
+        try {
+          await Oracle.setAutocommit(autocommit);
+        } catch {}
+
+        dispatch(changeUncommitCount(0));
+      },
+      [dispatch]
+    );
+
     const handleTransactionModeChange = React.useCallback(
       async (e) => {
         const transactionValue = e.target.value;
@@ -66,33 +81,30 @@ const TransactionControlToolBar = React.memo(
         }
 
         dispatch(changeTransactionMode(transactionValue));
-
-        try {
-          await databaseConsole.setTransactionMode(transactionValue);
-        } catch (e) {
-        } finally {
-          dispatch(changeUncommitCount(0));
-        }
       },
       [dispatch]
     );
 
     const handleClickCommit = React.useCallback(async () => {
       try {
-        await databaseConsole.commit();
-      } catch (e) {
-      } finally {
-        dispatch(changeUncommitCount(0));
-      }
+        await Postgres.commit();
+      } catch (e) {}
+      try {
+        await Oracle.commit();
+      } catch (e) {}
+
+      dispatch(changeUncommitCount(0));
     }, [dispatch]);
 
     const handleClickRollback = React.useCallback(async () => {
       try {
-        await databaseConsole.rollback();
-      } catch (e) {
-      } finally {
-        dispatch(changeUncommitCount(0));
-      }
+        await Postgres.rollback();
+      } catch (e) {}
+      try {
+        await Oracle.rollback();
+      } catch (e) {}
+
+      dispatch(changeUncommitCount(0));
     }, [dispatch]);
 
     const buttonsDisabled = React.useMemo(
@@ -102,6 +114,10 @@ const TransactionControlToolBar = React.memo(
         transactionMode === TransactionMode.Auto,
       [isRunning, transactionMode, uncommitCount]
     );
+
+    useEffect(() => {
+      setAutocommit(transactionMode === TransactionMode.Auto);
+    }, [setAutocommit, transactionMode]);
 
     return (
       <div className={clsx(classes.buttonContainer, className)} {...others}>

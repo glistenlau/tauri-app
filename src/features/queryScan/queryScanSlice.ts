@@ -22,6 +22,7 @@ import {
   updateProgress,
   updateSchemaResult
 } from "../runnerResult/runnerResultSlice";
+import { changeUncommitCount } from "../transactionControl/transactionControlSlice";
 
 export enum ParameterStatus {
   Active = "active",
@@ -199,6 +200,11 @@ export const startQueryScan = createAsyncThunk<
     queryRunner.addSchemaResultListener(handleUpdateSchemaResult);
     const scanResults = await queryRunner.scanQueries(schemaQueriesMap, true);
     dispatch(setSchemaResults(scanResults));
+    const [
+      oracleUncommit,
+      postgresUncommit
+    ] = await queryRunner.getTransactionStatus();
+    dispatch(changeUncommitCount(Math.max(oracleUncommit, postgresUncommit)));
     return scanResults;
   } finally {
     queryRunner.removeSchemaResultListener(handleUpdateSchemaResult);

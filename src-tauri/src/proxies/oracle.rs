@@ -34,6 +34,7 @@ impl OracleConfig {
 pub struct OracleClient {
     config: OracleConfig,
     conn: Option<Arc<Mutex<Connection>>>,
+    autocommit: bool,
 }
 
 impl OracleClient {
@@ -162,12 +163,53 @@ impl SQLClient<OracleConfig> for OracleClient {
             Err(e) => Ok(SQLResult::new_error(e)),
         }
     }
+
+    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
+        if self.autocommit == autocommit {
+            log::warn!(
+                "Try to set Oracle autocommit to the same value: {}",
+                autocommit
+            );
+            return Ok(SQLResult::Result(None));
+        }
+
+        log::debug!("Set oracle autocommit: {}", autocommit);
+        self.autocommit = autocommit;
+        if let Some(conn_lock) = &self.conn {
+            let mut conn = conn_lock.lock().unwrap();
+            conn.set_autocommit(autocommit);
+            if autocommit {
+                conn.commit()?;
+            }
+        }
+
+        Ok(SQLResult::Result(None))
+    }
+
+    fn commit(&mut self) -> Result<SQLResult> {
+        if let Some(conn_lock) = &self.conn {
+            let conn = conn_lock.lock().unwrap();
+            conn.commit()?;
+        }
+
+        Ok(SQLResult::new_result(None))
+    }
+
+    fn rollback(&mut self) -> Result<SQLResult> {
+        if let Some(conn_lock) = &self.conn {
+            let conn = conn_lock.lock().unwrap();
+            conn.rollback()?;
+        }
+
+        Ok(SQLResult::new_result(None))
+    }
 }
 
 lazy_static! {
     static ref INSTANCE: Arc<Mutex<OracleClient>> = Arc::new(Mutex::new(OracleClient {
         config: OracleConfig::new("localhost", "1521", "anaconda", "anaconda", "anaconda"),
         conn: None,
+        autocommit: true,
     }));
 }
 

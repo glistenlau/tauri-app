@@ -3,7 +3,7 @@ use futures::future;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 use tokio::{runtime::Runtime, spawn};
 use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
 
@@ -61,6 +61,8 @@ impl ConnectionConfig {
 pub struct PostgresProxy {
     config: ConnectionConfig,
     client: Option<Arc<Mutex<Client>>>,
+    autocommit: bool,
+    uncommit_count: usize,
 }
 
 impl PostgresProxy {
@@ -68,6 +70,8 @@ impl PostgresProxy {
         PostgresProxy {
             config: config,
             client: None,
+            autocommit: true,
+            uncommit_count: 0,
         }
     }
 
@@ -99,6 +103,10 @@ impl PostgresProxy {
             }
             log::debug!("postgres connection closed.");
         });
+
+        if !self.autocommit {
+            Self::start_transaction(&client).await?;
+        }
 
         Ok(client)
     }
@@ -189,8 +197,14 @@ impl PostgresProxy {
         client: &Client,
     ) -> Result<SQLResultSet, SQLError> {
         let result_set = if stmt.columns().len() == 0 {
-            let result = client.execute(stmt, params).await?;
-            SQLResultSet::new(result as usize, None, None)
+            match client.execute(stmt, params).await {
+                Ok(result) => SQLResultSet::new(result as usize, None, None),
+                Err(sql_err) => {
+                    log::debug!("execute postgres error: {}, rollback...", &sql_err);
+                    Self::rollback_transaction(client).await?;
+                    return Err(SQLError::from(sql_err));
+                }
+            }
         } else {
             let result = client.query(stmt, params).await?;
             let columns = stmt.columns();
@@ -209,6 +223,21 @@ impl PostgresProxy {
         };
 
         Ok(result_set)
+    }
+
+    async fn start_transaction(client: &Client) -> Result<(), Error> {
+        log::debug!("Start Postgres transaction.");
+        Ok(client.batch_execute("BEGIN").await?)
+    }
+
+    async fn commit_transaction(client: &Client) -> Result<(), Error> {
+        log::debug!("Commit Postgres transaction.");
+        Ok(client.batch_execute("COMMIT").await?)
+    }
+
+    async fn rollback_transaction(client: &Client) -> Result<(), Error> {
+        log::debug!("Rollback Postgres transaction.");
+        Ok(client.batch_execute("ROLLBACK").await?)
     }
 }
 
@@ -255,6 +284,74 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
                     Ok(_) => Ok(SQLResult::new_result(None)),
                     Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
                 }
+            })
+    }
+
+    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
+        POSTGRES_RUNTIME
+            .lock()
+            .or_else(|e| {
+                log::error!("failed to get postgres runtime: {}", e);
+                Err(anyhow!("failed to get postgres runtime: {}", e))
+            })?
+            .block_on(async {
+                if self.autocommit == autocommit {
+                    log::warn!(
+                        "Try to set Postgres autocommit to the same value: {}",
+                        autocommit
+                    );
+                    return Ok(SQLResult::new_result(None));
+                }
+
+                self.autocommit = autocommit;
+                if let Some(client_lock) = &self.client {
+                    let client = client_lock.lock().unwrap();
+                    if autocommit {
+                        Self::commit_transaction(&client).await?;
+                    } else {
+                        Self::start_transaction(&client).await?;
+                    }
+                }
+
+                Ok(SQLResult::new_result(None))
+            })
+    }
+
+    fn commit(&mut self) -> Result<SQLResult> {
+        POSTGRES_RUNTIME
+            .lock()
+            .or_else(|e| {
+                log::error!("failed to get postgres runtime: {}", e);
+                Err(anyhow!("failed to get postgres runtime: {}", e))
+            })?
+            .block_on(async {
+                if let Some(client_lock) = &self.client {
+                    let client = client_lock.lock().unwrap();
+                    Self::commit_transaction(&client).await?;
+                    if !self.autocommit {
+                        Self::start_transaction(&client).await?;
+                    }
+                }
+                Ok(SQLResult::new_result(None))
+            })
+    }
+
+    fn rollback(&mut self) -> Result<SQLResult> {
+        POSTGRES_RUNTIME
+            .lock()
+            .or_else(|e| {
+                log::error!("failed to get postgres runtime: {}", e);
+                Err(anyhow!("failed to get postgres runtime: {}", e))
+            })?
+            .block_on(async {
+                if let Some(client_lock) = &self.client {
+                    let client = client_lock.lock().unwrap();
+                    Self::rollback_transaction(&client).await?;
+                    if !self.autocommit {
+                        Self::start_transaction(&client).await?;
+                    }
+                }
+                Ok(SQLResult::new_result(None))
             })
     }
 }

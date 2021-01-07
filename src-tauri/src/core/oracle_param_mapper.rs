@@ -67,7 +67,6 @@ pub fn map_param(
     param: &Value,
     conn: &Connection,
 ) -> Result<Box<dyn ToSql>, SQLError> {
-    println!("map param {}", param);
     let parsed_val = match param {
         Value::Number(val) => {
             if val.is_f64() {
