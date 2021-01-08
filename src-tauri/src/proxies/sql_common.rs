@@ -333,6 +333,10 @@ impl SQLReponse {
     }
 }
 
+pub struct SavePoint {
+    name: String,
+}
+
 pub trait SQLClient<C> {
     fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value])
         -> Result<SQLResult>;
@@ -340,4 +344,6 @@ pub trait SQLClient<C> {
     fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
     fn commit(&mut self) -> Result<SQLResult>;
     fn rollback(&mut self) -> Result<SQLResult>;
+    fn add_savepoint(&mut self, name: &str) -> Result<SQLResult>;
+    fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult>;
 }

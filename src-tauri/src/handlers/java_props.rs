@@ -1,5 +1,5 @@
 use super::{Endpoint};
-use crate::proxies::postgres::{get_proxy, PostgresProxy};
+use crate::proxies::{java_props::save_java_prop, postgres::{get_proxy, PostgresProxy}};
 use crate::proxies::{java_props::load_props, sql_common::SQLError};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -15,6 +15,7 @@ use tokio_postgres::{
 #[serde(rename_all = "camelCase")]
 pub enum Action {
     Search,
+    SaveProp,
 }
 
 #[derive(Clone, Debug)]
@@ -56,21 +57,26 @@ pub struct ResponseBody {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Payload {
     filepath: String,
-    classname: String,
+    classname: Option<String>,
+    prop_key: Option<String>,
+    prop_value: Option<String>,
 }
 
-pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<ResponseBody> {
+pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<Option<ResponseBody>> {
     let Endpoint { action, payload } = endpoint;
     let Payload {
         filepath,
         classname,
+        prop_key,
+        prop_value
     } = payload;
 
     match action {
         Action::Search => {
-            let file_props_map = load_props(&filepath, &classname)?;
+            let file_props_map = load_props(&filepath, &classname.unwrap())?;
             log::debug!("found {} property files.", file_props_map.len());
             let queries_to_validate: HashMap<String, HashMap<String, ValidateResult>> =
                 file_props_map
@@ -107,10 +113,24 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<ResponseBod
                     })
                     .collect();
 
-            Ok(ResponseBody {
+            Ok(Some(ResponseBody {
                 file_props_map: file_props_map,
                 file_props_valid_map: queries_to_validate,
-            })
+            }))
+        }
+        Action::SaveProp => {
+            if prop_key.is_none() {
+                return Err(anyhow!("Missing prop key."));
+            }
+            if prop_value.is_none() {
+                return Err(anyhow!("Missing prop value."));
+            }
+
+            log::debug!("save java prop, filepath: {}, prop key: {:?}, prop value: {:?}", filepath, prop_key, prop_value);
+
+            save_java_prop(&filepath, &prop_key.unwrap(), &prop_value.unwrap())?;
+
+            Ok(None)
         }
     }
 }

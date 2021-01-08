@@ -1,15 +1,17 @@
 import Divider from "@material-ui/core/Divider";
 import { useSnackbar } from "notistack";
-import React, { RefObject, useCallback, useRef } from "react";
-import { useDispatch } from "react-redux";
+import React, { RefObject, useCallback, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import JavaPropsApi from "../../apis/javaProps";
+import SaveDialog from "../../components/SaveDialog";
 import { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
+import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
 import PropsListView from "./PropsListView";
 import SplitEditorView from "./SplitEditorView";
-
 const Container = styled(TabContent)`
   background-color: ${({ theme }) => theme.palette.background.paper};
   display: flex;
@@ -40,30 +42,107 @@ interface PropsEditorViewProps {
 
 const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
   const splitEditorRef: null | RefObject<SplitEditorHandle> = useRef(null);
+  const [openSaveDialog, setOptionSaveDialog] = useState(false);
   const snackbar = useSnackbar();
   const dispatch = useDispatch();
 
+  const selectedClassName = useSelector(
+    (rootState: RootState) => rootState.propsEditor.selectedClassName
+  );
+
+  const selectedPropName = useSelector(
+    (rootState: RootState) => rootState.propsEditor.selectedPropName
+  );
+
   const handleClickRun = useCallback(async () => {
     const values = splitEditorRef.current?.getEffectiveValue();
-    if (!values || values.filter(value => value.length === 0).length === 2) {
-      snackbar.enqueueSnackbar("There is no query to run.", { variant: 'warning' });
+    if (!values || values.filter((value) => value.length === 0).length === 2) {
+      snackbar.enqueueSnackbar("There is no query to run.", {
+        variant: "warning"
+      });
       return;
     }
     await dispatch(loadQueryScan(values));
   }, [dispatch, snackbar]);
 
+  const handleClickSave = useCallback(() => {
+    setOptionSaveDialog(true);
+  }, []);
+
+  const handleSaveDialogClose = useCallback(
+    async (value?: number) => {
+      console.log(value);
+      if (value == null) {
+        setOptionSaveDialog(false);
+      }
+
+      const valuePair = splitEditorRef.current?.getEffectiveValue();
+      if (valuePair == null) {
+        snackbar.enqueueSnackbar("Editor not found.", { variant: "error" });
+        setOptionSaveDialog(false);
+        return;
+      }
+
+      if (value === 0 || value === 2) {
+        try {
+          const filepath = `${selectedClassName}.pg.properties`;
+          const prop_value = valuePair[1];
+          await JavaPropsApi.saveProp(filepath, selectedPropName, prop_value);
+          snackbar.enqueueSnackbar(
+            `Save Postgres property ${selectedPropName} successfully.`,
+            { variant: "success" }
+          );
+        } catch (e) {
+          snackbar.enqueueSnackbar("Save Postgres properties file failed.", {
+            variant: "error"
+          });
+        }
+      }
+      if (value === 1 || value === 2) {
+        try {
+          const filepath = `${selectedClassName}.oracle.properties`;
+          const prop_value = valuePair[0];
+          await JavaPropsApi.saveProp(filepath, selectedPropName, prop_value);
+          snackbar.enqueueSnackbar(
+            `Save Oracle property ${selectedPropName} successfully.`,
+            { variant: "success" }
+          );
+        } catch (e) {
+          snackbar.enqueueSnackbar("Save Postgres properties file failed.", {
+            variant: "error"
+          });
+        }
+      }
+
+      setOptionSaveDialog(false);
+    },
+    [selectedClassName, selectedPropName, snackbar]
+  );
+
   return (
     <Container active={active}>
       <EditorContainer>
         <PropsListView />
-        <Divider orientation="vertical" flexItem />
+        <Divider orientation='vertical' flexItem />
 
         <RightContainer>
-          <EditorToolBarView onClickRun={handleClickRun} />
+          <EditorToolBarView
+            onClickSave={handleClickSave}
+            onClickRun={handleClickRun}
+          />
           <Divider />
           <SplitEditorView ref={splitEditorRef} />
         </RightContainer>
       </EditorContainer>
+      <SaveDialog
+        id='save_dialog'
+        keepMounted
+        value={0}
+        open={openSaveDialog}
+        onClose={handleSaveDialogClose}
+        error={null}
+        propName={selectedPropName}
+      />
     </Container>
   );
 };

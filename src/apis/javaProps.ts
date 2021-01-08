@@ -3,6 +3,7 @@ import { SQLError } from "./sqlCommon";
 
 enum Action {
   SEARCH = "search",
+  SAVE_PROP = "saveProp",
 }
 
 export interface FilePropsMap {
@@ -29,13 +30,8 @@ export interface JavaPropsResponse {
   file_props_valid_map: FilePropsValidMap;
 }
 
-class FileSystem {
-  sendRequest = async (action: Action, filepath: string, classname: string) => {
-    const payload: any = {
-      filepath,
-      classname,
-    };
-
+class JavaProps {
+  sendRequest = async (action: Action, payload: any) => {
     const rsp = await requestAsync("javaProps", action, payload);
     if (rsp.success) {
       return rsp.result;
@@ -46,8 +42,23 @@ class FileSystem {
     filePath: string,
     className: string
   ): Promise<JavaPropsResponse> => {
-    return await this.sendRequest(Action.SEARCH, filePath, className);
+    const payload: any = {
+      filepath: filePath,
+      classname: className,
+    };
+
+    return await this.sendRequest(Action.SEARCH, payload);
   };
+
+  saveProp = async (filepath: string, propKey: string, propValue: string) => {
+    const payload: any = {
+      filepath,
+      propKey,
+      propValue,
+    };
+
+    return await this.sendRequest(Action.SAVE_PROP, payload);
+   }
 }
 
-export default new FileSystem();
+export default new JavaProps();

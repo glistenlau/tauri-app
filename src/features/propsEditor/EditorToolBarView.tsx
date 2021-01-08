@@ -6,10 +6,12 @@ import { setActivePair, setDiffMode } from "./propsEditorSlice";
 
 interface EditorToolBarViewProps {
   onClickRun: () => any;
+  onClickSave: () => void;
 }
 
 const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
   onClickRun,
+  onClickSave,
 }) => {
   const dispatch = useDispatch();
   const propsValidateMap = useSelector(
@@ -55,7 +57,8 @@ const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
       onClickFormat={() => { }}
       onClickDiff={handleClickDiff}
       onClickRun={onClickRun}
-      onClickSave={() => { }}
+      onClickSave={onClickSave}
+      showEditorIcons={selectedClassName.length > 0 && selectedPropName.length > 0}
       validateResult={propValidateResult}
     />
   );

@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use glob::{glob_with, MatchOptions, Paths};
 use std::collections::{HashMap, HashSet};
 
-use crate::core::java_props::parse_prop_file;
+use crate::core::java_props::{parse_prop_file, save_prop};
 
 pub fn search_files(search_path: &str, filename: &str) -> Result<Paths> {
     let search_pattern = format!("{}/**/{}", search_path, filename);
@@ -52,6 +52,11 @@ fn search_load_db_props(
     }
 
     Ok(general_props)
+}
+
+pub fn save_java_prop(filepath: &str, prop_key: &str, prop_value: &str) -> Result<()> {
+    save_prop(filepath, prop_key, prop_value)?;
+    Ok(())
 }
 
 pub fn load_props(

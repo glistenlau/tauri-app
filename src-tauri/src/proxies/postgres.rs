@@ -200,8 +200,8 @@ impl PostgresProxy {
             match client.execute(stmt, params).await {
                 Ok(result) => SQLResultSet::new(result as usize, None, None),
                 Err(sql_err) => {
-                    log::debug!("execute postgres error: {}, rollback...", &sql_err);
-                    Self::rollback_transaction(client).await?;
+                    // log::debug!("execute postgres error: {}, rollback...", &sql_err);
+                    // Self::rollback_transaction(client).await?;
                     return Err(SQLError::from(sql_err));
                 }
             }
@@ -353,6 +353,34 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
                 }
                 Ok(SQLResult::new_result(None))
             })
+    }
+
+    fn add_savepoint(&mut self, name: &str) -> Result<SQLResult> {
+        POSTGRES_RUNTIME
+            .lock()
+            .or_else(|e| {
+                log::error!("failed to get postgres runtime: {}", e);
+                Err(anyhow!("failed to get postgres runtime: {}", e))
+            })?
+            .block_on(async {
+                if self.autocommit {
+                    return Ok(SQLResult::new_error(SQLError::new(
+                        "Can't add savepoint when autocommit on.".to_string(),
+                    )));
+                }
+                if let Some(client_lock) = &self.client {
+                    let client = client_lock.lock().unwrap();
+                    Self::rollback_transaction(&client).await?;
+                    if !self.autocommit {
+                        Self::start_transaction(&client).await?;
+                    }
+                }
+                Ok(SQLResult::new_result(None))
+            })
+    }
+
+    fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult> {
+        todo!()
     }
 }
 

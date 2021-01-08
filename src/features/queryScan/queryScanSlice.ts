@@ -200,11 +200,11 @@ export const startQueryScan = createAsyncThunk<
     queryRunner.addSchemaResultListener(handleUpdateSchemaResult);
     const scanResults = await queryRunner.scanQueries(schemaQueriesMap, true);
     dispatch(setSchemaResults(scanResults));
-    const [
-      oracleUncommit,
-      postgresUncommit
-    ] = await queryRunner.getTransactionStatus();
-    dispatch(changeUncommitCount(Math.max(oracleUncommit, postgresUncommit)));
+    // const [
+    //   oracleUncommit,
+    //   postgresUncommit
+    // ] = await queryRunner.getTransactionStatus();
+    dispatch(changeUncommitCount(1));
     return scanResults;
   } finally {
     queryRunner.removeSchemaResultListener(handleUpdateSchemaResult);

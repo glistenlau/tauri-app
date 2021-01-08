@@ -203,6 +203,29 @@ impl SQLClient<OracleConfig> for OracleClient {
 
         Ok(SQLResult::new_result(None))
     }
+
+    fn add_savepoint(&mut self, savepoint: &str) -> Result<SQLResult> {
+        if self.autocommit {
+            return Ok(SQLResult::new_error(SQLError::new(
+                "Can't add savepoint when autocommit on.".to_string(),
+            )));
+        }
+        if let Some(conn_lock) = &self.conn {
+            let conn = conn_lock.lock().unwrap();
+            conn.execute(&format!("SAVEPOINT {}", savepoint), &[])?;
+        }
+
+        Ok(SQLResult::new_result(None))
+    }
+
+    fn rollback_to_savepoint(&mut self, savepoint: &str) -> Result<SQLResult> {
+        if let Some(conn_lock) = &self.conn {
+            let conn = conn_lock.lock().unwrap();
+            conn.execute(&format!("ROLLBACK TO {}", savepoint), &[])?;
+        }
+
+        Ok(SQLResult::new_result(None))
+    }
 }
 
 lazy_static! {
