@@ -22,3 +22,11 @@ export const getEffectiveValueFromEditor = (monaco?: editor.ICodeEditor) => {
 
   return value;
 };
+
+export const getValueFromEditor = (monaco?: editor.ICodeEditor) => {
+  if (!monaco) {
+    return "";
+  }
+
+  return monaco.getModel()?.getValue() || "";
+};

@@ -3,12 +3,15 @@ import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import React, {
   ForwardRefRenderFunction,
   MutableRefObject,
-  useImperativeHandle,
+  useImperativeHandle
 } from "react";
 import MonacoEditor, { MonacoEditorProps } from "react-monaco-editor";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";
-import { getEffectiveValueFromEditor } from "../util/monaco";
+import {
+  getEffectiveValueFromEditor,
+  getValueFromEditor
+} from "../util/monaco";
 
 export const themeList: string[] = [];
 const themeDataMap: any = require("monaco-themes/themes/themelist.json");
@@ -21,6 +24,7 @@ Object.keys(themeDataMap).forEach((themeName) => {
 
 export interface EditorHandle {
   getEffectiveValue(): string;
+  getValue(): string;
   editor?: editor.ICodeEditor;
 }
 
@@ -85,6 +89,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
       editor: innerRef.current?.editor,
       getEffectiveValue: () =>
         getEffectiveValueFromEditor(innerRef.current?.editor),
+      getValue: () => getValueFromEditor(innerRef.current?.editor),
     }),
     []
   );

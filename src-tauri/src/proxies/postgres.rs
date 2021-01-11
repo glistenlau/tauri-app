@@ -85,6 +85,11 @@ impl PostgresProxy {
                 );
             }
             let conn_res = self.connect().await?;
+
+            if !self.autocommit {
+                Self::start_transaction(&conn_res).await?;
+            }
+
             self.client = Some(Arc::new(Mutex::new(conn_res)));
         }
 
@@ -103,10 +108,6 @@ impl PostgresProxy {
             }
             log::debug!("postgres connection closed.");
         });
-
-        if !self.autocommit {
-            Self::start_transaction(&client).await?;
-        }
 
         Ok(client)
     }

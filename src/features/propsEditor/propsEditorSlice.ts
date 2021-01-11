@@ -3,7 +3,7 @@ import { initApp } from "../../actions";
 import JavaPropsApi, {
   FilePropsMap,
   FilePropsValidMap,
-  JavaPropsResponse,
+  JavaPropsResponse
 } from "../../apis/javaProps";
 
 export interface PropName {
@@ -120,14 +120,16 @@ const propsEditorSlice = createSlice({
     setClassPath(state, { payload }: PayloadAction<string>) {
       selectClassName(state, payload);
     },
-    setValuePair(state, { payload }: PayloadAction<[string, string]>) {
-      updateValuePair(state, payload);
-    },
     updateParamValuePair(state, { payload }: PayloadAction<[string, string]>) {
       const { propsMap, selectedClassName, selectedPropName } = state;
-      const propsList = propsMap[selectedClassName] ?? {};
+      let propsList = propsMap[selectedClassName] ?? {};
       if (propsList[selectedPropName]) {
-        propsList[selectedPropName] = payload;
+        propsList = Object.assign({}, propsList, {
+          [selectedPropName]: payload,
+        });
+        state.propsMap = Object.assign({}, propsMap, {
+          [selectedClassName]: propsList,
+        });
       }
     },
   },
@@ -168,7 +170,6 @@ export const {
   setWidth,
   setPropName,
   setClassPath,
-  setValuePair,
   updateParamValuePair,
 } = propsEditorSlice.actions;
 

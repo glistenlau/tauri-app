@@ -1,10 +1,10 @@
+pub mod formatter;
 pub mod fs;
 pub mod java_props;
 pub mod log;
 pub mod query_runner;
 pub mod rocksdb;
 pub mod sql;
-pub mod formatter;
 
 use crate::proxies;
 use anyhow::{anyhow, Result};
@@ -26,6 +26,7 @@ pub enum Handler {
     QueryRunner(Endpoint<query_runner::Action, query_runner::Payload>),
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
     File(Endpoint<fs::Action, fs::Payload>),
+    Formatter(Endpoint<formatter::Action, formatter::Payload>),
     Log(Endpoint<log::Action, log::Payload>),
     JavaProps(Endpoint<java_props::Action, java_props::Payload>),
 }
@@ -117,6 +118,10 @@ fn invoke_handler(handler: Handler) -> Result<String> {
         Handler::File(e) => seralize_response(fs::handle_command(e)),
         Handler::Log(e) => seralize_response(log::handle_command(e)),
         Handler::JavaProps(e) => generate_response(java_props::handle_command(e), now.elapsed()),
-        Handler::QueryRunner(e) => generate_response(query_runner::handle_command(e.action, e.payload), now.elapsed()),
+        Handler::QueryRunner(e) => generate_response(
+            query_runner::handle_command(e.action, e.payload),
+            now.elapsed(),
+        ),
+        Handler::Formatter(e) => seralize_response(formatter::handle_command(e)),
     }
 }

@@ -5,11 +5,13 @@ import { RootState } from "../../reducers";
 import { setActivePair, setDiffMode } from "./propsEditorSlice";
 
 interface EditorToolBarViewProps {
+  onClickFormat: () => void;
   onClickRun: () => any;
   onClickSave: () => void;
 }
 
 const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
+  onClickFormat,
   onClickRun,
   onClickSave,
 }) => {
@@ -54,7 +56,7 @@ const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
       diff={diffMode}
       onActivePairChange={handleActivePairChange}
       onClickCopy={() => { }}
-      onClickFormat={() => { }}
+      onClickFormat={onClickFormat}
       onClickDiff={handleClickDiff}
       onClickRun={onClickRun}
       onClickSave={onClickSave}

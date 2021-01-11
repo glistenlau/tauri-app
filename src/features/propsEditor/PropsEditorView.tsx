@@ -3,6 +3,7 @@ import { useSnackbar } from "notistack";
 import React, { RefObject, useCallback, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import FormatterApi from "../../apis/formatter";
 import JavaPropsApi from "../../apis/javaProps";
 import SaveDialog from "../../components/SaveDialog";
 import { SplitEditorHandle } from "../../components/SplitEditor";
@@ -10,6 +11,7 @@ import TabContent from "../../components/TabContent";
 import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
+import { updateParamValuePair } from "./propsEditorSlice";
 import PropsListView from "./PropsListView";
 import SplitEditorView from "./SplitEditorView";
 const Container = styled(TabContent)`
@@ -54,6 +56,16 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
     (rootState: RootState) => rootState.propsEditor.selectedPropName
   );
 
+  const handleClickFormat = useCallback(async () => {
+    const values = splitEditorRef.current?.getEditorValues();
+    if (!values) {
+      return;
+    }
+
+    const formatedValues = await FormatterApi.formatSql(values) as [string, string];
+    dispatch(updateParamValuePair(formatedValues));
+  }, []);
+
   const handleClickRun = useCallback(async () => {
     const values = splitEditorRef.current?.getEffectiveValue();
     if (!values || values.filter((value) => value.length === 0).length === 2) {
@@ -76,7 +88,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
         setOptionSaveDialog(false);
       }
 
-      const valuePair = splitEditorRef.current?.getEffectiveValue();
+      const valuePair = splitEditorRef.current?.getEditorValues();
       if (valuePair == null) {
         snackbar.enqueueSnackbar("Editor not found.", { variant: "error" });
         setOptionSaveDialog(false);
@@ -127,6 +139,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
 
         <RightContainer>
           <EditorToolBarView
+          onClickFormat={handleClickFormat}
             onClickSave={handleClickSave}
             onClickRun={handleClickRun}
           />

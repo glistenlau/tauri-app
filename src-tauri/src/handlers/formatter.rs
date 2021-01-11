@@ -1,4 +1,6 @@
-use super::{Endpoint, Response};
+use crate::core::formatter::format_sql;
+
+use super::{Endpoint, Response, ResponseResult};
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
 
@@ -13,13 +15,20 @@ pub struct Payload {
     snippets: Vec<String>,
 }
 
-// pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Response<Vec<String>> {
-//     let Endpoint { action, payload } = endpoint;
-//     let now = Instant::now();
+pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Response<Vec<String>> {
+    let Endpoint { action, payload } = endpoint;
+    let now = Instant::now();
 
-//     match action {
-//         Action::FormatSql => {
-//             let Payload { snippets } = payload;
-//         }
-//     }
-// }
+    match action {
+        Action::FormatSql => {
+            let Payload { snippets } = payload;
+            Response::new(
+                true,
+                now.elapsed(),
+                ResponseResult::new_result(
+                    snippets.iter().map(|snippet| format_sql(snippet)).collect(),
+                ),
+            )
+        }
+    }
+}
