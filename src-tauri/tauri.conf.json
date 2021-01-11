@@ -33,7 +33,7 @@
       },
       "osx": {
         "frameworks": [],
-        "minimumSystemVersion": "",
+        "minimumSystemVersion": "10.12",
         "useBootstrapper": false
       },
       "exceptionDomain": ""
