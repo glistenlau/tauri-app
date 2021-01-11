@@ -3,6 +3,8 @@
     windows_subsystem = "windows"
 )]
 
+use std::env;
+
 mod cmd;
 mod core;
 mod event;
@@ -15,6 +17,7 @@ fn main() {
       Ok(()) => println!("logger setup successfully."),
       Err(e) => print!("logger setup failed: {}", e),
     }
+
     tauri::AppBuilder::new()
         .setup(|_webview, _source| {
             let webview_mut = _webview.as_mut();
