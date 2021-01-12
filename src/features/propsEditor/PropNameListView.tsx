@@ -17,7 +17,7 @@ const ClassSelectView = React.memo(() => {
   const propsValidateMap = useSelector(
     (rootState: RootState) => {
       if (rootState?.propsEditor?.propsValidateMap) {
-        return rootState?.propsEditor?.propsValidateMap[rootState.propsEditor?.selectedClassName]
+        return rootState?.propsEditor?.propsValidateMap[rootState.propsEditor?.listSelectedClassName]
       }
     }
   )
