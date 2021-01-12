@@ -19,6 +19,7 @@ export interface propsSearchState {
   selectedClassName: string;
   selectedPropName: string;
   classNameList: Array<string>;
+  listSelectedClassName: string;
   propNameList: Array<PropName>;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
@@ -37,6 +38,7 @@ const initialState: propsSearchState = {
   searchClassName: "",
   selectedClassName: "",
   selectedPropName: "",
+  listSelectedClassName: "",
   classNameList: [],
   propNameList: [],
   propsMap: {},
@@ -62,7 +64,7 @@ const selectClassName = (
     return;
   }
 
-  state.selectedClassName = selectedClassName;
+  state.listSelectedClassName = selectedClassName;
 
   state.propNameList = Object.entries(state.propsMap[selectedClassName])
     .filter(([key, valuePair]) => !key.toLowerCase().trim().endsWith("md5"))
@@ -75,7 +77,7 @@ const selectClassName = (
 };
 
 const selectPropName = (state: propsSearchState, selectPropName: string) => {
-  const selectedPropsMap = state.propsMap[state.selectedClassName];
+  const selectedPropsMap = state.propsMap[state.listSelectedClassName];
   if (!selectedPropsMap) {
     return;
   }
@@ -84,6 +86,7 @@ const selectPropName = (state: propsSearchState, selectPropName: string) => {
     return;
   }
 
+  state.selectedClassName = state.listSelectedClassName;
   state.selectedPropName = selectPropName;
   updateValuePair(state, valuePair);
 };

@@ -1,21 +1,8 @@
 import React, { useCallback } from "react";
-import SearchBar from "../../components/SearchBar";
-import { useSelector, useDispatch, shallowEqual } from "react-redux";
-import { RootState } from "../../reducers";
-import { setClassName, setFilePath, searchProps, setWidth, setClassPath } from "./propsEditorSlice";
-import { Resizable } from "re-resizable";
-import { Divider, makeStyles, createStyles } from "@material-ui/core";
+import { useDispatch, useSelector } from "react-redux";
 import ClassSelect from "../../components/ClassSelect";
-
-const useStyles = makeStyles((theme) =>
-  createStyles({    
-    leftContainer: {
-      display: "flex",
-      flexDirection: "column",
-      height: "100%",
-      width: "100%",
-    },
-  }));;
+import { RootState } from "../../reducers";
+import { setClassPath } from "./propsEditorSlice";
 
 const ClassSelectView = React.memo(() => {
   const dispatch = useDispatch();
@@ -26,17 +13,19 @@ const ClassSelectView = React.memo(() => {
     (rootState: RootState) => rootState.propsEditor.classNameList
   );
 
-  const handleChange = useCallback((path: string) => {
-    dispatch(setClassPath(path));
-  },[dispatch])
-
+  const handleChange = useCallback(
+    (path: string) => {
+      dispatch(setClassPath(path));
+    },
+    [dispatch]
+  );
 
   return (
-      <ClassSelect
-        onChange={handleChange}
-        selected={selectedClassName}
-        values={classNameList}
-      />
+    <ClassSelect
+      onChange={handleChange}
+      selected={selectedClassName}
+      values={classNameList}
+    />
   );
 });
 

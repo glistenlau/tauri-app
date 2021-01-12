@@ -11,9 +11,11 @@ import TabContent from "../../components/TabContent";
 import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
+import PathBarView from "./PathBarView";
 import { updateParamValuePair } from "./propsEditorSlice";
 import PropsListView from "./PropsListView";
 import SplitEditorView from "./SplitEditorView";
+
 const Container = styled(TabContent)`
   background-color: ${({ theme }) => theme.palette.background.paper};
   display: flex;
@@ -62,15 +64,18 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
       return;
     }
 
-    const formatedValues = await FormatterApi.formatSql(values) as [string, string];
+    const formatedValues = (await FormatterApi.formatSql(values)) as [
+      string,
+      string
+    ];
     dispatch(updateParamValuePair(formatedValues));
-  }, []);
+  }, [dispatch]);
 
   const handleClickRun = useCallback(async () => {
     const values = splitEditorRef.current?.getEffectiveValue();
     if (!values || values.filter((value) => value.length === 0).length === 2) {
       snackbar.enqueueSnackbar("There is no query to run.", {
-        variant: "warning"
+        variant: "warning",
       });
       return;
     }
@@ -106,7 +111,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
           );
         } catch (e) {
           snackbar.enqueueSnackbar("Save Postgres properties file failed.", {
-            variant: "error"
+            variant: "error",
           });
         }
       }
@@ -121,7 +126,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
           );
         } catch (e) {
           snackbar.enqueueSnackbar("Save Postgres properties file failed.", {
-            variant: "error"
+            variant: "error",
           });
         }
       }
@@ -135,20 +140,22 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
     <Container active={active}>
       <EditorContainer>
         <PropsListView />
-        <Divider orientation='vertical' flexItem />
+        <Divider orientation="vertical" flexItem />
 
         <RightContainer>
           <EditorToolBarView
-          onClickFormat={handleClickFormat}
+            onClickFormat={handleClickFormat}
             onClickSave={handleClickSave}
             onClickRun={handleClickRun}
           />
+          <Divider />
+          <PathBarView />
           <Divider />
           <SplitEditorView ref={splitEditorRef} />
         </RightContainer>
       </EditorContainer>
       <SaveDialog
-        id='save_dialog'
+        id="save_dialog"
         keepMounted
         value={0}
         open={openSaveDialog}

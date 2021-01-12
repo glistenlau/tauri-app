@@ -1,8 +1,8 @@
-import React from "react";
-import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
+import { Link } from "@material-ui/core";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
-import Link from "@material-ui/core/Link";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
+import React from "react";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -17,21 +17,21 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Path {
-  value: any;
+  value: (isActive?: boolean) => any;
   id: string;
 }
 
-interface CustomSeparatorProps {
+interface PathBreadcrumbsProps {
   paths: Array<Path>;
   onClick: any;
-  className: any;
+  className?: string;
 }
 
-const CustomSeparator = ({
+const PathBreadcrumbs = ({
   onClick,
   paths,
   ...otherProps
-}: CustomSeparatorProps) => {
+}: PathBreadcrumbsProps) => {
   const classes = useStyles();
 
   const handleClick = React.useCallback((id) => onClick(id), [onClick]);
@@ -75,4 +75,4 @@ const CustomSeparator = ({
   );
 };
 
-export default React.memo(CustomSeparator);
+export default React.memo(PathBreadcrumbs);

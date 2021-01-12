@@ -1,6 +1,6 @@
 import { Divider } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
@@ -20,12 +20,17 @@ const Container = styled(TabContent)`
 `;
 
 const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
+  const [valuePair, setValuePair] = useState<[string, string]>(["", ""]);
   const splitEditorRef = useRef(null as SplitEditorHandle | null);
   const dispatch = useDispatch();
   const snackbar = useSnackbar();
   const consoleValuePair = useSelector(
     (state: RootState) => state.databaseConsole.consoleValuePair
   );
+
+  useEffect(() => {
+    setValuePair(consoleValuePair);
+  }, [consoleValuePair]);
 
   const handleClickRun = React.useCallback(
     async (sortResults) => {
@@ -35,7 +40,7 @@ const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
         values.filter((value) => value.length === 0).length === 2
       ) {
         snackbar.enqueueSnackbar("There is no query to run.", {
-          variant: "warning"
+          variant: "warning",
         });
         return;
       }
@@ -46,10 +51,14 @@ const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
 
   const handleValuePairChange = useCallback(
     (valuePair: [string, string]) => {
-      dispatch(changeConsleValuePair(valuePair));
+      setValuePair(valuePair);
     },
-    [dispatch]
+    []
   );
+
+  const handleEditorBlur = useCallback(() => {
+    dispatch(changeConsleValuePair(valuePair));
+  }, [dispatch, valuePair]);
 
   return (
     <Container active={active}>
@@ -58,8 +67,9 @@ const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
       <SplitEditor
         ref={splitEditorRef}
         diff={false}
-        valuePair={consoleValuePair}
+        valuePair={valuePair}
         onChange={handleValuePairChange}
+        onBlur={handleEditorBlur}
       />
     </Container>
   );

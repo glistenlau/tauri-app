@@ -1,0 +1,108 @@
+import { Tooltip } from "@material-ui/core";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
+import PathBreadcrumbs from "../../components/PathBreadcrumbs";
+import { RootState } from "../../reducers";
+import { setClassPath } from "./propsEditorSlice";
+
+const Container = styled.div`
+  display: flex;
+  background-color: ${({ theme }) => theme.palette.background.default};
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+`;
+
+const StyledPathBreadcrumbs = styled(PathBreadcrumbs)`
+  flex: 1;
+  overflow: hidden;
+  margin-left: 10px;
+`;
+
+const Ellipsis = styled.div`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+`;
+
+const TextSpan = styled.span`
+  font-size: 14px;
+`;
+
+const PathBarView = React.memo(() => {
+  const dispatch = useDispatch();
+  const selectedClassName = useSelector(
+    (rootState: RootState) => rootState.propsEditor.selectedClassName
+  );
+  const selectedPropName = useSelector(
+    (rootState: RootState) => rootState.propsEditor.selectedPropName
+  );
+
+  const handleClickPath = React.useCallback(
+    (id) => {
+      if (id === "className") {
+        dispatch(setClassPath(selectedClassName));
+      }
+    },
+    [dispatch, selectedClassName]
+  );
+
+  const pathBreadcrumbs = React.useMemo(() => {
+    let classDisplayEllipseName = "";
+    const classDisplayFullName = selectedClassName
+      .substring(selectedClassName.indexOf("com"))
+      .replaceAll("/", ".");
+
+    classDisplayEllipseName = classDisplayFullName
+      .split(".")
+      .reduceRight((acc, cur) => {
+        if (acc.length >= 30) {
+          return acc;
+        }
+        return `${cur}.${acc}`;
+      });
+
+    if (classDisplayEllipseName.length > 30) {
+      classDisplayEllipseName = `...${classDisplayEllipseName.substr(
+        classDisplayEllipseName.length - 30,
+        30
+      )}`;
+    } else {
+      classDisplayEllipseName = `...${classDisplayEllipseName}`;
+    }
+
+    return [
+      {
+        id: "className",
+        value: () => (
+          <Tooltip title={classDisplayFullName}>
+            <TextSpan>{classDisplayEllipseName}</TextSpan>
+          </Tooltip>
+        ),
+      },
+      {
+        id: "propName",
+        value: () => (
+          <Tooltip title={selectedPropName}>
+            <Ellipsis>
+              <TextSpan>{selectedPropName}</TextSpan>
+            </Ellipsis>
+          </Tooltip>
+        ),
+      },
+    ];
+  }, [selectedClassName, selectedPropName]);
+
+  return (
+    <Container>
+      <StyledPathBreadcrumbs
+        onClick={handleClickPath}
+        paths={pathBreadcrumbs}
+      />
+    </Container>
+  );
+});
+
+export default PathBarView;
