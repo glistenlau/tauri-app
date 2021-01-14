@@ -85,6 +85,7 @@ impl PostgresProxy {
                 );
             }
             let conn_res = self.connect().await?;
+            conn_res.batch_execute("SET search_path TO anaconda").await?;
 
             if !self.autocommit {
                 Self::start_transaction(&conn_res).await?;

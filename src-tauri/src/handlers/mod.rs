@@ -5,6 +5,7 @@ pub mod log;
 pub mod query_runner;
 pub mod rocksdb;
 pub mod sql;
+pub mod graphql;
 
 use crate::proxies;
 use anyhow::{anyhow, Result};

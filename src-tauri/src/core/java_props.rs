@@ -45,8 +45,8 @@ fn escape_value(key: &str) -> String {
         escaped = escaped.replace(from, to);
     }
 
-    escaped = escaped.replace("\\r", "\\r\\\r\n");
-    escaped = escaped.replace("\\n", "\\n\\\r\n");
+    escaped = escaped.replace("\\r", " \\r\\\r\n");
+    escaped = escaped.replace("\\n", " \\n\\\r\n");
 
     escaped
 }

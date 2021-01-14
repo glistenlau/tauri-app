@@ -25,6 +25,7 @@
     "react-dom": "^17.0.1",
     "react-monaco-editor": "^0.41.2",
     "react-redux": "^7.2.2",
+    "react-relay": "^10.1.2",
     "react-scripts": "4.0.1",
     "react-sizeme": "^2.6.12",
     "react-vtree": "^3.0.0-beta.0",
@@ -65,10 +66,14 @@
     ]
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^1.20.0",
+    "@graphql-codegen/typescript": "^1.20.0",
     "@types/crypto-js": "^4.0.1",
     "@types/react-window": "^1.8.2",
     "@types/redux-logger": "^3.0.8",
     "customize-cra": "^1.0.0",
-    "react-app-rewired": "^2.1.8"
+    "graphql": "^15.4.0",
+    "react-app-rewired": "^2.1.8",
+    "relay-config": "^10.1.2"
   }
 }
