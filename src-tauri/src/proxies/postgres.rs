@@ -1,11 +1,12 @@
+use std::sync::{Arc, Mutex, MutexGuard};
+
 use anyhow::{anyhow, Result};
 use futures::future;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::sync::{Arc, Mutex, MutexGuard};
 use tokio::{runtime::Runtime, spawn};
-use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
+use tokio_postgres::{Client, Error, error::DbError, NoTls, Statement, types::ToSql};
 
 use crate::{core::postgres_param_mapper::map_to_sql, utilities::postgres::get_row_values};
 

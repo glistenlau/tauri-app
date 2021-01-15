@@ -1,7 +1,9 @@
 import Divider from "@material-ui/core/Divider";
+import { graphql } from "babel-plugin-relay/macro";
 import { useSnackbar } from "notistack";
 import React, { RefObject, useCallback, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useQuery } from "relay-hooks";
 import styled from "styled-components";
 import FormatterApi from "../../apis/formatter";
 import JavaPropsApi from "../../apis/javaProps";
@@ -9,6 +11,7 @@ import SaveDialog from "../../components/SaveDialog";
 import { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
 import { RootState } from "../../reducers";
+import type { PropsEditorViewQuery } from "../../__generated__/PropsEditorViewQuery.graphql";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
 import PathBarView from "./PathBarView";
@@ -38,13 +41,21 @@ const RightContainer = styled.div`
   height: 100%;
   width: 10%;
 `;
-
+const query = graphql`
+  query PropsEditorViewQuery($userId: String!) {
+    human(id: $userId) {
+      id
+      name
+    }
+  }
+`;
 interface PropsEditorViewProps {
   active: boolean;
   className?: string;
 }
 
 const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
+  useQuery<PropsEditorViewQuery>(query, { userId: "test" });
   const splitEditorRef: null | RefObject<SplitEditorHandle> = useRef(null);
   const [openSaveDialog, setOptionSaveDialog] = useState(false);
   const snackbar = useSnackbar();

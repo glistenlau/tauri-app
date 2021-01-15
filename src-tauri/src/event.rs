@@ -1,34 +1,33 @@
 use std::sync::{Arc, Mutex};
 
-use serde::Serialize;
-use tauri::{WebviewMut, event::emit};
 use lazy_static::lazy_static;
-
+use serde::Serialize;
+use tauri::{event::emit, WebviewMut};
 
 pub struct Emitter {
-  webview: Option<WebviewMut>,
+    webview: Option<WebviewMut>,
 }
 
 impl Emitter {
-  fn new() -> Self {
-    Self {
-      webview: None,
-    }
-  }
-
-  pub fn set_webview(&mut self, webview: WebviewMut) {
-    self.webview = Some(webview);
-  }
-
-  pub fn emit<S>(&mut self, event: &str, payload: Option<S>) where S: Serialize {
-    let wv = self.webview.as_mut().unwrap();
-    match emit(wv, event.to_string(), payload) {
-        Ok(_) => {}
-        Err(err) => {
-          log::error!("emit msg error: {}", err);
+    fn new() -> Self {
+        Self {
+            webview: None,
         }
     }
-  }
+
+    pub fn set_webview(&mut self, webview: WebviewMut) {
+        self.webview = Some(webview);
+    }
+
+    pub fn emit<S>(&mut self, event: &str, payload: Option<S>) where S: Serialize {
+        let wv = self.webview.as_mut().unwrap();
+        match emit(wv, event.to_string(), payload) {
+            Ok(_) => {}
+            Err(err) => {
+                log::error!("emit msg error: {}", err);
+            }
+        }
+    }
 }
 
 lazy_static! {
@@ -36,5 +35,5 @@ lazy_static! {
 }
 
 pub fn get_emitter() -> Arc<Mutex<Emitter>> {
-  Arc::clone(&INSTANCE)
+    Arc::clone(&INSTANCE)
 }

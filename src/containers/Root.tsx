@@ -1,9 +1,9 @@
 /* eslint-disable import/no-webpack-loader-syntax */
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Divider from "@material-ui/core/Divider";
-import { createStyles, withStyles } from "@material-ui/styles";
 import React from "react";
 import { connect } from "react-redux";
+import styled from "styled-components";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
 import PropsEditorView from "../features/propsEditor/PropsEditorView";
@@ -14,7 +14,6 @@ import SettingsPanel from "../features/settings/SettingsPanel";
 import { RootState } from "../reducers";
 import Navigator from "./Navigator";
 import Notification from "./Notification";
-import styled from "styled-components";
 
 const RootContainer = styled.div`
   height: calc(100vh - 1px);
@@ -31,6 +30,8 @@ const RightContainer = styled.div`
   width: 80%;
   flex: 1;
 `;
+
+
 
 class Root extends React.Component<any, any> {
   constructor(props: any) {

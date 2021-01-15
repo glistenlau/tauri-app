@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use oracle::{sql_type::ToSql as oracle_ToSql};
+use oracle::sql_type::ToSql as oracle_ToSql;
 use serde::{Deserialize, Serialize};
 use tokio_postgres::{Statement as pg_Statement, types::ToSql as pg_ToSql};
 

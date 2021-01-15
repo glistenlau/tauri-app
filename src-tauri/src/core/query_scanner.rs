@@ -1,24 +1,26 @@
+use std::cell::RefCell;
+
+use anyhow::{anyhow, Result};
+use oracle::sql_type::ToSql as oracle_ToSql;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use tokio_postgres::{Statement as PgStmt, types::ToSql as pg_ToSql};
+
+use crate::{
+    handlers::query_runner::Query,
+    proxies::sql_common::{SQLError, SQLResultSet},
+};
 use crate::proxies::{oracle::OracleClient, postgres::PostgresProxy};
 use crate::utilities::{
     oracle::process_statement as process_oracle_statement,
     postgres::process_statement as process_pg_statement,
 };
-use std::cell::RefCell;
 
 use super::{
     oracle_param_mapper::map_param,
-    parameter_iterator::{DBParamIter, ParamSeeds, ParameterIterator},
+    parameter_iterator::{DBParamIter, ParameterIterator, ParamSeeds},
     postgres_param_mapper::map_to_sql,
 };
-use crate::{
-    handlers::query_runner::Query,
-    proxies::sql_common::{SQLError, SQLResultSet},
-};
-use anyhow::{anyhow, Result};
-use oracle::sql_type::ToSql as oracle_ToSql;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use tokio_postgres::{types::ToSql as pg_ToSql, Statement as PgStmt};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ParameterGenerateStrategy {
@@ -31,8 +33,6 @@ pub struct QueryScanner<'a> {
     query: &'a Query,
     drained: bool,
     finished: usize,
-    statement: String,
-    schema: String,
 }
 
 impl<'a> Iterator for QueryScanner<'a> {
@@ -48,18 +48,12 @@ impl<'a> Iterator for QueryScanner<'a> {
 }
 
 impl<'a> QueryScanner<'a> {
-    pub fn new(schema: String, query: &'a Query, params_iter: DBParamIter<'a>) -> Self {
-        let statement = query
-            .statement()
-            .replace("COMPANY_", &format!("{}.", schema));
-
+    pub fn new(query: &'a Query, params_iter: DBParamIter<'a>) -> Self {
         Self {
             params_iter,
             drained: false,
             finished: 0,
-            schema: schema.to_string(),
             query,
-            statement,
         }
     }
 
@@ -172,19 +166,6 @@ impl<'a> QueryScanner<'a> {
             DBParamIter::Oracle(params_iter) => params_iter.borrow().drained(),
             DBParamIter::Postgres(params_iter) => params_iter.borrow().drained(),
         }
-    }
-
-    fn map_param_seeds(schema: String, query: &Query) -> Result<ParamSeeds> {
-        let param_seeds = match query.db_type() {
-            crate::proxies::sql_common::DBType::Oracle => {
-                Self::map_oracle_param_seeds(schema, query)?
-            }
-            crate::proxies::sql_common::DBType::Postgres => {
-                Self::map_postgres_param_seeds(schema, query)?
-            }
-        };
-
-        Ok(param_seeds)
     }
 
     pub fn map_oracle_param_seeds(schema: String, query: &Query) -> Result<ParamSeeds> {

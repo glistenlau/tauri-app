@@ -1145,31 +1145,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "my-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "fern",
- "futures",
- "glob",
- "juniper",
- "lazy_static",
- "log",
- "oracle",
- "regex",
- "rocksdb",
- "serde",
- "serde_json",
- "sqlformat",
- "tauri",
- "tokio",
- "tokio-postgres",
- "uuid",
- "winres",
-]
-
-[[package]]
 name = "native-tls"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2172,6 +2147,31 @@ dependencies = [
  "tempfile",
  "thiserror",
  "zip",
+]
+
+[[package]]
+name = "tauri-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "fern",
+ "futures",
+ "glob",
+ "juniper",
+ "lazy_static",
+ "log",
+ "oracle",
+ "regex",
+ "rocksdb",
+ "serde",
+ "serde_json",
+ "sqlformat",
+ "tauri",
+ "tokio",
+ "tokio-postgres",
+ "uuid",
+ "winres",
 ]
 
 [[package]]

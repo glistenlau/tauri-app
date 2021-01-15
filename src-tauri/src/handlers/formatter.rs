@@ -1,8 +1,10 @@
+use std::time::Instant;
+
+use serde::{Deserialize, Serialize};
+
 use crate::core::formatter::format_sql;
 
 use super::{Endpoint, Response, ResponseResult};
-use serde::{Deserialize, Serialize};
-use std::time::Instant;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use anyhow::Result;
 use chrono::{DateTime, Local, NaiveDateTime, Utc};
 use oracle::{
-    sql_type::{Collection, Object, OracleType},
-    ColumnIndex, ColumnInfo, Row,
+    ColumnIndex,
+    ColumnInfo, Row, sql_type::{Collection, Object, OracleType},
 };
 use serde_json::{json, Value};
 
@@ -26,8 +26,8 @@ pub fn get_row_values(row: &Row, columns: &[ColumnInfo]) -> Result<Vec<Value>> {
 }
 
 pub fn get_cell_value<I>(row: &Row, idx: I, sql_type: &OracleType) -> Result<Value>
-where
-    I: ColumnIndex,
+    where
+        I: ColumnIndex,
 {
     let json_val = match sql_type {
         OracleType::Number(_, _) => {

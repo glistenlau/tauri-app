@@ -1,13 +1,14 @@
-use lazy_static::lazy_static;
-use regex::Regex;
+use std::{
+    cmp,
+    collections::HashMap,
+    fs,
+};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, Result};
 use std::path::Path;
-use std::{
-    cmp,
-    collections::{vec_deque, HashMap},
-    fs,
-};
+
+use lazy_static::lazy_static;
+use regex::Regex;
 
 lazy_static! {
     static ref KEY_PATTERN: Regex =
@@ -223,7 +224,7 @@ pub fn save_prop<P: AsRef<Path>>(filepath: P, prop_key: &str, prop_value: &str) 
                 None => prop_str,
             }
         }
-        Err(e) => prop_str,
+        Err(_) => prop_str,
     };
 
     fs::write(filepath, file_str)?;

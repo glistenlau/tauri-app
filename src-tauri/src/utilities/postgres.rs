@@ -1,46 +1,47 @@
-use anyhow::{anyhow, Result};
-use regex::Regex;
-use uuid::Uuid;
-use chrono::NaiveTime;
-use chrono::NaiveDate;
-use chrono::Local;
-use chrono::DateTime;
-use chrono::NaiveDateTime;
 use std::fmt::Display;
+
+use anyhow::{anyhow, Result};
+use chrono::DateTime;
+use chrono::Local;
+use chrono::NaiveDate;
+use chrono::NaiveDateTime;
+use chrono::NaiveTime;
+use regex::Regex;
+use serde_json::{json, Value};
 use tokio_postgres::{Column, row::RowIndex};
-use serde_json::{Value, json};
-use tokio_postgres::types::Type;
 use tokio_postgres::Row;
+use tokio_postgres::types::Type;
+use uuid::Uuid;
 
 use crate::proxies::sql_common::{process_statement_params, process_statement_schema};
 
 static ARRAY_PATTERN: &str = r"(?i)(array\t*\[\t*\?\t*\](?:\t*::\t*anaconda\.[a-z]+)?)";
 
 pub fn process_statement_array(statement: &str) -> Result<String> {
-  let re = Regex::new(ARRAY_PATTERN)?;
-  Ok(re.replace_all(statement, "?").to_string())
+    let re = Regex::new(ARRAY_PATTERN)?;
+    Ok(re.replace_all(statement, "?").to_string())
 }
 
 
 pub fn process_statement(statement: &str, schema: &str) -> Result<String> {
-  let mut result = process_statement_array(statement)?;
-  result = process_statement_params(&result, "$");
+    let mut result = process_statement_array(statement)?;
+    result = process_statement_params(&result, "$");
 
-  Ok(process_statement_schema(&result, schema))
+    Ok(process_statement_schema(&result, schema))
 }
 
 pub fn get_row_values(row: &Row, columns: &[Column]) -> Result<Vec<Value>> {
-  let mut row_values = Vec::with_capacity(columns.len());
-  for (index, column) in columns.iter().enumerate() {
-    row_values.push(get_cell_value(row, index, column.type_())?);
-  }
+    let mut row_values = Vec::with_capacity(columns.len());
+    for (index, column) in columns.iter().enumerate() {
+        row_values.push(get_cell_value(row, index, column.type_())?);
+    }
 
-  Ok(row_values)
+    Ok(row_values)
 }
 
 pub fn get_cell_value<I>(row: &Row, idx: I, sql_type: &Type) -> Result<Value>
-where
-    I: RowIndex + Display,
+    where
+        I: RowIndex + Display,
 {
     let cell_val;
 

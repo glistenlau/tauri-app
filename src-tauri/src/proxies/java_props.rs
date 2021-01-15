@@ -1,6 +1,7 @@
+use std::collections::{HashMap, HashSet};
+
 use anyhow::{anyhow, Result};
 use glob::{glob_with, MatchOptions, Paths};
-use std::collections::{HashMap, HashSet};
 
 use crate::core::java_props::{parse_prop_file, save_prop};
 

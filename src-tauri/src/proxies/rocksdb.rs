@@ -1,7 +1,8 @@
+use std::sync::{Arc, Mutex};
+
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use rocksdb::DB;
-use std::sync::{Arc, Mutex};
 
 pub struct RocksDataStore {
     conn: Option<Arc<DB>>,

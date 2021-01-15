@@ -1,10 +1,11 @@
-use super::{Endpoint, Response, ResponseError, ResponseResult};
-use crate::proxies::sql_common::{SQLClient, SQLReponse};
-use anyhow::{anyhow, Result};
+
+use std::time::{Instant};
+
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::fs::{File, OpenOptions};
-use std::time::{Duration, Instant};
+
+use super::{Endpoint, Response, ResponseResult};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +25,7 @@ pub struct Payload {
 
 pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Response<()> {
     let Endpoint { action, payload } = endpoint;
-    let Payload { target, message} = payload;
+    let Payload { target, message } = payload;
     let now = Instant::now();
 
 
@@ -37,8 +38,8 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Response<()> {
     };
 
     match target {
-      Some(tar) => log::log!(target: &tar, level, "{}", message),
-      None => log::log!(level, "{}", message),
+        Some(tar) => log::log!(target: &tar, level, "{}", message),
+        None => log::log!(level, "{}", message),
     }
 
     Response::new(true, now.elapsed(), ResponseResult::Result(()))

@@ -1,6 +1,7 @@
-use anyhow::Result;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
+
+use anyhow::Result;
 
 pub fn append_file(path: &str, value: &str) -> Result<()> {
     let mut open_options = OpenOptions::new();

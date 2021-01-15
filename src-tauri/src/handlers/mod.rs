@@ -1,3 +1,11 @@
+use std::time::{Duration, Instant};
+
+use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
+use tauri::{execute_promise, Webview};
+
+use crate::proxies;
+
 pub mod formatter;
 pub mod fs;
 pub mod java_props;
@@ -6,12 +14,6 @@ pub mod query_runner;
 pub mod rocksdb;
 pub mod sql;
 pub mod graphql;
-
-use crate::proxies;
-use anyhow::{anyhow, Result};
-use serde::{Deserialize, Serialize};
-use std::time::{Duration, Instant};
-use tauri::{execute_promise, Webview};
 
 #[derive(Deserialize, Debug)]
 pub struct Endpoint<A, P> {
@@ -30,6 +32,7 @@ pub enum Handler {
     Formatter(Endpoint<formatter::Action, formatter::Payload>),
     Log(Endpoint<log::Action, log::Payload>),
     JavaProps(Endpoint<java_props::Action, java_props::Payload>),
+    GraphQL(Endpoint<graphql::Action, graphql::Payload>),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -124,5 +127,6 @@ fn invoke_handler(handler: Handler) -> Result<String> {
             now.elapsed(),
         ),
         Handler::Formatter(e) => seralize_response(formatter::handle_command(e)),
+        Handler::GraphQL(e) => graphql::handle_command(e),
     }
 }

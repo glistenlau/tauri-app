@@ -1,12 +1,12 @@
 #![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
 )]
 
-use std::env;
 
 mod cmd;
 mod core;
+mod schemas;
 mod event;
 mod handlers;
 mod proxies;
@@ -14,10 +14,9 @@ mod utilities;
 
 fn main() {
     match core::log::setup_logger() {
-      Ok(()) => log::info!("logger setup successfully."),
-      Err(e) => log::error!("logger setup failed: {}", e),
+        Ok(()) => log::info!("logger setup successfully."),
+        Err(e) => log::error!("logger setup failed: {}", e),
     }
-
 
     tauri::AppBuilder::new()
         .setup(|_webview, _source| {

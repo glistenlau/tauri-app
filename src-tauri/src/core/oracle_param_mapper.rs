@@ -1,5 +1,5 @@
 use chrono::{DateTime, NaiveDate, NaiveDateTime, ParseError, Utc};
-use oracle::{sql_type::ToSql, Connection};
+use oracle::{Connection, sql_type::ToSql};
 use regex::Regex;
 use serde_json::Value;
 
@@ -31,7 +31,7 @@ fn extract_collection_name(stmt: Option<&str>, pos: Option<usize>) -> Result<Str
             return Err(SQLError::new(format!(
                 "collection regex pattern error: {}",
                 e
-            )))
+            )));
         }
     };
 

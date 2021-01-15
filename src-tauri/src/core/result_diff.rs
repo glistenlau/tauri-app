@@ -1,6 +1,5 @@
 use std::{cmp::Ordering, collections::HashMap};
 
-use futures::io::empty;
 use serde_json::Value;
 
 pub type DiffResults = HashMap<usize, Vec<usize>>;

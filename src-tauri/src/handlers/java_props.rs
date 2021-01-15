@@ -1,15 +1,15 @@
-use super::{Endpoint};
-use crate::proxies::{java_props::save_java_prop, postgres::{get_proxy, PostgresProxy}};
-use crate::proxies::{java_props::load_props, sql_common::SQLError};
-use anyhow::{anyhow, Result};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
 
+use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
 use tokio_postgres::{
-    error::{DbError, SqlState},
-    Client, Error,
+    error::SqlState,
 };
+
+use crate::proxies::{java_props::save_java_prop, postgres::PostgresProxy};
+use crate::proxies::{java_props::load_props, sql_common::SQLError};
+
+use super::Endpoint;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -27,8 +27,8 @@ pub enum Status {
 
 impl Serialize for Status {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
+        where
+            S: serde::Serializer,
     {
         serializer.serialize_str(match self {
             Status::Pass => "pass",

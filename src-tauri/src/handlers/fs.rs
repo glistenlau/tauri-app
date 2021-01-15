@@ -1,12 +1,10 @@
-use super::{Endpoint, Response, ResponseError, ResponseResult};
-use crate::proxies::fs::append_file;
-use crate::proxies::sql_common::{SQLClient, SQLReponse};
-use anyhow::{anyhow, Result};
+use std::time::Instant;
+
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::fs::{File, OpenOptions};
-use std::io::prelude::*;
-use std::time::{Duration, Instant};
+
+use crate::proxies::fs::append_file;
+
+use super::{Endpoint, Response, ResponseError, ResponseResult};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

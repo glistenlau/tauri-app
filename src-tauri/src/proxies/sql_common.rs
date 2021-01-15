@@ -1,8 +1,9 @@
+use std::{error::Error, fmt};
+use std::time::Duration;
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::time::Duration;
-use std::{error::Error, fmt};
 
 use crate::utilities::find_position_line;
 
@@ -79,6 +80,7 @@ impl SQLResultSet {
         &self.rows
     }
 }
+
 #[derive(Clone, Serialize, Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum QueryErrorPoisition {
@@ -177,10 +179,10 @@ impl SQLError {
                 }
             }
             Some(QueryErrorPoisition::Internal {
-                position,
-                query,
-                line: _,
-            }) => {
+                     position,
+                     query,
+                     line: _,
+                 }) => {
                 let position_line = find_position_line(&query, position);
                 instance.position = Some(QueryErrorPoisition::Internal {
                     position,
@@ -339,7 +341,7 @@ pub struct SavePoint {
 
 pub trait SQLClient<C> {
     fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value])
-        -> Result<SQLResult>;
+               -> Result<SQLResult>;
     fn set_config(&mut self, config: C) -> Result<SQLResult>;
     fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
     fn commit(&mut self) -> Result<SQLResult>;

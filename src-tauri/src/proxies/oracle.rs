@@ -1,14 +1,15 @@
-use crate::{core::oracle_param_mapper::map_params, utilities::oracle::get_row_values};
-use oracle::{ColumnInfo, Statement};
+use std::sync::{Arc, Mutex};
 
-use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
 use anyhow::Result;
 use lazy_static::lazy_static;
-use oracle::{sql_type::ToSql, Connection};
-
+use oracle::{ColumnInfo, Statement};
+use oracle::{Connection, sql_type::ToSql};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::sync::{Arc, Mutex};
+
+use crate::{core::oracle_param_mapper::map_params, utilities::oracle::get_row_values};
+
+use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OracleConfig {
@@ -96,13 +97,12 @@ impl OracleClient {
         log::debug!("execute oracle statement: {}", stmt_str);
         let mut prepared_stmt = conn.prepare(stmt_str, &[])?;
 
-        Self::execute_prepared(&mut prepared_stmt, params, conn)
+        Self::execute_prepared(&mut prepared_stmt, params)
     }
 
     pub fn execute_prepared(
         stmt: &mut Statement,
         params: &[&dyn ToSql],
-        conn: &Connection,
     ) -> Result<SQLResultSet, SQLError> {
         let res = if stmt.is_query() {
             let mut result_set = stmt.query(params)?;
@@ -157,7 +157,7 @@ impl SQLClient<OracleConfig> for OracleClient {
     }
 
     fn set_config(&mut self, config: OracleConfig) -> Result<SQLResult> {
-        self.config = config;
+        self.set_config(config);
         match self.get_connection() {
             Ok(_) => Ok(SQLResult::new_result(None)),
             Err(e) => Ok(SQLResult::new_error(e)),

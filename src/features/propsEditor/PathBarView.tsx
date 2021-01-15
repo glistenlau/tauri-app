@@ -77,7 +77,7 @@ const PathBarView = React.memo(() => {
       {
         id: "className",
         value: () => (
-          <Tooltip title={classDisplayFullName}>
+          <Tooltip key="className" title={classDisplayFullName}>
             <TextSpan>{classDisplayEllipseName}</TextSpan>
           </Tooltip>
         ),
@@ -85,7 +85,7 @@ const PathBarView = React.memo(() => {
       {
         id: "propName",
         value: () => (
-          <Tooltip title={selectedPropName}>
+          <Tooltip key="propName" title={selectedPropName}>
             <Ellipsis>
               <TextSpan>{selectedPropName}</TextSpan>
             </Ellipsis>

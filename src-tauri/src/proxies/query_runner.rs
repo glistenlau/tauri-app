@@ -1,31 +1,32 @@
 use std::{
     cell::RefCell,
     collections::{HashMap, LinkedList},
+    sync::Arc,
     sync::atomic::AtomicBool,
     sync::atomic::Ordering,
     sync::mpsc,
-    sync::Arc,
     thread,
     time::{Duration, Instant},
 };
 
+use anyhow::Result;
 use oracle::sql_type::ToSql as OracleToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio_postgres::types::ToSql as PgToSql;
 
-use super::sql_common::{SQLError, SQLResult, SQLResultSet};
 use crate::{
-    core::parameter_iterator::DBParamIter,
-    core::parameter_iterator::ParameterIterator,
     core::{
         parameter_iterator::ParamSeeds,
         query_scanner::QueryScanner,
         result_diff::{diff, DiffResults},
     },
+    core::parameter_iterator::DBParamIter,
+    core::parameter_iterator::ParameterIterator,
     handlers::query_runner::Query,
 };
-use anyhow::Result;
+
+use super::sql_common::{SQLError, SQLResult, SQLResultSet};
 
 #[derive(Clone, Serialize, Debug)]
 pub struct ProgressMessage<'a> {
@@ -188,14 +189,14 @@ pub fn scan_schema_queries(
                     let params_iter =
                         ParameterIterator::new(&oracle_seeds, &mode, prepared_statement);
                     let db_param_iter = DBParamIter::Oracle(RefCell::new(params_iter));
-                    QueryScanner::new(schema_clone.clone(), query_clone.as_ref(), db_param_iter)
+                    QueryScanner::new(query_clone.as_ref(), db_param_iter)
                 }
                 Ok(ParamSeeds::Postgres(prepared_statement, seeds)) => {
                     postgres_seeds = seeds;
                     let params_iter =
                         ParameterIterator::new(&postgres_seeds, &mode, prepared_statement);
                     let db_param_iter = DBParamIter::Postgres(RefCell::new(params_iter));
-                    QueryScanner::new(schema_clone.clone(), query_clone.as_ref(), db_param_iter)
+                    QueryScanner::new(query_clone.as_ref(), db_param_iter)
                 }
                 Err(err) => {
                     log::error!("map params iterator failed: {}", err);
@@ -350,11 +351,11 @@ pub fn scan_schema_queries(
 
         if diff_results
             && query_results.iter().enumerate().all(|(index, q)| {
-                q.len() > 0
-                    || progress_vec[index]
-                        .as_ref()
-                        .map_or(false, |p| p.borrow().finished == p.borrow().total)
-            })
+            q.len() > 0
+                || progress_vec[index]
+                .as_ref()
+                .map_or(false, |p| p.borrow().finished == p.borrow().total)
+        })
         {
             let mut first_results: Vec<Option<(Option<Vec<Value>>, SQLResult)>> =
                 query_results.iter_mut().map(|qr| qr.pop_front()).collect();
