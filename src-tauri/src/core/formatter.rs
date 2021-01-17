@@ -78,21 +78,21 @@ fn correct_formatted(original: &str, formated: &str) -> String {
             ori_idx = nxt_ori_idx.unwrap();
             fmt_idx = nxt_fmt_idx.unwrap();
         } else if is_single_line_comment_start(original, ori_idx) {
-            let nxt_ori_idx_opt = &ori_char_vec[ori_idx..].iter().position(|&c| c == '\n');
-            let nxt_fmt_idx_opt = &fmt_char_vec[fmt_idx..].iter().position(|&c| c == '\n');
+            let ori_idx_delta_opt = &ori_char_vec[ori_idx..].iter().position(|&c| c == '\n');
+            let fmt_idx_delta_opt = &fmt_char_vec[fmt_idx..].iter().position(|&c| c == '\n');
 
-            if let Some(nxt_fmt_idx) = nxt_fmt_idx_opt {
+            if let Some(fmt_idx_delta) = fmt_idx_delta_opt {
                 corrected.push_str(
-                    &fmt_char_vec[fmt_idx..nxt_fmt_idx + 1]
+                    &fmt_char_vec[fmt_idx..fmt_idx + fmt_idx_delta + 1]
                         .iter()
                         .collect::<String>(),
                 );
-                fmt_idx = nxt_fmt_idx + 1;
+                fmt_idx += fmt_idx_delta + 1;
             } else {
                 corrected.push_str(&fmt_char_vec[fmt_idx..].iter().collect::<String>());
             }
 
-            ori_idx = nxt_ori_idx_opt.unwrap_or(ori_idx + 1) + 1;
+            ori_idx += ori_idx_delta_opt.unwrap_or(2) + 1;
         } else if is_multiple_line_comment_open(original, ori_idx) {
             let nxt_ori_idx_opt = find_multiple_line_comment_close(original, ori_idx);
             if nxt_ori_idx_opt.is_none() {

@@ -2,7 +2,7 @@
 name = "tauri-app"
 version = "0.1.0"
 description = "A Tauri App"
-authors = ["you"]
+authors = [ "you" ]
 license = ""
 repository = ""
 default-run = "tauri-app"
@@ -11,15 +11,15 @@ build = "src/build.rs"
 
 [dependencies]
 serde_json = "1.0.61"
-serde = { version = "1.0.118", features = ["derive"] }
-tauri = { version = "0.11.0", features = ["all-api"] }
+serde = { version = "1.0.118", features = [ "derive" ] }
+tauri = { version = "0.11.0", features = [ "all-api" ] }
 uuid = "0.8.1"
 rocksdb = "0.15.0"
 anyhow = "1.0.37"
-oracle = { version = "0.3.3", features = ["chrono"] }
+oracle = { version = "0.3.3", features = [ "chrono" ] }
 regex = "1.4.2"
-tokio-postgres = { version = "0.7.0", features = ["with-uuid-0_8", "with-chrono-0_4"] }
-tokio = { version = "1.0.1", features = ["full"] }
+tokio-postgres = { version = "0.7.0", features = [ "with-uuid-0_8", "with-chrono-0_4" ] }
+tokio = { version = "1.0.1", features = [ "full" ] }
 log = "0.4.11"
 fern = "0.6.0"
 chrono = "0.4.19"
@@ -33,8 +33,8 @@ juniper = "0.15.1"
 winres = "0.1.11"
 
 [features]
-embedded-server = ["tauri/embedded-server"]
-no-server = ["tauri/no-server"]
+embedded-server = [ "tauri/embedded-server" ]
+no-server = [ "tauri/no-server" ]
 
 [[bin]]
 name = "tauri-app"

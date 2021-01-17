@@ -52,7 +52,7 @@
     "dev": "tauri dev",
     "bundle": "tauri build",
     "generate-schema": "pushd src-tauri && cargo run --bin graphql-schema",
-    "relay": "relay-compiler --src ./src --schema ./data/schema.graphql --language typescript --extensions ts tsx --artifactDirectory ./src/__generated__"
+    "relay": "relay-compiler --src ./src --schema ./data/schema.graphql --language typescript --extensions ts tsx"
   },
   "eslintConfig": {
     "extends": "react-app"

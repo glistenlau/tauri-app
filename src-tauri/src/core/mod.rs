@@ -6,3 +6,4 @@ pub mod parameter_iterator;
 pub mod postgres_param_mapper;
 pub mod query_scanner;
 pub mod result_diff;
+pub mod xml_parser;
