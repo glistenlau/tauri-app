@@ -95,6 +95,10 @@ const PathBarView = React.memo(() => {
     ];
   }, [selectedClassName, selectedPropName]);
 
+  if (!selectedClassName || !selectedPropName) {
+    return null;
+  }
+
   return (
     <Container>
       <StyledPathBreadcrumbs

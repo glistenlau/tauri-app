@@ -2,7 +2,10 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { useQuery } from "relay-hooks";
 import styled from "styled-components";
+import { query } from "../../apis/graphql/dbSchema";
+import { dbSchemaSearchQuery } from "../../apis/graphql/__generated__/dbSchemaSearchQuery.graphql";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
@@ -72,6 +75,12 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     shallowEqual
   );
 
+  const res = useQuery<dbSchemaSearchQuery>(query, {
+    searchFolder: "/Users/yi.liu/Developer/ai_repos/planning/src/db",
+    searchPattern: "*.xml",
+  });
+
+  console.log("schema query: ", res);
   const handleLeftPanelResize = useCallback(
     (e: any, direction: any, ref: any, d: any) => {
       const width = leftPanelWidth + d.width;

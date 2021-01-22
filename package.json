@@ -17,6 +17,7 @@
     "@types/styled-components": "^5.1.7",
     "babel-plugin-relay": "^10.1.2",
     "crypto-js": "^4.0.0",
+    "graphiql": "^1.3.2",
     "monaco-editor": "^0.21.2",
     "monaco-editor-webpack-plugin": "^2.1.0",
     "monaco-themes": "^0.3.3",
@@ -49,10 +50,10 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "tauri": "tauri",
-    "dev": "tauri dev",
     "bundle": "tauri build",
-    "generate-schema": "pushd src-tauri && cargo run --bin graphql-schema",
-    "relay": "relay-compiler --src ./src --schema ./data/schema.graphql --language typescript --extensions ts tsx"
+    "generate-schema": "pushd src-tauri && cargo run --bin generate_schema && popd",
+    "relay": "relay-compiler --src ./src --schema ./data/schema.graphql --language typescript --extensions ts tsx",
+    "dev": "yarn run generate-schema & yarn run relay --watch & tauri dev"
   },
   "eslintConfig": {
     "extends": "react-app"

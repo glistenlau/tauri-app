@@ -1,31 +1,35 @@
+type TreeNode {
+  tagName: String!
+  nameAttr: String
+  values: [NodeValue!]!
+  children: [TreeNode!]!
+  dbFamily: DbFamily
+}
+
 type Mutation {
-  createHuman(newHuman: NewHuman!): Human!
+  changeSchemaValues(filePath: String!, values: [String!]!): SchemaFile!
+}
+
+enum DbFamily {
+  ORACLE
+  POSTGRES
+  BOTH
 }
 
 type Query {
   apiVersion: String!
-  human(id: String!): Human!
+  dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
 }
 
-enum Episode {
-  NEW_HOPE
-  EMPIRE
-  JEDI
+type NodeValue {
+  start: Int!
+  end: Int!
+  dbFamily: DbFamily
 }
 
-"A humanoid creature in the Star Wars universe"
-input NewHuman {
-  name: String!
-  appearsIn: [Episode!]!
-  homePlanet: String!
-}
-
-"A humanoid creature in the Star Wars universe"
-type Human {
-  id: String!
-  name: String!
-  appearsIn: [Episode!]!
-  homePlanet: String!
+type SchemaFile {
+  path: String!
+  root: TreeNode!
 }
 
 schema {

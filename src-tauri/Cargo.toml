@@ -36,10 +36,10 @@ winres = "0.1.11"
 embedded-server = [ "tauri/embedded-server" ]
 no-server = [ "tauri/no-server" ]
 
+[lib]
+name = "mylib"
+path = "src/lib.rs"
+
 [[bin]]
 name = "tauri-app"
 path = "src/main.rs"
-
-[[bin]]
-name = "graphql-schema"
-path = "src/schemas/mod.rs"

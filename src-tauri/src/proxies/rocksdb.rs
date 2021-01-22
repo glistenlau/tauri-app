@@ -2,10 +2,10 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
-use rocksdb::DB;
+use rocksdb::{ColumnFamily, Options, WriteBatch, DB};
 
 pub struct RocksDataStore {
-    conn: Option<Arc<DB>>,
+    conn: Option<Arc<Mutex<DB>>>,
 }
 
 impl RocksDataStore {
@@ -13,15 +13,16 @@ impl RocksDataStore {
         RocksDataStore { conn: None }
     }
 
-    pub fn get_conn(&mut self) -> Result<Arc<DB>> {
+    pub fn get_conn(&mut self) -> Result<Arc<Mutex<DB>>> {
         if self.conn.is_none() {
-            self.conn = match DB::open_default(self.get_path()) {
-                Ok(db) => Some(Arc::new(db)),
-                Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e))
+            let cf_list = DB::list_cf(&Options::default(), self.get_path())?;
+            self.conn = match DB::open_cf(&Options::default(), self.get_path(), cf_list) {
+                Ok(db) => Some(Arc::new(Mutex::new(db))),
+                Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
             }
         }
 
-        Ok(Arc::clone(self.conn.as_ref().unwrap()))
+        Ok(Arc::clone(&self.conn.as_ref().unwrap()))
     }
 
     fn get_path(&self) -> String {
@@ -37,16 +38,39 @@ impl RocksDataStore {
         }
     }
 
-    pub fn put(key: &str, val: &str, db: Arc<DB>) -> Result<(), rocksdb::Error> {
+    pub fn put(key: &str, val: &str, db: &DB) -> Result<(), rocksdb::Error> {
         db.put(key.as_bytes(), val.as_bytes())
     }
 
-    pub fn get(key: &str, db: Arc<DB>) -> Result<Option<Vec<u8>>, rocksdb::Error> {
+    pub fn get(key: &str, db: &DB) -> Result<Option<Vec<u8>>, rocksdb::Error> {
         db.get(key.as_bytes())
     }
 
-    pub fn delete(key: &str, db: Arc<DB>) -> Result<(), rocksdb::Error> {
+    pub fn delete(key: &str, db: &DB) -> Result<(), rocksdb::Error> {
         db.delete(key.as_bytes())
+    }
+
+    pub fn write_batch(
+        db: &mut DB,
+        cf: &str,
+        key_vals: Vec<(String, String)>,
+    ) -> Result<(), rocksdb::Error> {
+        Self::create_cf_if_not(cf, db);
+        let mut write_batch = WriteBatch::default();
+        let cf_handle = db.cf_handle(cf).unwrap();
+        for (key, val) in key_vals {
+            write_batch.put_cf(cf_handle, key, val);
+        }
+
+        db.write(write_batch)
+    }
+
+    fn create_cf_if_not(cf: &str, db: &mut DB) -> Result<(), rocksdb::Error> {
+        if let Some(_) = db.cf_handle(cf) {
+            return  Ok(());
+        }
+
+        db.create_cf(cf, &Options::default())
     }
 }
 
@@ -56,4 +80,45 @@ lazy_static! {
 
 pub fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
     Arc::clone(&DATA_STORE)
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::channel::mpsc::unbounded;
+    use rocksdb::Options;
+
+    use super::*;
+
+    #[test]
+    fn test_cf() {
+        let mut data_store = DATA_STORE.lock().unwrap();
+        let mut conn = data_store.get_conn().unwrap();
+        let mut conn_lock = conn.lock().unwrap();
+        let cf_handle = match conn_lock.cf_handle("test_cf") {
+            Some(ch) => ch,
+            None => {
+                println!("test_cf not exists, create it...");
+                conn_lock.create_cf("test_cf", &Options::default()).unwrap();
+                conn_lock.cf_handle("test_cf").unwrap()
+            }
+        };
+        let mut write_batch = WriteBatch::default();
+        write_batch.put_cf(cf_handle, "test_key", "test_val");
+        conn_lock.write(write_batch).unwrap();
+        write_batch = WriteBatch::default();
+        write_batch.put_cf(cf_handle, "test_key", "test_val");
+        write_batch.put_cf(cf_handle, "test_key2", "test_val2");
+        conn_lock.write(write_batch).unwrap();
+        assert_eq!(
+            conn_lock.get_cf(cf_handle, "test_key").unwrap().unwrap(),
+            b"test_val",
+            "test_key should be write successfully."
+        );
+        assert_eq!(
+            conn_lock.get_cf(cf_handle, "test_key2").unwrap().unwrap(),
+            b"test_val2",
+            "test_key2 should be write successfully."
+        );
+        conn_lock.drop_cf("test_cf").unwrap();
+    }
 }

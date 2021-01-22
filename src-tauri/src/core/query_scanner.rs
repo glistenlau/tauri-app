@@ -80,7 +80,7 @@ impl<'a> QueryScanner<'a> {
                 .enumerate()
                 .map(|(i, p)| {
                     let index = cur_idx[i];
-                    p.get(index).unwrap().clone()
+                    p.get(index).unwrap_or(&Value::Null).clone()
                 })
                 .collect(),
         )

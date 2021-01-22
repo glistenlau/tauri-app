@@ -1,16 +1,17 @@
 import React from "react";
-
-import { ReactComponent as TerminalLogo } from "../assets/terminal-box-line.svg";
-import { ReactComponent as FileLogo } from "../assets/file-copy-2-line.svg";
-import { ReactComponent as FileCopyFill } from "../assets/file-copy-2-fill.svg";
-import { ReactComponent as SettingsLogo } from "../assets/settings-3-line.svg";
+import { ReactComponent as CloseSquare } from "../assets/close-square-line.svg";
 import { ReactComponent as DatabaseLogo } from "../assets/database-2-fill.svg";
-import { ReactComponent as PostgresLogo } from "../assets/postgresql_elephant.svg";
-import { ReactComponent as PlaneLogo } from "../assets/send-plane-fill.svg";
+import { ReactComponent as EditFill } from "../assets/edit-box-fill.svg";
+import { ReactComponent as FileCopyFill } from "../assets/file-copy-2-fill.svg";
+import { ReactComponent as FileLogo } from "../assets/file-copy-2-line.svg";
+import { ReactComponent as Graphql } from "../assets/graphql.svg";
 import { ReactComponent as MinusSquare } from "../assets/minus-square-line.svg";
 import { ReactComponent as PlusSquare } from "../assets/plus-square-line.svg";
-import { ReactComponent as CloseSquare } from "../assets/close-square-line.svg";
-import { ReactComponent as EditFill } from "../assets/edit-box-fill.svg";
+import { ReactComponent as PostgresLogo } from "../assets/postgresql_elephant.svg";
+import { ReactComponent as PlaneLogo } from "../assets/send-plane-fill.svg";
+import { ReactComponent as SettingsLogo } from "../assets/settings-3-line.svg";
+import { ReactComponent as TerminalLogo } from "../assets/terminal-box-line.svg";
+
 
 const getIcon = (name: string, props: any) => {
   switch (name) {
@@ -36,6 +37,8 @@ const getIcon = (name: string, props: any) => {
       return <PlusSquare {...props} />;
     case "minusSquare":
       return <MinusSquare {...props} />;
+    case "graphql":
+      return <Graphql {...props} />;
     default:
       return null;
   }

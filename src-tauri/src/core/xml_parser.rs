@@ -1,5 +1,8 @@
 use anyhow::{anyhow, Result};
-use std::collections::{HashMap, VecDeque};
+use std::{
+    collections::{HashMap, VecDeque},
+    time::{Instant},
+};
 
 const OPEN_COMMENT: &str = "<!--";
 const CLOSE_COMMENT: &str = "-->";
@@ -173,7 +176,7 @@ fn process_tag(text: &[char], start: &mut usize) -> Result<ProcessTagResult> {
                 }
             }
 
-            xml_tag.attrs.insert(attr_name, attr_value);
+            xml_tag.attrs.insert(attr_name.to_lowercase(), attr_value);
         }
         attr_right += 1;
     }
@@ -203,34 +206,52 @@ impl XmlTag {
             ..Default::default()
         }
     }
+
+    pub fn children(&self) -> &[XmlTag] {
+        &self.children
+    }
+
+    pub fn attrs(&self) -> &HashMap<String, String> {
+        &self.attrs
+    }
+
+    pub fn range(&self) -> (usize, usize) {
+        (self.start_offset, self.end_offset)
+    }
+
+    pub fn tag_name(&self) -> &str {
+        &self.tag_name
+    }
 }
 
-pub fn parse_xml(text: &[char]) -> Result<XmlTag> {
+pub fn parse_xml(text: &str) -> Result<XmlTag> {
+    let text_char_vec: Vec<char> = text.chars().collect();
+
     let mut root_tag = XmlTag::new("root".to_string());
     root_tag.start_offset = 0;
-    root_tag.end_offset = text.len() - 1;
+    root_tag.end_offset = text_char_vec.len() - 1;
 
     let mut tag_stack: VecDeque<XmlTag> = vec![root_tag].into_iter().collect();
     let mut pending_comment_start_index: isize = -1;
     let mut index = 0;
 
-    while index < text.len() {
-        let cur_char = text[index];
+    while index < text_char_vec.len() {
+        let cur_char = text_char_vec[index];
 
         if cur_char != '<' {
             index += 1;
             continue;
         }
-
-        if process_special_tags(text, &mut index)? {
+        if process_special_tags(&text_char_vec, &mut index)? {
             index += 1;
             continue;
-        } else if process_comment_tag(text, &mut index, &mut pending_comment_start_index)? {
+        } else if process_comment_tag(&text_char_vec, &mut index, &mut pending_comment_start_index)?
+        {
             index += 1;
             continue;
         }
 
-        match process_tag(text, &mut index)? {
+        match process_tag(&text_char_vec, &mut index)? {
             ProcessTagResult::TagStart(mut new_xml_tag, end_index) => {
                 if pending_comment_start_index != -1 {
                     new_xml_tag.start_offset = pending_comment_start_index as usize;
@@ -277,6 +298,7 @@ pub fn parse_xml(text: &[char]) -> Result<XmlTag> {
 #[cfg(test)]
 mod tests {
     use regex::{escape, Regex};
+    use std::time::Instant;
     use std::{fs::File, io::Read};
 
     use glob::glob;
@@ -309,7 +331,7 @@ mod tests {
 
         for (key, value) in &root_tag.attrs {
             let re = Regex::new(&format!(
-                "{}\\s*=\\s*[\"']{}[\"']",
+                "(?i){}\\s*=\\s*[\"']{}[\"']",
                 escape(key),
                 escape(value)
             ))
@@ -339,13 +361,15 @@ mod tests {
             let mut file_str = String::new();
             file.read_to_string(&mut file_str).unwrap();
 
-            let chars: Vec<char> = file_str.chars().collect();
-            let parse_result = parse_xml(&chars);
-
-            assert!(parse_result.is_ok(), "there should be no error.");
+            let parse_result = parse_xml(&file_str);
+            assert!(
+                parse_result.is_ok(),
+                "there should be no error, but got {}",
+                parse_result.unwrap_err()
+            );
 
             for child in &parse_result.unwrap().children {
-                valid_xml_tag(child, &chars);
+                valid_xml_tag(child, &file_str.chars().collect::<Vec<char>>());
             }
         }
     }

@@ -126,7 +126,7 @@ const QueryTable = React.memo((props: QueryTablePropsType) => {
           </Typography>
         )}
         {data.success &&
-          (!data.rows || data.rows.length === 0) &&
+          (!data.columns || dataColumns.length === 0) &&
           data.rowsAffected !== undefined && (
             <Typography
               variant='body2'
@@ -138,7 +138,7 @@ const QueryTable = React.memo((props: QueryTablePropsType) => {
               {`Rows affected: ${data.rowsAffected}`}
             </Typography>
           )}
-        {data.success && data.columns && data.rows && (
+        {data.success && (data.columns && data.columns.length > 0) && (
           <DataTable
             dataRows={dataRows}
             dataColumns={dataColumns}

@@ -11,6 +11,10 @@ pub fn format_sql(stmt: &str) -> String {
     correct_formatted(stmt_trim, &formated)
 }
 
+fn is_safe_char(c: char) -> bool {
+    c.is_whitespace() || c == '(' || c == ')'
+}
+
 fn correct_formatted(original: &str, formated: &str) -> String {
     let ori_char_vec: Vec<char> = original.chars().collect();
     let fmt_char_vec: Vec<char> = formated.chars().collect();
@@ -35,14 +39,14 @@ fn correct_formatted(original: &str, formated: &str) -> String {
         let cur_ori_char = ori_char_vec[ori_idx];
         let cur_fmt_char = fmt_char_vec[fmt_idx];
 
-        if cur_ori_char.is_whitespace() {
+        if is_safe_char(cur_ori_char) {
             ori_idx += 1;
             continue;
         }
 
         if cur_ori_char != cur_fmt_char {
-            if (ori_idx == 0 || ori_char_vec[ori_idx - 1].is_whitespace())
-                && cur_fmt_char.is_whitespace()
+            if (ori_idx == 0 || is_safe_char(ori_char_vec[ori_idx - 1]))
+                && is_safe_char(cur_fmt_char)
             {
                 corrected.push(cur_fmt_char);
                 fmt_idx += 1;

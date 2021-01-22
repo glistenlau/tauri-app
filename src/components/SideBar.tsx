@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
-const SIDE_BAR_ICON_NAMES = ["file", "terminal", "tree", "settings"];
+const SIDE_BAR_ICON_NAMES = ["file", "terminal", "tree", "settings", "graphql"];
 
 interface SideBarProps {
   activeView: number;

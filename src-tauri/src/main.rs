@@ -6,7 +6,7 @@ windows_subsystem = "windows"
 
 mod cmd;
 mod core;
-mod schemas;
+mod graphql;
 mod event;
 mod handlers;
 mod proxies;

@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import styled from "styled-components";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
+import GraphqlView from "../features/graphql/GraphqlView";
 import PropsEditorView from "../features/propsEditor/PropsEditorView";
 import QueryScanModal from "../features/queryScan/QueryScanModal";
 import RunnerResultPanel from "../features/runnerResult/RunnerResultPanel";
@@ -56,6 +57,7 @@ class Root extends React.Component<any, any> {
           <RunnerResultPanel active={activeView === 0 || activeView === 1} />
           <SchemaEditorView active={activeView === 2} />
           <SettingsPanel active={activeView === 3} />
+          <GraphqlView active={activeView === 4} />
         </RightContainer>
         <QueryScanModal />
         <Notification />

@@ -46,8 +46,8 @@ fn escape_value(key: &str) -> String {
         escaped = escaped.replace(from, to);
     }
 
-    escaped = escaped.replace("\\r", " \\r\\\r\n");
-    escaped = escaped.replace("\\n", " \\n\\\r\n");
+    escaped = escaped.replace("\\r", " \\r\\\n");
+    escaped = escaped.replace("\\n", " \\n\\\n");
 
     escaped
 }
@@ -187,7 +187,7 @@ pub fn parse_prop_file<P: AsRef<Path>>(filepath: P) -> Result<HashMap<String, St
 
 pub fn save_prop<P: AsRef<Path>>(filepath: P, prop_key: &str, prop_value: &str) -> Result<()> {
     let prop_str = format!(
-        "\r\n{}=\\n\\\r\n{}\r\n",
+        "\n{}=\\n\\\n{}\n",
         escape_key(prop_key),
         escape_value(prop_value.trim())
     );
@@ -209,16 +209,16 @@ pub fn save_prop<P: AsRef<Path>>(filepath: P, prop_key: &str, prop_value: &str) 
             match line_vec {
                 Some(line_str_vec) => {
                     if start.is_none() && end.is_none() {
-                        let pre_prop = line_str_vec.join("\r\n");
-                        [pre_prop.trim_end(), &prop_str].join("\r\n")
+                        let pre_prop = line_str_vec.join("\n");
+                        [pre_prop.trim_end(), &prop_str].join("\n")
                     } else if line_str_vec.len() == 0 {
                         prop_str
                     } else {
-                        let pre_prop = line_str_vec[0..start.unwrap()].join("\r\n");
+                        let pre_prop = line_str_vec[0..start.unwrap()].join("\n");
                         let post_prop = line_str_vec
                             [cmp::min(end.unwrap() + 1, line_str_vec.len() - 1)..]
-                            .join("\r\n");
-                        [pre_prop.trim_end(), &prop_str, post_prop.trim_start()].join("\r\n")
+                            .join("\n");
+                        [pre_prop.trim_end(), &prop_str, post_prop.trim_start()].join("\n")
                     }
                 }
                 None => prop_str,
