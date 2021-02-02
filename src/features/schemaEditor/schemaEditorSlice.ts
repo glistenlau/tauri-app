@@ -16,7 +16,7 @@ export interface SchemaEditorState {
   activePair: [boolean, boolean];
   valuePair: [string, string];
   leftPanelWidth: number;
-  xmlList: Array<XmlFile>;
+  xmlList: dbSchemaSearchQueryResponse.dbSchemas;
   searchPath: string;
   searchFile: string;
   activeNodeId: string;

@@ -1,7 +1,7 @@
 import { Divider } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import React, { createContext, useState } from "react";
-import { RelayEnvironmentProvider } from "relay-hooks";
+import { RelayEnvironmentProvider } from "react-relay/hooks";
 import { ThemeProvider } from "styled-components";
 import environment from "./apis/graphql";
 import Root from "./containers/Root";

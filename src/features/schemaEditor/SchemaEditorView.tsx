@@ -2,23 +2,20 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useQuery } from "relay-hooks";
+import { useQueryLoader } from "react-relay/hooks";
 import styled from "styled-components";
 import { query } from "../../apis/graphql/dbSchema";
 import { dbSchemaSearchQuery } from "../../apis/graphql/__generated__/dbSchemaSearchQuery.graphql";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
-import { extractXmlFileIndex } from "../../core/xmlProcessor";
 import { RootState } from "../../reducers";
 import {
-  changeLeftPanelWidth,
   changeSearchFile,
   changeSearchPath,
-  changeValuePair,
-  saveTagValue,
-  searchXmlFiles,
-  setXmlFileTag
+
+
+  searchXmlFiles
 } from "./schemaEditorSlice";
 import SchemaTreeView from "./SchemaTreeView";
 import SchemaTreeViewToolBar from "./SchemaTreeViewToolBar";
@@ -44,7 +41,6 @@ const Container = styled(TabContent)`
   display: flex;
   flex-direction: row;
 `;
-
 interface SchemaEditorViewProps {
   active: boolean;
 }
@@ -75,12 +71,21 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     shallowEqual
   );
 
-  const res = useQuery<dbSchemaSearchQuery>(query, {
-    searchFolder: "/Users/yi.liu/Developer/ai_repos/planning/src/db",
-    searchPattern: "*.xml",
-  });
+  const [queryReference, searchQuery, disposeSearchQuery] = useQueryLoader<dbSchemaSearchQuery>(query);
 
-  console.log("schema query: ", res);
+  const handleClickSearch = useCallback(async () => {
+    try {
+      const res = await searchQuery({
+        searchFolder: searchPath,
+        searchPattern: searchFile,
+      });
+
+      console.log("got search result: ", res);
+    } catch (e) {
+    
+    }
+  }, [searchFile, searchPath, searchQuery]);
+
   const handleLeftPanelResize = useCallback(
     (e: any, direction: any, ref: any, d: any) => {
       const width = leftPanelWidth + d.width;
@@ -163,7 +168,7 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
           fileNameValue={searchFile}
           onFilePathChange={handleSearchPathChange}
           onFileNameChange={handleSearchFileChange}
-          onSearch={handleSearch}
+          onSearch={handleClickSearch}
         />
         <Divider style={{ marginTop: 10 }} />
         <SchemaTreeView />

@@ -53,13 +53,12 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<S
             }
         };
 
-        let mut rocks_db_proxy = get_proxy();
         let conn = get_proxy().lock().unwrap().get_conn()?;
         let mut conn_lock = conn.lock().unwrap();
 
         let root_tree_node = process_xml_tag(&xml_root_tag);
         let schema_file = SchemaFile {
-            path: path.to_string_lossy().to_string(),
+            path: path_str.to_string(),
             root: root_tree_node,
         };
 

@@ -42,7 +42,7 @@
       "all": true
     },
     "window": {
-      "title": "Tauri App",
+      "title": "AP Database Dev Tool",
       "width": 960,
       "height": 600,
       "resizable": true,

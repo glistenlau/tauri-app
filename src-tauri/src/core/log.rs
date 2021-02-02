@@ -1,16 +1,13 @@
+use std::path::PathBuf;
+
 use chrono;
 
-fn get_logger_path() -> String {
-    match tauri::api::platform::resource_dir() {
-        Ok(mut path) => {
-            path.push("_log");
-            return String::from(path.to_str().unwrap());
-        }
-        Err(e) => {
-            println!("Got error while trying to get the resource dir: {}", e);
-            return String::from("_data_store");
-        }
-    }
+use crate::proxies::dirs::get_data_dir;
+
+fn get_path() -> PathBuf {
+    let mut data_path = get_data_dir();
+    data_path.push("_log");
+    data_path
 }
 
 pub fn setup_logger() -> Result<(), fern::InitError> {
@@ -27,7 +24,7 @@ pub fn setup_logger() -> Result<(), fern::InitError> {
         })
         .level(log::LevelFilter::Debug)
         .chain(std::io::stdout())
-        .chain(fern::log_file(get_logger_path())?)
+        .chain(fern::log_file(get_path())?)
         .apply()?;
     Ok(())
 }

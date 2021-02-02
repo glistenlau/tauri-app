@@ -1,8 +1,14 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use rocksdb::{ColumnFamily, Options, WriteBatch, DB};
+
+use super::dirs::get_data_dir;
 
 pub struct RocksDataStore {
     conn: Option<Arc<Mutex<DB>>>,
@@ -15,27 +21,32 @@ impl RocksDataStore {
 
     pub fn get_conn(&mut self) -> Result<Arc<Mutex<DB>>> {
         if self.conn.is_none() {
-            let cf_list = DB::list_cf(&Options::default(), self.get_path())?;
-            self.conn = match DB::open_cf(&Options::default(), self.get_path(), cf_list) {
-                Ok(db) => Some(Arc::new(Mutex::new(db))),
-                Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
+            let path = Self::get_path();
+
+            match DB::list_cf(&Options::default(), &path) {
+                Ok(cf_list) => {
+                    self.conn = match DB::open_cf(&Options::default(), &path, cf_list) {
+                        Ok(db) => Some(Arc::new(Mutex::new(db))),
+                        Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
+                    };
+                }
+                Err(e) => {
+                    log::info!("list cf error: {}", e);
+                    self.conn = match DB::open_default(&path) {
+                        Ok(db) => Some(Arc::new(Mutex::new(db))),
+                        Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
+                    }
+                }
             }
         }
 
         Ok(Arc::clone(&self.conn.as_ref().unwrap()))
     }
 
-    fn get_path(&self) -> String {
-        match tauri::api::platform::resource_dir() {
-            Ok(mut path) => {
-                path.push("_data_store");
-                return String::from(path.to_str().unwrap());
-            }
-            Err(e) => {
-                println!("Got error while trying to get the resource dir: {}", e);
-                return String::from("_data_store");
-            }
-        }
+    fn get_path() -> PathBuf {
+        let mut data_path = get_data_dir();
+        data_path.push("_data");
+        data_path
     }
 
     pub fn put(key: &str, val: &str, db: &DB) -> Result<(), rocksdb::Error> {
@@ -55,7 +66,7 @@ impl RocksDataStore {
         cf: &str,
         key_vals: Vec<(String, String)>,
     ) -> Result<(), rocksdb::Error> {
-        Self::create_cf_if_not(cf, db);
+        Self::create_cf_if_not(cf, db)?;
         let mut write_batch = WriteBatch::default();
         let cf_handle = db.cf_handle(cf).unwrap();
         for (key, val) in key_vals {
@@ -67,7 +78,7 @@ impl RocksDataStore {
 
     fn create_cf_if_not(cf: &str, db: &mut DB) -> Result<(), rocksdb::Error> {
         if let Some(_) = db.cf_handle(cf) {
-            return  Ok(());
+            return Ok(());
         }
 
         db.create_cf(cf, &Options::default())
@@ -84,15 +95,18 @@ pub fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use futures::channel::mpsc::unbounded;
-    use rocksdb::Options;
+    use rocksdb::{MergeOperands, Options};
+    use serde_json::{Value, json};
 
     use super::*;
 
     #[test]
     fn test_cf() {
         let mut data_store = DATA_STORE.lock().unwrap();
-        let mut conn = data_store.get_conn().unwrap();
+        let conn = data_store.get_conn().unwrap();
         let mut conn_lock = conn.lock().unwrap();
         let cf_handle = match conn_lock.cf_handle("test_cf") {
             Some(ch) => ch,
@@ -120,5 +134,52 @@ mod tests {
             "test_key2 should be write successfully."
         );
         conn_lock.drop_cf("test_cf").unwrap();
+    }
+
+    fn merge(a: &mut Value, b: &Value) {
+        match (a, b) {
+            (&mut Value::Object(ref mut a), &Value::Object(ref b)) => {
+                for (k, v) in b {
+                    merge(a.entry(k.clone()).or_insert(Value::Null), v);
+                }
+            }
+            (a, b) => {
+                *a = b.clone();
+            }
+        }
+    }
+
+    fn obj_merge(
+        new_key: &[u8],
+        existing_val: Option<&[u8]>,
+        operands: &mut MergeOperands,
+    ) -> Option<Vec<u8>> {
+        let mut result: Vec<u8> = Vec::with_capacity(operands.size_hint().0);
+        let mut existing_value: Value = existing_val
+            .map(|v| serde_json::from_slice(v).unwrap())
+            .unwrap_or(json!("{}"));
+        for op in operands {
+            for e in op {
+                result.push(*e)
+            }
+        }
+        let mut new_value: Value = serde_json::from_slice(&result).unwrap();
+        merge(&mut existing_value, &new_value);
+        Some(existing_value.to_string().into_bytes())
+    }
+
+    #[test]
+    fn test_merge() {
+        let mut opts = Options::default();
+        opts.set_merge_operator("object_merger", obj_merge, None);
+        opts.create_if_missing(true);
+        let mut path = RocksDataStore::get_path();
+        path.push("_test");
+        let db = DB::open(&opts, path).unwrap();
+        db.put(b"test",b"{\"name\": \"John Doe\"}");
+        db.merge(b"test", b"{\"gender\": \"male\"}");
+        let r = db.get(b"test").unwrap();
+        println!("{}", String::from_utf8(r.unwrap()).unwrap());
+        
     }
 }
