@@ -18,8 +18,6 @@ fn main() {
         Err(e) => log::error!("logger setup failed: {}", e),
     }
 
-    print!("dirs: {:?}", dirs::data_dir());
-
     tauri::AppBuilder::new()
         .setup(|_webview, _source| {
             let webview_mut = _webview.as_mut();

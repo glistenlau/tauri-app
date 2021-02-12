@@ -2,9 +2,10 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useQueryLoader } from "react-relay/hooks";
+import { useRelayEnvironment } from "react-relay/hooks";
 import styled from "styled-components";
-import { query } from "../../apis/graphql/dbSchema";
+import { fetchQuery } from "../../apis/graphql";
+import { searchSchemaQuery } from "../../apis/graphql/dbSchema";
 import { dbSchemaSearchQuery } from "../../apis/graphql/__generated__/dbSchemaSearchQuery.graphql";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
@@ -13,8 +14,6 @@ import { RootState } from "../../reducers";
 import {
   changeSearchFile,
   changeSearchPath,
-
-
   searchXmlFiles
 } from "./schemaEditorSlice";
 import SchemaTreeView from "./SchemaTreeView";
@@ -71,20 +70,20 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     shallowEqual
   );
 
-  const [queryReference, searchQuery, disposeSearchQuery] = useQueryLoader<dbSchemaSearchQuery>(query);
+  const relayEnv = useRelayEnvironment();
 
   const handleClickSearch = useCallback(async () => {
     try {
-      const res = await searchQuery({
+      console.log(searchSchemaQuery);
+      const res =  await fetchQuery<dbSchemaSearchQuery>(searchSchemaQuery.text, {
         searchFolder: searchPath,
         searchPattern: searchFile,
       });
-
-      console.log("got search result: ", res);
+      console.log(res);
     } catch (e) {
     
     }
-  }, [searchFile, searchPath, searchQuery]);
+  }, [searchFile, searchPath]);
 
   const handleLeftPanelResize = useCallback(
     (e: any, direction: any, ref: any, d: any) => {

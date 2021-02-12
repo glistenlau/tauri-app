@@ -1,12 +1,18 @@
 import { createStyles, makeStyles, MenuItem } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
 import TextField from "@material-ui/core/TextField";
+import CompareIcon from "@material-ui/icons/Compare";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import clsx from "clsx";
 import React, { useCallback, useContext, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import QueryRunner from "../../apis/queryRunner";
+import OracleClient from "../../apis/oracle";
+import QueryRunner, {
+  ParameterGenerateStrategy,
+  Query
+} from "../../apis/queryRunner";
+import { DBType } from "../../apis/sqlCommon";
 import { GlobalContext } from "../../App";
 import LabelWithDdIcons from "../../components/LabelWithDbIcons";
 import ProcessIconButton from "../../components/ProgressIconButton";
@@ -91,6 +97,43 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
     } catch (e) {}
   }, [onClickRun]);
 
+  const handleClickCompareShadow = useCallback(async () => {
+    const sql = `
+      SELECT Name, ShadowedName
+      FROM ANACONDA.ShadowedObject
+      WHERE ObjectType = 'TABLE'
+    `;
+    const rst = await OracleClient.execute(sql, "ANACONDA");
+    if (rst.success) {
+      const tableNames = rst.result.result?.rows?.map((row) => row[0]);
+      const shadowedTableNames = rst.result.result?.rows?.map((row) => row[1]);
+
+      if (!tableNames || !shadowedTableNames) {
+        return;
+      }
+
+      for (let i = 0; i < tableNames?.length; i++) {
+        const originalQuery: Query = {
+          dbType: DBType.Oracle,
+          mode: ParameterGenerateStrategy.Normal,
+          statement: `SELECT * FROM ${tableNames[i]}`,
+        };
+        const shadowQuery: Query = {
+          dbType: DBType.Oracle,
+          mode: ParameterGenerateStrategy.Normal,
+          statement: `SELECT * FROM ${shadowedTableNames[i]}`,
+        };
+
+        const runnerQuery = {
+          "GREENCO": [originalQuery, shadowQuery],
+        };
+
+        const runnerResult = await QueryRunner.scanQueries(runnerQuery);
+        console.log("runner result: ", runnerResult);
+      }
+    }
+  }, []);
+
   const handleSchemaChange = useCallback(
     (e) => {
       e.preventDefault();
@@ -145,6 +188,14 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
           className={isRunning ? undefined : classes.play}
           color={isRunning ? "disabled" : undefined}
         />
+      </ProcessIconButton>
+      <ProcessIconButton
+        title="Run Queries"
+        loading={isRunning}
+        disabled={isRunning}
+        onClick={handleClickCompareShadow}
+      >
+        <CompareIcon className={isRunning ? undefined : classes.play} />
       </ProcessIconButton>
     </div>
   );

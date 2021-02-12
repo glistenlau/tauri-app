@@ -1,12 +1,12 @@
-import React from "react";
+import { createStyles, makeStyles } from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
-
-import RunnerControlToolBar from "../runnerControl/RunnerControlToolBar";
+import React from "react";
+import RunnerControlToolBar, { RunOptions } from "../runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../transactionControl/TransactionControlToolBar";
-import { makeStyles, createStyles } from "@material-ui/core";
+
 
 interface DatabaseConsoleToolBarProps {
-  onClickRun: Function;
+  onClickRun: (options: RunOptions) => void;
 }
 
 const useStyles = makeStyles((theme) =>

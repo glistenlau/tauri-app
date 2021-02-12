@@ -1,6 +1,7 @@
 // @ts-ignore
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initApp, showNotification } from "../../actions";
+import { dbSchemaSearchQueryResponse } from "../../apis/graphql/__generated__/dbSchemaSearchQuery.graphql";
 import { XmlTag } from "../../core/xmlParser";
 import xmlProcessor, {
   aggregateSameNamePair,
@@ -16,7 +17,7 @@ export interface SchemaEditorState {
   activePair: [boolean, boolean];
   valuePair: [string, string];
   leftPanelWidth: number;
-  xmlList: dbSchemaSearchQueryResponse.dbSchemas;
+  xmlList?: dbSchemaSearchQueryResponse;
   searchPath: string;
   searchFile: string;
   activeNodeId: string;
@@ -30,7 +31,7 @@ const initialState: SchemaEditorState = {
   activePair: [true, true],
   leftPanelWidth: 200,
   valuePair: ["", ""],
-  xmlList: [],
+  xmlList: undefined,
   searchPath: "",
   searchFile: "",
   activeNodeId: "",
@@ -68,7 +69,7 @@ const schemaEditor = createSlice({
     ) {
       state.activeNodePaths = payload;
     },
-    loadXmlList(state, { payload }: PayloadAction<Array<XmlFile>>) {
+    loadXmlList(state, { payload }: PayloadAction<dbSchemaSearchQueryResponse>) {
       state.activeNodeId = initialState.activeNodeId;
       state.activeNodePaths = initialState.activeNodePaths;
       state.pathOpenMap = {};

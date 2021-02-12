@@ -1,6 +1,6 @@
 import { graphql } from "babel-plugin-relay/macro";
 
-export const query = graphql`
+export const searchSchemaQuery = graphql`
   query dbSchemaSearchQuery($searchFolder: String!, $searchPattern: String!) {
     dbSchemas(searchFolder: $searchFolder, searchPattern: $searchPattern) {
       path
