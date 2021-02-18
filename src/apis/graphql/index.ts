@@ -1,26 +1,26 @@
-import type { FetchFunction } from "relay-runtime";
-import { Environment, Network, RecordSource, Store } from "relay-runtime";
+import { ApolloClient, ApolloLink, InMemoryCache, Observable } from "@apollo/client";
+import { print } from "graphql";
 import { requestAsync } from "..";
 
-export const fetchRelayQuery: FetchFunction = async (operation, variables) => {
-  const res = await requestAsync("graphQL", "query", { query: operation.text, variables });
-  console.log("Got GraphQL response: ", res);
-  return res;
-};
-
-export interface GraphQlQuery {
-  response: unknown,
-  variables: {[key: string]: any},
-}
-
-export const fetchQuery = async <Q extends GraphQlQuery>(query: string, variables: Q['variables']): Promise<Q['response']> => {
-  const res = await requestAsync("graphQL", "query", { query, variables });
-  return res;
-}
-
-const environment = new Environment({
-  network: Network.create(fetchRelayQuery),
-  store: new Store(new RecordSource()),
+const rustLink = new ApolloLink((operation, forward) => {
+  return new Observable((observer) => {
+    fetchGraphql(print(operation.query), operation.variables).then(res => {
+      observer.next(res);
+      observer.complete();
+    })
+    .catch(err => {
+      observer.error(err);
+    });
+  });
 });
 
-export default environment;
+const fetchGraphql = async(query: string, variables: Record<string, any> ) => {
+  return requestAsync("graphQL", "query", {query, variables});
+}
+
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: rustLink,
+});
+
+export default client;

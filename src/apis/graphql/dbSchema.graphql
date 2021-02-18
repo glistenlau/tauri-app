@@ -1,0 +1,29 @@
+query dbSchemaSearch($searchFolder: String!, $searchPattern: String!) {
+  dbSchemas(searchFolder: $searchFolder, searchPattern: $searchPattern) {
+    path
+    root {
+      ...dbSchemaTreeNodeFields
+      ...dbSchemaTreeNodeRecursive
+    }
+  }
+}
+
+fragment dbSchemaTreeNodeRecursive on TreeNode {
+  children {
+    ...dbSchemaTreeNodeFields
+    children {
+      ...dbSchemaTreeNodeFields
+    }
+  }
+}
+
+fragment dbSchemaTreeNodeFields on TreeNode {
+  values {
+    start
+    end
+    dbFamily
+  }
+  tagName
+  nameAttr
+  dbFamily
+}

@@ -116,12 +116,12 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
         const originalQuery: Query = {
           dbType: DBType.Oracle,
           mode: ParameterGenerateStrategy.Normal,
-          statement: `SELECT * FROM ${tableNames[i]}`,
+          statement: `SELECT * FROM COMPANY_${tableNames[i]}`,
         };
         const shadowQuery: Query = {
           dbType: DBType.Oracle,
           mode: ParameterGenerateStrategy.Normal,
-          statement: `SELECT * FROM ${shadowedTableNames[i]}`,
+          statement: `SELECT * FROM COMPANY_${shadowedTableNames[i]}`,
         };
 
         const runnerQuery = {
@@ -130,6 +130,9 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
 
         const runnerResult = await QueryRunner.scanQueries(runnerQuery);
         console.log("runner result: ", runnerResult);
+        if (runnerResult['GREENCO'].diffResults) {
+          console.log("has diff.", tableNames[i]);
+        }
       }
     }
   }, []);

@@ -1,7 +1,7 @@
-import React from "react";
+import { createStyles, makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import SearchIcon from "@material-ui/icons/Search";
-import { createStyles, makeStyles } from "@material-ui/core/styles";
+import React from "react";
 import ProcessIconButton from "./ProgressIconButton";
 
 const useStyles = makeStyles((theme) =>
@@ -45,6 +45,7 @@ interface SearchBarProps {
   fileNameValue: string;
   searchFolderLabel: string;
   searchFileLabel: string;
+  isLoading: boolean;
 }
 
 const SearchBar = React.memo(
@@ -56,6 +57,7 @@ const SearchBar = React.memo(
     fileNameValue,
     searchFolderLabel,
     searchFileLabel,
+    isLoading,
   }: SearchBarProps) => {
     const classes = useStyles();
 
@@ -104,7 +106,9 @@ const SearchBar = React.memo(
             defaultValue={fileNameValue}
             margin="dense"
           />
-          <ProcessIconButton onClick={handleSearch}>
+          <ProcessIconButton 
+          loading={isLoading}
+          onClick={handleSearch}>
             <SearchIcon color="primary" />
           </ProcessIconButton>
         </div>

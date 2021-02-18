@@ -2,14 +2,11 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useRelayEnvironment } from "react-relay/hooks";
 import styled from "styled-components";
-import { fetchQuery } from "../../apis/graphql";
-import { searchSchemaQuery } from "../../apis/graphql/dbSchema";
-import { dbSchemaSearchQuery } from "../../apis/graphql/__generated__/dbSchemaSearchQuery.graphql";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
+import { useDbSchemaSearchLazyQuery } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import {
   changeSearchFile,
@@ -70,20 +67,21 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     shallowEqual
   );
 
-  const relayEnv = useRelayEnvironment();
+  const [
+    searchDbSchema,
+    { called, loading, data },
+  ] = useDbSchemaSearchLazyQuery();
 
-  const handleClickSearch = useCallback(async () => {
-    try {
-      console.log(searchSchemaQuery);
-      const res =  await fetchQuery<dbSchemaSearchQuery>(searchSchemaQuery.text, {
+  console.log("search db schema data", data);
+
+  const handleClickSearch = useCallback(() => {
+    searchDbSchema({
+      variables: {
         searchFolder: searchPath,
         searchPattern: searchFile,
-      });
-      console.log(res);
-    } catch (e) {
-    
-    }
-  }, [searchFile, searchPath]);
+      },
+    });
+  }, [searchDbSchema, searchFile, searchPath]);
 
   const handleLeftPanelResize = useCallback(
     (e: any, direction: any, ref: any, d: any) => {
@@ -168,6 +166,7 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
           onFilePathChange={handleSearchPathChange}
           onFileNameChange={handleSearchFileChange}
           onSearch={handleClickSearch}
+          isLoading={loading}
         />
         <Divider style={{ marginTop: 10 }} />
         <SchemaTreeView />

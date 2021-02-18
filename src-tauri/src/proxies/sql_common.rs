@@ -1,7 +1,8 @@
-use std::{error::Error, fmt};
+use std::{borrow::BorrowMut, cmp, error::Error, fmt};
 use std::time::Duration;
 
 use anyhow::Result;
+use cmp::Ordering;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -73,6 +74,37 @@ impl SQLResultSet {
             row_count,
             columns,
             rows,
+        }
+    }
+
+    pub fn sort_rows(&mut self) -> () {
+        match self.rows.as_mut() {
+            Some(row_vec) => {
+                row_vec.sort_by(|a, b| {
+                    let max_len = cmp::max(a.len(), b.len());
+                    let mut order = cmp::Ordering::Equal;
+                    for i in 0..max_len {
+                        let a_cell = a.get(i);
+                        let b_cell = b.get(i);
+                        if a_cell.is_none() && b_cell.is_none() {
+                            return cmp::Ordering::Equal;
+                        } else if a_cell.is_none() {
+                            return cmp::Ordering::Less;
+                        } else if b_cell.is_none() {
+                            return cmp::Ordering::Greater;
+                        } else {
+                            let cell_rst = a_cell.unwrap().to_string().cmp(&b_cell.unwrap().to_string());
+                            if cell_rst != cmp::Ordering::Equal {
+                                return cell_rst;
+                            }
+                        }
+                    }
+
+                    order
+                });
+            }
+            
+            None => {}
         }
     }
 

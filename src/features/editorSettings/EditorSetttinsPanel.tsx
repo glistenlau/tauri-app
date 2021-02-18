@@ -1,13 +1,11 @@
-import React from "react";
-import TextField from "@material-ui/core/TextField";
-
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import { themeList } from "../../components/Editor";
+import TextField from "@material-ui/core/TextField";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import SettingsPanelBase from "../../components/SettingsPanelBase";
-import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../reducers";
 import { changeSettings } from "./editorSettingsSlice";
-import MenuItem from "@material-ui/core/MenuItem";
+
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -51,11 +49,11 @@ const EditorSettingsContent = React.memo(
             value={value.theme}
             margin="dense"
           >
-            {themeList.map((theme) => (
+            {/* {themeList.map((theme) => (
               <MenuItem key={theme} value={theme}>
                 {theme}
               </MenuItem>
-            ))}
+            ))} */}
           </TextField>
           <TextField
             className={classes.input}

@@ -1,9 +1,9 @@
+import { ApolloProvider } from "@apollo/client";
 import { Divider } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import React, { createContext, useState } from "react";
-import { RelayEnvironmentProvider } from "react-relay/hooks";
 import { ThemeProvider } from "styled-components";
-import environment from "./apis/graphql";
+import apolloClient from "./apis/graphql";
 import Root from "./containers/Root";
 import { initLogger } from "./core/logger";
 
@@ -65,14 +65,14 @@ const App = () => {
   return (
     <MuiThemeProvider theme={lightTheme}>
       <ThemeProvider theme={lightTheme}>
-        <RelayEnvironmentProvider environment={environment}>
+        <ApolloProvider client={apolloClient}>
           <GlobalContext.Provider value={{ isRunning, setIsRunning }}>
             <Divider />
             <div className="App">
               <Root />
             </div>
           </GlobalContext.Provider>
-        </RelayEnvironmentProvider>
+        </ApolloProvider>
       </ThemeProvider>
     </MuiThemeProvider>
   );

@@ -1,8 +1,8 @@
-import React from "react";
-import { makeStyles, createStyles } from "@material-ui/styles";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "./Tooltip";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import IconButton from "@material-ui/core/IconButton";
+import { createStyles, makeStyles } from "@material-ui/styles";
+import React from "react";
+import Tooltip from "./Tooltip";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -16,7 +16,15 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
-const ProcessIconButton = (props: any) => {
+interface ProcessIconButtonProps {
+  loading: boolean;
+  disabled: boolean;
+  color: string;
+  title: string;
+  onClick: () => {};
+}
+
+const ProcessIconButton: React.FC<ProcessIconButtonProps> = (props) => {
   const {
     onClick,
     children,
@@ -34,8 +42,7 @@ const ProcessIconButton = (props: any) => {
     setLoading(true);
     try {
       await onClick();
-    } catch (e) {
-    }
+    } catch (e) {}
     setLoading(false);
   }, [onClick]);
 
