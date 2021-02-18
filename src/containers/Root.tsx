@@ -17,7 +17,7 @@ import Navigator from "./Navigator";
 import Notification from "./Notification";
 
 const RootContainer = styled.div`
-  height: calc(100vh - 1px);
+  height: calc(100vh - 2px);
   width: 100vw;
   display: flex;
   flex-direction: row;
