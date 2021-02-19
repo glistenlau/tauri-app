@@ -72,8 +72,6 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     { called, loading, data },
   ] = useDbSchemaSearchLazyQuery();
 
-  console.log("search db schema data", data);
-
   const handleClickSearch = useCallback(() => {
     searchDbSchema({
       variables: {

@@ -9,7 +9,8 @@ import React, {
   ForwardRefRenderFunction,
   useCallback,
   useImperativeHandle,
-  useRef
+
+  useState
 } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";
@@ -42,16 +43,12 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
   { decorations, onBlur, options, ...otherProps }: EditorProps,
   ref
 ) => {
-  const editorRef = useRef<editor.IStandaloneCodeEditor>();
+  const [instance, setInstance] = useState<editor.IStandaloneCodeEditor>();
   const oldDecorations = React.useRef([] as string[]);
   const theme = useSelector((state: RootState) => state.editorSettings.theme);
   const fontSize = useSelector(
     (state: RootState) => state.editorSettings.fontSize
   );
-
-  const handleEditorDidMount: OnMount = useCallback((editor, monaco) => {
-    editorRef.current = editor;
-  }, []);
 
   const effectiveOptions = React.useMemo(() => {
     return Object.assign(
@@ -66,26 +63,38 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
     );
   }, [fontSize, options]);
 
-  React.useEffect(() => {
-    if (!decorations || !editorRef.current) {
+  const setDecorations = useCallback(() => {
+    if (!decorations || !instance) {
       return;
     }
 
     oldDecorations.current =
-      editorRef.current?.deltaDecorations(
+    instance?.deltaDecorations(
         oldDecorations.current,
         decorations
       ) || [];
-  }, [decorations]);
+  }, [decorations, instance]);
+
+  const handleEditorDidMount: OnMount = useCallback(
+    (editor, monaco) => {
+      setInstance(editor);
+      setDecorations();
+    },
+    [setDecorations]
+  );
+
+  React.useEffect(() => {
+    setDecorations();
+  }, [setDecorations]);
 
   useImperativeHandle(
     ref,
     () => ({
-      editor: editorRef.current,
-      getEffectiveValue: () => getEffectiveValueFromEditor(editorRef.current),
-      getValue: () => getValueFromEditor(editorRef.current),
+      editor: instance, 
+      getEffectiveValue: () => getEffectiveValueFromEditor(instance),
+      getValue: () => getValueFromEditor(instance),
     }),
-    []
+    [instance]
   );
 
   React.useEffect(() => {
@@ -93,12 +102,12 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
       return;
     }
 
-    const disposible = editorRef.current?.onDidBlurEditorWidget(onBlur);
+    const disposible = instance?.onDidBlurEditorWidget(onBlur);
 
     return () => {
       disposible?.dispose();
     };
-  }, [onBlur]);
+  }, [instance, onBlur]);
 
   return (
     <MonacoEditor

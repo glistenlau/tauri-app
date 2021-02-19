@@ -134,7 +134,6 @@ const SplitEditor: ForwardRefRenderFunction<
 
   React.useImperativeHandle(ref, () => ({
     getEffectiveValue: () => {
-      console.log("4", refOne, refTwo);
       let valuePair: [string, string] = ["", ""];
       if (diff) {
         valuePair = getDiffEditorPair()
@@ -146,7 +145,6 @@ const SplitEditor: ForwardRefRenderFunction<
           refTwo.current?.getEffectiveValue() || "",
         ];
       }
-      console.log("3");
 
       if (!valuePair[1]) {
         valuePair[1] = valuePair[0];

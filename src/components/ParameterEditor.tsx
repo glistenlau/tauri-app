@@ -3,7 +3,7 @@ import { red } from "@material-ui/core/colors";
 import Typography from "@material-ui/core/Typography";
 import { createStyles, makeStyles } from "@material-ui/styles";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import React, { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { withSize } from "react-sizeme";
 import { Parameter, ParameterValue } from "../features/queryScan/queryScanSlice";
 import Editor, { EditorHandle } from "./Editor";
@@ -62,15 +62,15 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     onCurrentParameterChange,
   } = props;
   const [markers, setMarkers]: [any, any] = useState([]);
-  const editorRef: null | RefObject<EditorHandle> = useRef(null);
-  const rightEditorRef: null | RefObject<EditorHandle> = useRef(null);
+  const editorRef = useRef<EditorHandle>(null);
+  const rightEditorRef = useRef<EditorHandle>(null);
 
   const handleBlur = React.useCallback(() => {
     if (!rightEditorRef.current || !onEditorBlur) {
       return;
     }
 
-    const { editor } = rightEditorRef.current;
+    const editor = rightEditorRef.current;
     if (!editor) {
       return;
     }

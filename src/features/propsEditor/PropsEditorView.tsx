@@ -87,7 +87,6 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
 
   const handleSaveDialogClose = useCallback(
     async (value?: number) => {
-      console.log(value);
       if (value == null) {
         setOptionSaveDialog(false);
       }

@@ -27,7 +27,7 @@ import { changeUncommitCount } from "../transactionControl/transactionControlSli
 export enum ParameterStatus {
   Active = "active",
   Valid = "valid",
-  Error = "error"
+  Error = "error",
 }
 
 type EvaluatedParams =
@@ -65,7 +65,7 @@ const initialState: QueryScanState = {
   sync: false,
   selectedSchemas: [],
   statements: ["", ""],
-  parametersPair: [[], []]
+  parametersPair: [[], []],
 };
 
 export const loadQueryScan = createAsyncThunk<
@@ -76,26 +76,27 @@ export const loadQueryScan = createAsyncThunk<
   const { dispatch, getState } = thunkApi;
   const {
     navigator: { activeView },
-    propsEditor: { selectedClassName, selectedPropName }
+    propsEditor: { selectedClassName, selectedPropName },
   } = getState();
 
   let storedParamsPair: GetParamReturn | null;
 
-  console.log('1')
 
-  if (activeView === 0) {
-    storedParamsPair = await getParamsPair({
-      propPath: selectedClassName,
-      propName: selectedPropName,
-      stmts: stmtPair
-    });
-  } else if (activeView === 1) {
-    storedParamsPair = await getParamsPair({
-      stmts: stmtPair
-    });
+  try {
+    if (activeView === 0) {
+      storedParamsPair = await getParamsPair({
+        propPath: selectedClassName,
+        propName: selectedPropName,
+        stmts: stmtPair,
+      });
+    } else if (activeView === 1) {
+      storedParamsPair = await getParamsPair({
+        stmts: stmtPair,
+      });
+    }
+  } catch (e) {
+    window.logger.warn("failed to load cached parameter.");
   }
-
-  console.log('2')
 
   const paramsPair = stmtPair
     .map(getParameterMarkerPosition)
@@ -134,14 +135,14 @@ export const startQueryScan = createAsyncThunk<
   const {
     queryScan: { parametersPair, selectedSchemas, statements },
     navigator: { activeView },
-    propsEditor: { selectedClassName, selectedPropName }
+    propsEditor: { selectedClassName, selectedPropName },
   } = getState();
 
   const unEvaled = parametersPair.map((params) =>
     params.map((param) => ({
       row: param.row,
       col: param.col,
-      raw: param.raw
+      raw: param.raw,
     }))
   );
 
@@ -151,12 +152,12 @@ export const startQueryScan = createAsyncThunk<
       propPath: selectedClassName,
       propName: selectedPropName,
       stmts: statements,
-      paramsPair: parametersPair
+      paramsPair: parametersPair,
     });
   } else if (activeView === 1) {
     await saveParamsPair({
       stmts: statements,
-      paramsPair: parametersPair
+      paramsPair: parametersPair,
     });
   }
 
@@ -179,7 +180,7 @@ export const startQueryScan = createAsyncThunk<
         dbType,
         parameters: params,
         statement: stmt,
-        mode: ParameterGenerateStrategy.Normal
+        mode: ParameterGenerateStrategy.Normal,
       };
 
       return query;
@@ -238,7 +239,7 @@ const queryScan = createSlice({
     initQueryScan(
       state,
       {
-        payload
+        payload,
       }: PayloadAction<{
         stmtPair: [string, string];
         paramsPair: [Parameter[], Parameter[]];
@@ -258,8 +259,8 @@ const queryScan = createSlice({
 
       state.cartesian = false;
       state.openModel = true;
-    }
-  }
+    },
+  },
 });
 
 export const {
@@ -267,7 +268,7 @@ export const {
   setActiveSchema,
   setOpenModal,
   setParametersPair,
-  setSelectedSchemas
+  setSelectedSchemas,
 } = queryScan.actions;
 
 export default queryScan.reducer;

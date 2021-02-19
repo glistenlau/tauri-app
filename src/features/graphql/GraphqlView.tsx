@@ -1,8 +1,8 @@
 import GraphiQL from "graphiql";
 import {
-    Fetcher,
-    FetcherOpts,
-    FetcherParams
+  Fetcher,
+  FetcherOpts,
+  FetcherParams
 } from "graphiql/dist/components/GraphiQL";
 import "graphiql/graphiql.min.css";
 import React, { useCallback } from "react";
@@ -24,7 +24,6 @@ interface GraphqlViewProps {
 const GraphqlView: React.FC<GraphqlViewProps> = ({ active }) => {
   const fetchQuery: Fetcher = useCallback(
     async (graphQLParams: FetcherParams, opts?: FetcherOpts) => {
-      console.log("fetch query: ", graphQLParams);
       const res = await requestAsync("graphQL", "query", {
         query: graphQLParams.query,
         variables: graphQLParams.variables || {},
