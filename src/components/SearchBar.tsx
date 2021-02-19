@@ -106,9 +106,7 @@ const SearchBar = React.memo(
             defaultValue={fileNameValue}
             margin="dense"
           />
-          <ProcessIconButton 
-          loading={isLoading}
-          onClick={handleSearch}>
+          <ProcessIconButton loading={isLoading} onClick={handleSearch}>
             <SearchIcon color="primary" />
           </ProcessIconButton>
         </div>

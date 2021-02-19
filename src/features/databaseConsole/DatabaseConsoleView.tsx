@@ -34,7 +34,9 @@ const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
 
   const handleClickRun = React.useCallback(
     async (sortResults) => {
+      console.log('click: ', splitEditorRef)
       const values = splitEditorRef.current?.getEffectiveValue();
+      console.log('values:', values);
       if (
         !values ||
         values.filter((value) => value.length === 0).length === 2

@@ -1,11 +1,16 @@
+// import MonacoEditor, { MonacoEditorProps } from "react-monaco-editor";
+import MonacoEditor, {
+  EditorProps as MonacoEditorProps,
+  OnMount
+} from "@monaco-editor/react";
 import { editor } from "monaco-editor";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import React, {
   ForwardRefRenderFunction,
-  MutableRefObject,
-  useImperativeHandle
+  useCallback,
+  useImperativeHandle,
+  useRef
 } from "react";
-import MonacoEditor, { MonacoEditorProps } from "react-monaco-editor";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";
 import {
@@ -25,7 +30,7 @@ Object.keys(themeDataMap).forEach((themeName) => {
 export interface EditorHandle {
   getEffectiveValue(): string;
   getValue(): string;
-  editor?: editor.ICodeEditor;
+  editor?: editor.IStandaloneCodeEditor;
 }
 
 export interface EditorProps extends MonacoEditorProps {
@@ -37,12 +42,16 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
   { decorations, onBlur, options, ...otherProps }: EditorProps,
   ref
 ) => {
-  const innerRef: MutableRefObject<null | MonacoEditor> = React.useRef(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor>();
   const oldDecorations = React.useRef([] as string[]);
   const theme = useSelector((state: RootState) => state.editorSettings.theme);
   const fontSize = useSelector(
     (state: RootState) => state.editorSettings.fontSize
   );
+
+  const handleEditorDidMount: OnMount = useCallback((editor, monaco) => {
+    editorRef.current = editor;
+  }, []);
 
   const effectiveOptions = React.useMemo(() => {
     return Object.assign(
@@ -57,27 +66,13 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
     );
   }, [fontSize, options]);
 
-  const handleRef = React.useCallback(
-    (e) => {
-      if (ref) {
-        if (typeof ref === "function") {
-          ref(e);
-        } else {
-          ref.current = e;
-        }
-      }
-      innerRef.current = e;
-    },
-    [ref]
-  );
-
   React.useEffect(() => {
-    if (!decorations || !innerRef.current) {
+    if (!decorations || !editorRef.current) {
       return;
     }
 
     oldDecorations.current =
-      innerRef.current?.editor?.deltaDecorations(
+      editorRef.current?.deltaDecorations(
         oldDecorations.current,
         decorations
       ) || [];
@@ -86,10 +81,9 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
   useImperativeHandle(
     ref,
     () => ({
-      editor: innerRef.current?.editor,
-      getEffectiveValue: () =>
-        getEffectiveValueFromEditor(innerRef.current?.editor),
-      getValue: () => getValueFromEditor(innerRef.current?.editor),
+      editor: editorRef.current,
+      getEffectiveValue: () => getEffectiveValueFromEditor(editorRef.current),
+      getValue: () => getValueFromEditor(editorRef.current),
     }),
     []
   );
@@ -99,7 +93,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
       return;
     }
 
-    const disposible = innerRef.current?.editor?.onDidBlurEditorWidget(onBlur);
+    const disposible = editorRef.current?.onDidBlurEditorWidget(onBlur);
 
     return () => {
       disposible?.dispose();
@@ -108,9 +102,9 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
 
   return (
     <MonacoEditor
-      ref={handleRef}
       theme={theme}
       options={effectiveOptions}
+      onMount={handleEditorDidMount}
       {...otherProps}
     />
   );

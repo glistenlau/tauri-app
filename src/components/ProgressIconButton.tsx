@@ -17,11 +17,11 @@ const useStyles = makeStyles((theme) =>
 );
 
 interface ProcessIconButtonProps {
-  loading: boolean;
-  disabled: boolean;
-  color: string;
-  title: string;
-  onClick: () => {};
+  loading?: boolean;
+  disabled?: boolean;
+  color?: string;
+  title?: string;
+  onClick: () => Promise<void>;
 }
 
 const ProcessIconButton: React.FC<ProcessIconButtonProps> = (props) => {
@@ -71,4 +71,4 @@ const ProcessIconButton: React.FC<ProcessIconButtonProps> = (props) => {
   );
 };
 
-export default React.memo(ProcessIconButton);
+export default ProcessIconButton;

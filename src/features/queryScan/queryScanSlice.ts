@@ -81,6 +81,8 @@ export const loadQueryScan = createAsyncThunk<
 
   let storedParamsPair: GetParamReturn | null;
 
+  console.log('1')
+
   if (activeView === 0) {
     storedParamsPair = await getParamsPair({
       propPath: selectedClassName,
@@ -92,6 +94,8 @@ export const loadQueryScan = createAsyncThunk<
       stmts: stmtPair
     });
   }
+
+  console.log('2')
 
   const paramsPair = stmtPair
     .map(getParameterMarkerPosition)

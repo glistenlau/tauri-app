@@ -65,13 +65,13 @@ const SplitEditor: ForwardRefRenderFunction<
   const classes = styles();
   const refOne = React.useRef(null as any);
   const refTwo = React.useRef(null as any);
-  const refDiff = React.useRef(null as { editor: editor.ICodeEditor } | null);
+  const refDiff = React.useRef<editor.IDiffEditor>();
 
   const getDiffEditorPair = React.useCallback(() => {
     let editorOne;
     let editorTwo;
     if (diff) {
-      const diffRefEditor: any = refDiff?.current?.editor;
+      const diffRefEditor = refDiff?.current;
       editorOne = diffRefEditor?.getOriginalEditor();
       editorTwo = diffRefEditor?.getModifiedEditor();
     }
@@ -80,48 +80,32 @@ const SplitEditor: ForwardRefRenderFunction<
   }, [diff]);
 
   const handleDiffRef = React.useCallback(
-    (e) => {
+    (e: editor.IDiffEditor) => {
       refDiff.current = e;
-      onEditorRef && onEditorRef(e && e.editor.getOriginalEditor(), 0);
-      onEditorRef && onEditorRef(e && e.editor.getModifiedEditor(), 1);
-    },
-    [onEditorRef]
-  );
-
-  const handleOraRef = React.useCallback(
-    (e) => {
-      onEditorRef && onEditorRef(e && e.editor, 0);
-      refOne.current = e;
-    },
-    [onEditorRef]
-  );
-
-  const handlePgRef = React.useCallback(
-    (e) => {
-      onEditorRef && onEditorRef(e && e.editor, 1);
-      refTwo.current = e;
+      onEditorRef && onEditorRef(e && e.getOriginalEditor(), 0);
+      onEditorRef && onEditorRef(e && e.getModifiedEditor(), 1);
     },
     [onEditorRef]
   );
 
   const handleLeftChange = React.useCallback(
-    (val: string) => {
+    (val?: string) => {
       if (!onChange) {
         return;
       }
       const rightValue = (valuePair && valuePair[1]) || "";
-      onChange([val, rightValue]);
+      onChange([val || "", rightValue]);
     },
     [onChange, valuePair]
   );
 
   const handleRightChange = React.useCallback(
-    (val: string) => {
+    (val?: string) => {
       if (!onChange) {
         return;
       }
       const leftValue = (valuePair && valuePair[0]) || "";
-      onChange([leftValue, val]);
+      onChange([leftValue, val || ""]);
     },
     [onChange, valuePair]
   );
@@ -150,6 +134,7 @@ const SplitEditor: ForwardRefRenderFunction<
 
   React.useImperativeHandle(ref, () => ({
     getEffectiveValue: () => {
+      console.log("4", refOne, refTwo);
       let valuePair: [string, string] = ["", ""];
       if (diff) {
         valuePair = getDiffEditorPair()
@@ -161,6 +146,7 @@ const SplitEditor: ForwardRefRenderFunction<
           refTwo.current?.getEffectiveValue() || "",
         ];
       }
+      console.log("3");
 
       if (!valuePair[1]) {
         valuePair[1] = valuePair[0];
@@ -188,7 +174,7 @@ const SplitEditor: ForwardRefRenderFunction<
       return (
         <div className={classes.container}>
           <Editor
-            ref={handleOraRef}
+            ref={refOne}
             value={(valuePair && valuePair[0]) ?? ""}
             defaultValue={defaultValues && defaultValues[0]}
             key="oracleEditor"
@@ -202,7 +188,7 @@ const SplitEditor: ForwardRefRenderFunction<
             <Divider orientation="vertical" flexItem />
           )}
           <Editor
-            ref={handlePgRef}
+            ref={refTwo}
             value={(valuePair && valuePair[1]) ?? ""}
             defaultValue={defaultValues && defaultValues[1]}
             key="postgresEditor"
@@ -221,8 +207,6 @@ const SplitEditor: ForwardRefRenderFunction<
       defaultValues,
       getWidthPair,
       handleLeftChange,
-      handleOraRef,
-      handlePgRef,
       handleRightChange,
       mode,
       onBlur,
@@ -235,8 +219,7 @@ const SplitEditor: ForwardRefRenderFunction<
       <div className={classes.container}>
         <DiffEditor
           original={valuePair && valuePair[0]}
-          value={valuePair && valuePair[1]}
-          onChange={handleRightChange}
+          modified={valuePair && valuePair[1]}
           ref={handleDiffRef}
           width={size.width || undefined}
           height={size.height || undefined}
@@ -244,7 +227,7 @@ const SplitEditor: ForwardRefRenderFunction<
         />
       </div>
     ),
-    [classes.container, handleDiffRef, handleRightChange, mode, valuePair]
+    [classes.container, handleDiffRef, mode, valuePair]
   );
 
   if (diff) {
