@@ -2,12 +2,10 @@ use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use tokio_postgres::{
-    error::SqlState,
-};
+use tokio_postgres::error::SqlState;
 
-use crate::proxies::{java_props::save_java_prop, postgres::PostgresProxy};
 use crate::proxies::{java_props::load_props, sql_common::SQLError};
+use crate::proxies::{java_props::save_java_prop, postgres::PostgresProxy};
 
 use super::Endpoint;
 
@@ -27,8 +25,8 @@ pub enum Status {
 
 impl Serialize for Status {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer,
+    where
+        S: serde::Serializer,
     {
         serializer.serialize_str(match self {
             Status::Pass => "pass",
@@ -71,7 +69,7 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<Option<Resp
         filepath,
         classname,
         prop_key,
-        prop_value
+        prop_value,
     } = payload;
 
     match action {
@@ -126,7 +124,12 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Result<Option<Resp
                 return Err(anyhow!("Missing prop value."));
             }
 
-            log::debug!("save java prop, filepath: {}, prop key: {:?}, prop value: {:?}", filepath, prop_key, prop_value);
+            log::debug!(
+                "save java prop, filepath: {}, prop key: {:?}, prop value: {:?}",
+                filepath,
+                prop_key,
+                prop_value
+            );
 
             save_java_prop(&filepath, &prop_key.unwrap(), &prop_value.unwrap())?;
 

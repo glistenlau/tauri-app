@@ -1,6 +1,4 @@
-
-use std::time::{Instant};
-
+use std::time::Instant;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -27,7 +25,6 @@ pub fn handle_command(endpoint: Endpoint<Action, Payload>) -> Response<()> {
     let Endpoint { action, payload } = endpoint;
     let Payload { target, message } = payload;
     let now = Instant::now();
-
 
     let level = match action {
         Action::Debug => log::Level::Debug,

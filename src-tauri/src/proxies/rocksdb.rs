@@ -99,7 +99,7 @@ mod tests {
 
     use futures::channel::mpsc::unbounded;
     use rocksdb::{MergeOperands, Options};
-    use serde_json::{Value, json};
+    use serde_json::{json, Value};
 
     use super::*;
 
@@ -176,10 +176,9 @@ mod tests {
         let mut path = RocksDataStore::get_path();
         path.push("_test");
         let db = DB::open(&opts, path).unwrap();
-        db.put(b"test",b"{\"name\": \"John Doe\"}");
+        db.put(b"test", b"{\"name\": \"John Doe\"}");
         db.merge(b"test", b"{\"gender\": \"male\"}");
         let r = db.get(b"test").unwrap();
         println!("{}", String::from_utf8(r.unwrap()).unwrap());
-        
     }
 }

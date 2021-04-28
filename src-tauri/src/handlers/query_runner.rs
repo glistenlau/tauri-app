@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -6,7 +6,7 @@ use serde_json::Value;
 
 use crate::{
     core::parameter_iterator::ParameterGenerateStrategy,
-    proxies::{query_runner::RunResults, query_runner::scan_queries, sql_common::DBType},
+    proxies::{query_runner::scan_queries, query_runner::RunResults, sql_common::DBType},
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

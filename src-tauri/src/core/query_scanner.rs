@@ -4,21 +4,21 @@ use anyhow::{anyhow, Result};
 use oracle::sql_type::ToSql as oracle_ToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tokio_postgres::{Statement as PgStmt, types::ToSql as pg_ToSql};
+use tokio_postgres::{types::ToSql as pg_ToSql, Statement as PgStmt};
 
-use crate::{
-    handlers::query_runner::Query,
-    proxies::sql_common::{SQLError, SQLResultSet},
-};
 use crate::proxies::{oracle::OracleClient, postgres::PostgresProxy};
 use crate::utilities::{
     oracle::process_statement as process_oracle_statement,
     postgres::process_statement as process_pg_statement,
 };
+use crate::{
+    handlers::query_runner::Query,
+    proxies::sql_common::{SQLError, SQLResultSet},
+};
 
 use super::{
     oracle_param_mapper::map_param,
-    parameter_iterator::{DBParamIter, ParameterIterator, ParamSeeds},
+    parameter_iterator::{DBParamIter, ParamSeeds, ParameterIterator},
     postgres_param_mapper::map_to_sql,
 };
 

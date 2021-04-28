@@ -1,0 +1,24 @@
+query dbExplainQuery($explainText: String!, $targetId: Int) {
+  dbExplain(text: $explainText, targetId: $targetId) {
+    ...dbExplainRowFields
+    children {
+      ...dbExplainRowFields
+    }
+  }
+}
+
+fragment dbExplainRowFields on ExplainRow {
+  id
+  operation
+  hasChildren
+  name
+  starts
+  eRows
+  a_rows
+  a_time
+  buffers
+  o_mem
+  one_mem
+  used_mem
+  predicateInformation
+}

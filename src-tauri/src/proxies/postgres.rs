@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::{
+    borrow::BorrowMut,
+    sync::{Arc, Mutex, MutexGuard},
+};
 
 use anyhow::{anyhow, Result};
 use futures::future;
@@ -6,7 +9,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::{runtime::Runtime, spawn};
-use tokio_postgres::{Client, Error, error::DbError, NoTls, Statement, types::ToSql};
+use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
 
 use crate::{core::postgres_param_mapper::map_to_sql, utilities::postgres::get_row_values};
 
@@ -86,7 +89,9 @@ impl PostgresProxy {
                 );
             }
             let conn_res = self.connect().await?;
-            conn_res.batch_execute("SET search_path TO anaconda").await?;
+            conn_res
+                .batch_execute("SET search_path TO anaconda")
+                .await?;
 
             if !self.autocommit {
                 Self::start_transaction(&conn_res).await?;
@@ -283,6 +288,7 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
             })?
             .block_on(async {
                 self.config = config;
+                self.client = None;
                 match self.get_connection().await {
                     Ok(_) => Ok(SQLResult::new_result(None)),
                     Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),

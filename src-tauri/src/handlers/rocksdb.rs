@@ -1,7 +1,10 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::proxies::{java_props::load_props, rocksdb::{get_proxy, RocksDataStore}};
+use crate::proxies::{
+    java_props::load_props,
+    rocksdb::{get_proxy, RocksDataStore},
+};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -25,10 +28,7 @@ pub struct Response {
 
 impl Response {
     fn new(success: bool, value: Option<String>) -> Response {
-        Response {
-            success,
-            value,
-        }
+        Response { success, value }
     }
 }
 

@@ -25,7 +25,7 @@ pub fn dispatch_command(_webview: &mut Webview, arg: &str) -> Result<(), String>
                     handler,
                     callback,
                     error,
-                } => dispath_async(_webview, handler, callback, error)
+                } => dispath_async(_webview, handler, callback, error),
             }
             Ok(())
         }

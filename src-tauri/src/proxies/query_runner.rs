@@ -1,4 +1,14 @@
-use std::{borrow::BorrowMut, cell::RefCell, collections::{HashMap, LinkedList}, sync::Arc, sync::atomic::AtomicBool, sync::atomic::Ordering, sync::mpsc, thread, time::{Duration, Instant}};
+use std::{
+    borrow::BorrowMut,
+    cell::RefCell,
+    collections::{HashMap, LinkedList},
+    sync::atomic::AtomicBool,
+    sync::atomic::Ordering,
+    sync::mpsc,
+    sync::Arc,
+    thread,
+    time::{Duration, Instant},
+};
 
 use anyhow::Result;
 use oracle::sql_type::ToSql as OracleToSql;
@@ -7,13 +17,13 @@ use serde_json::Value;
 use tokio_postgres::types::ToSql as PgToSql;
 
 use crate::{
+    core::parameter_iterator::DBParamIter,
+    core::parameter_iterator::ParameterIterator,
     core::{
         parameter_iterator::ParamSeeds,
         query_scanner::QueryScanner,
         result_diff::{diff, DiffResults},
     },
-    core::parameter_iterator::DBParamIter,
-    core::parameter_iterator::ParameterIterator,
     handlers::query_runner::Query,
 };
 
@@ -124,7 +134,9 @@ pub fn scan_queries(schema_queries: HashMap<String, Vec<Query>>, diff_results: b
         let queries_arc = queries.iter().map(|q| Arc::new(q.clone())).collect();
         schema_join_handlers.insert(
             schema.clone(),
-            thread::spawn(move || scan_schema_queries(schema.clone(), queries_arc, diff_results, true)),
+            thread::spawn(move || {
+                scan_schema_queries(schema.clone(), queries_arc, diff_results, true)
+            }),
         );
     }
 
@@ -302,14 +314,19 @@ pub fn scan_schema_queries(
                             rs.borrow_mut().sort_rows();
                         }
                         SQLResult::new_result(Some(rs))
-                    },
+                    }
                     Err(err) => {
                         has_error = true;
                         SQLResult::new_error(err)
                     }
                 };
 
-                log::debug!("finished {} query for {}, cur_params: {:?}", i, schema, cur_params);
+                log::debug!(
+                    "finished {} query for {}, cur_params: {:?}",
+                    i,
+                    schema,
+                    cur_params
+                );
 
                 let (pending_delta, finished_delta) = if diff_results { (0, 0) } else { (0, 1) };
 
@@ -348,11 +365,11 @@ pub fn scan_schema_queries(
 
         if diff_results
             && query_results.iter().enumerate().all(|(index, q)| {
-            q.len() > 0
-                || progress_vec[index]
-                .as_ref()
-                .map_or(false, |p| p.borrow().finished == p.borrow().total)
-        })
+                q.len() > 0
+                    || progress_vec[index]
+                        .as_ref()
+                        .map_or(false, |p| p.borrow().finished == p.borrow().total)
+            })
         {
             let mut first_results: Vec<Option<(Option<Vec<Value>>, SQLResult)>> =
                 query_results.iter_mut().map(|qr| qr.pop_front()).collect();

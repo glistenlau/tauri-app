@@ -8,10 +8,10 @@ import { ReactComponent as Graphql } from "../assets/graphql.svg";
 import { ReactComponent as MinusSquare } from "../assets/minus-square-line.svg";
 import { ReactComponent as PlusSquare } from "../assets/plus-square-line.svg";
 import { ReactComponent as PostgresLogo } from "../assets/postgresql_elephant.svg";
+import { ReactComponent as PriceList } from "../assets/price-list.svg";
 import { ReactComponent as PlaneLogo } from "../assets/send-plane-fill.svg";
 import { ReactComponent as SettingsLogo } from "../assets/settings-3-line.svg";
 import { ReactComponent as TerminalLogo } from "../assets/terminal-box-line.svg";
-
 
 const getIcon = (name: string, props: any) => {
   switch (name) {
@@ -39,6 +39,8 @@ const getIcon = (name: string, props: any) => {
       return <MinusSquare {...props} />;
     case "graphql":
       return <Graphql {...props} />;
+    case "priceList":
+      return <PriceList {...props} />;
     default:
       return null;
   }
@@ -47,6 +49,7 @@ const getIcon = (name: string, props: any) => {
 interface SVGIconProps {
   className?: any;
   name:
+    | "priceList"
     | "closeSquare"
     | "terminal"
     | "file"

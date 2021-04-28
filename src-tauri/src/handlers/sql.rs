@@ -27,7 +27,11 @@ pub struct Payload<C> {
 
 const COMPANY_PLACEHOLDER: &str = "company_";
 
-pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<dyn SQLClient<C>>>) -> Result<SQLResult> {
+pub fn handle_command<C>(
+    action: Action,
+    payload: Payload<C>,
+    proxy: Arc<Mutex<dyn SQLClient<C>>>,
+) -> Result<SQLResult> {
     match action {
         Action::ExecuteStatement => {
             if payload.statement.is_none() {
@@ -42,19 +46,30 @@ pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<d
             let mut statement = String::from(&payload.statement.unwrap());
             let mut statement_lower = statement.to_lowercase();
             loop {
-                let str_index = statement_lower.find(COMPANY_PLACEHOLDER).unwrap_or(statement_lower.len());
+                let str_index = statement_lower
+                    .find(COMPANY_PLACEHOLDER)
+                    .unwrap_or(statement_lower.len());
                 if str_index == statement_lower.len() {
                     break;
                 }
 
-                statement.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &schema_str);
-                statement_lower.replace_range(str_index..str_index + COMPANY_PLACEHOLDER.len(), &schema_str);
+                statement.replace_range(
+                    str_index..str_index + COMPANY_PLACEHOLDER.len(),
+                    &schema_str,
+                );
+                statement_lower.replace_range(
+                    str_index..str_index + COMPANY_PLACEHOLDER.len(),
+                    &schema_str,
+                );
             }
 
             let parameters = payload.parameters.unwrap_or(vec![]);
 
             log::debug!("dispatch sql execute statement: {}...", &statement);
-            proxy.lock().unwrap().execute(&statement, &schema, &parameters)
+            proxy
+                .lock()
+                .unwrap()
+                .execute(&statement, &schema, &parameters)
         }
         Action::SetConfig => {
             if payload.config.is_none() {
@@ -62,26 +77,25 @@ pub fn handle_command<C>(action: Action, payload: Payload<C>, proxy: Arc<Mutex<d
             }
 
             match proxy.lock().unwrap().set_config(payload.config.unwrap()) {
-                Ok(sql_result) => {
-                    match sql_result {
-                        SQLResult::Result(sr) => Ok(SQLResult::new_result(sr)),
-                        SQLResult::Error(err) => { return Err(anyhow!(err.message())); }
+                Ok(sql_result) => match sql_result {
+                    SQLResult::Result(sr) => Ok(SQLResult::new_result(sr)),
+                    SQLResult::Error(err) => {
+                        return Err(anyhow!(err.message()));
                     }
-                }
-                Err(err) => Err(err)
+                },
+                Err(err) => Err(err),
             }
         }
         Action::SetAutocommit => {
             if payload.autocommit.is_none() {
                 return Err(anyhow!("missing autocommit"));
             }
-            proxy.lock().unwrap().set_autocommit(payload.autocommit.unwrap())
+            proxy
+                .lock()
+                .unwrap()
+                .set_autocommit(payload.autocommit.unwrap())
         }
-        Action::Commit => {
-            proxy.lock().unwrap().commit()
-        }
-        Action::Rollback => {
-            proxy.lock().unwrap().rollback()
-        }
+        Action::Commit => proxy.lock().unwrap().commit(),
+        Action::Rollback => proxy.lock().unwrap().rollback(),
     }
 }

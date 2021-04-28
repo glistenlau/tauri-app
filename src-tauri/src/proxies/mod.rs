@@ -1,3 +1,6 @@
+pub mod db_explain_tree;
+pub mod db_schema;
+pub mod dirs;
 pub mod fs;
 pub mod java_props;
 pub mod oracle;
@@ -5,5 +8,3 @@ pub mod postgres;
 pub mod query_runner;
 pub mod rocksdb;
 pub mod sql_common;
-pub mod db_schema;
-pub mod dirs;

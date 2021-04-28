@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import styled from "styled-components";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
+import DBExplainView from "../features/dbExplain/DBExplainView";
 import GraphqlView from "../features/graphql/GraphqlView";
 import PropsEditorView from "../features/propsEditor/PropsEditorView";
 import QueryScanModal from "../features/queryScan/QueryScanModal";
@@ -15,6 +16,7 @@ import SettingsPanel from "../features/settings/SettingsPanel";
 import { RootState } from "../reducers";
 import Navigator from "./Navigator";
 import Notification from "./Notification";
+
 
 const RootContainer = styled.div`
   height: calc(100vh - 2px);
@@ -57,7 +59,8 @@ class Root extends React.Component<any, any> {
           <RunnerResultPanel active={activeView === 0 || activeView === 1} />
           <SchemaEditorView active={activeView === 2} />
           <SettingsPanel active={activeView === 3} />
-          <GraphqlView active={activeView === 4} />
+          <DBExplainView active={activeView === 4}/>
+          <GraphqlView active={activeView === 5} />
         </RightContainer>
         <QueryScanModal />
         <Notification />

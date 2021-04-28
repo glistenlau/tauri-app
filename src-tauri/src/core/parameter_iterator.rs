@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use oracle::sql_type::ToSql as oracle_ToSql;
 use serde::{Deserialize, Serialize};
-use tokio_postgres::{Statement as pg_Statement, types::ToSql as pg_ToSql};
+use tokio_postgres::{types::ToSql as pg_ToSql, Statement as pg_Statement};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -50,7 +50,11 @@ impl<'a, S, PS> Iterator for ParameterIterator<'a, S, PS> {
 }
 
 impl<'a, T, PS> ParameterIterator<'a, T, PS> {
-    pub fn new(seeds: &'a [Vec<T>], mode: &'a ParameterGenerateStrategy, prepared_stmt: PS) -> Self {
+    pub fn new(
+        seeds: &'a [Vec<T>],
+        mode: &'a ParameterGenerateStrategy,
+        prepared_stmt: PS,
+    ) -> Self {
         let terminal_parameter_index_opt = Self::find_terminal_parameter_index(seeds, mode);
         let (drained, terminal_parameter_index, total) = match terminal_parameter_index_opt {
             Some((tpi, t)) => (false, tpi, t),
@@ -110,7 +114,6 @@ impl<'a, T, PS> ParameterIterator<'a, T, PS> {
     pub fn current_indexes(&self) -> Vec<usize> {
         self.current_indexes.clone()
     }
-
 
     fn next_indexes(&mut self) {
         if self.seeds.is_empty() {

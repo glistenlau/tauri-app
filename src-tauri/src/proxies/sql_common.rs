@@ -1,5 +1,5 @@
-use std::{borrow::BorrowMut, cmp, error::Error, fmt};
 use std::time::Duration;
+use std::{borrow::BorrowMut, cmp, error::Error, fmt};
 
 use anyhow::Result;
 use cmp::Ordering;
@@ -93,7 +93,10 @@ impl SQLResultSet {
                         } else if b_cell.is_none() {
                             return cmp::Ordering::Greater;
                         } else {
-                            let cell_rst = a_cell.unwrap().to_string().cmp(&b_cell.unwrap().to_string());
+                            let cell_rst = a_cell
+                                .unwrap()
+                                .to_string()
+                                .cmp(&b_cell.unwrap().to_string());
                             if cell_rst != cmp::Ordering::Equal {
                                 return cell_rst;
                             }
@@ -103,7 +106,7 @@ impl SQLResultSet {
                     order
                 });
             }
-            
+
             None => {}
         }
     }
@@ -211,10 +214,10 @@ impl SQLError {
                 }
             }
             Some(QueryErrorPoisition::Internal {
-                     position,
-                     query,
-                     line: _,
-                 }) => {
+                position,
+                query,
+                line: _,
+            }) => {
                 let position_line = find_position_line(&query, position);
                 instance.position = Some(QueryErrorPoisition::Internal {
                     position,
@@ -373,7 +376,7 @@ pub struct SavePoint {
 
 pub trait SQLClient<C> {
     fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value])
-               -> Result<SQLResult>;
+        -> Result<SQLResult>;
     fn set_config(&mut self, config: C) -> Result<SQLResult>;
     fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
     fn commit(&mut self) -> Result<SQLResult>;

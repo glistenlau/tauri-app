@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use std::{
     collections::{HashMap, VecDeque},
-    time::{Instant},
+    time::Instant,
 };
 
 const OPEN_COMMENT: &str = "<!--";

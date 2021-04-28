@@ -2,8 +2,8 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use lazy_static::lazy_static;
+use oracle::{sql_type::ToSql, Connection};
 use oracle::{ColumnInfo, Statement};
-use oracle::{Connection, sql_type::ToSql};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -158,6 +158,7 @@ impl SQLClient<OracleConfig> for OracleClient {
 
     fn set_config(&mut self, config: OracleConfig) -> Result<SQLResult> {
         self.set_config(config);
+        self.conn = None;
         match self.get_connection() {
             Ok(_) => Ok(SQLResult::new_result(None)),
             Err(e) => Ok(SQLResult::new_error(e)),

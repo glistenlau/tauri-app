@@ -1,11 +1,11 @@
+use super::xml_parser::XmlTag;
+use crate::proxies::sql_common::DBType;
 use juniper::{
     graphql_object, EmptySubscription, FieldResult, GraphQLEnum, GraphQLInputObject, GraphQLObject,
     ScalarValue,
 };
-use std::{cell::RefCell, cmp::Ordering, collections::HashMap, rc::Rc, todo};
 use serde::{Deserialize, Serialize};
-use super::xml_parser::XmlTag;
-use crate::proxies::sql_common::DBType;
+use std::{cell::RefCell, cmp::Ordering, collections::HashMap, rc::Rc, todo};
 #[derive(GraphQLEnum, Clone, Copy, Deserialize, Serialize)]
 enum DbFamily {
     Oracle,
@@ -163,7 +163,7 @@ fn tree_node_sort_fn(a: &TreeNode, b: &TreeNode) -> Ordering {
     if a.tag_name.eq(&b.tag_name) {
         return a.name_attr.cmp(&b.name_attr);
     }
-    a.tag_name.cmp(&b.tag_name) 
+    a.tag_name.cmp(&b.tag_name)
 }
 
 fn insert_nodes_to_name_to_nodes_map<'a>(

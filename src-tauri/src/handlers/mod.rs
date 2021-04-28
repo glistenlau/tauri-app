@@ -8,12 +8,12 @@ use crate::proxies;
 
 pub mod formatter;
 pub mod fs;
+pub mod graphql;
 pub mod java_props;
 pub mod log;
 pub mod query_runner;
 pub mod rocksdb;
 pub mod sql;
-pub mod graphql;
 
 #[derive(Deserialize, Debug)]
 pub struct Endpoint<A, P> {

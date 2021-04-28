@@ -9,17 +9,17 @@ pub fn get_data_dir() -> PathBuf {
         dir.push(APP_FOLDER_NAME);
         if !dir.exists() {
             match create_dir_all(&dir) {
-                Err(e) => {log::error!("create data dir failes: {}", e)},
-                _ => ()
+                Err(e) => {
+                    log::error!("create data dir failes: {}", e)
+                }
+                _ => (),
             };
         }
         return dir;
     }
 
     match tauri::api::platform::resource_dir() {
-        Ok(path) => {
-            path
-        }
+        Ok(path) => path,
         Err(e) => {
             log::error!("Got error while trying to get the data dir: {}", e);
             PathBuf::from(".")

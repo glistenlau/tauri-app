@@ -22,6 +22,24 @@ export type TreeNode = {
   dbFamily?: Maybe<DbFamily>;
 };
 
+export type ExplainRow = {
+  __typename?: 'ExplainRow';
+  id: Scalars['Int'];
+  operation: Scalars['String'];
+  name?: Maybe<Scalars['String']>;
+  starts: Scalars['Int'];
+  eRows?: Maybe<Scalars['Int']>;
+  aRows?: Maybe<Scalars['Int']>;
+  aTime?: Maybe<Scalars['String']>;
+  buffers: Scalars['String'];
+  hasChildren: Scalars['Boolean'];
+  oMem?: Maybe<Scalars['String']>;
+  oneMem?: Maybe<Scalars['String']>;
+  usedMem?: Maybe<Scalars['String']>;
+  predicateInformation?: Maybe<Scalars['String']>;
+  children: Array<ExplainRow>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   changeSchemaValues: SchemaFile;
@@ -43,12 +61,19 @@ export type Query = {
   __typename?: 'Query';
   apiVersion: Scalars['String'];
   dbSchemas: Array<SchemaFile>;
+  dbExplain: ExplainRow;
 };
 
 
 export type QueryDbSchemasArgs = {
   searchFolder: Scalars['String'];
   searchPattern: Scalars['String'];
+};
+
+
+export type QueryDbExplainArgs = {
+  text: Scalars['String'];
+  targetId?: Maybe<Scalars['Int']>;
 };
 
 export type NodeValue = {
@@ -63,6 +88,29 @@ export type SchemaFile = {
   path: Scalars['String'];
   root: TreeNode;
 };
+
+export type DbExplainQueryQueryVariables = Exact<{
+  explainText: Scalars['String'];
+  targetId?: Maybe<Scalars['Int']>;
+}>;
+
+
+export type DbExplainQueryQuery = (
+  { __typename?: 'Query' }
+  & { dbExplain: (
+    { __typename?: 'ExplainRow' }
+    & { children: Array<(
+      { __typename?: 'ExplainRow' }
+      & DbExplainRowFieldsFragment
+    )> }
+    & DbExplainRowFieldsFragment
+  ) }
+);
+
+export type DbExplainRowFieldsFragment = (
+  { __typename?: 'ExplainRow' }
+  & Pick<ExplainRow, 'id' | 'operation' | 'hasChildren' | 'name' | 'starts' | 'eRows' | 'aRows' | 'aTime' | 'buffers' | 'oMem' | 'oneMem' | 'usedMem' | 'predicateInformation'>
+);
 
 export type DbSchemaSearchQueryVariables = Exact<{
   searchFolder: Scalars['String'];
@@ -104,6 +152,23 @@ export type DbSchemaTreeNodeFieldsFragment = (
   )> }
 );
 
+export const DbExplainRowFieldsFragmentDoc = gql`
+    fragment dbExplainRowFields on ExplainRow {
+  id
+  operation
+  hasChildren
+  name
+  starts
+  eRows
+  aRows
+  aTime
+  buffers
+  oMem
+  oneMem
+  usedMem
+  predicateInformation
+}
+    `;
 export const DbSchemaTreeNodeFieldsFragmentDoc = gql`
     fragment dbSchemaTreeNodeFields on TreeNode {
   values {
@@ -126,6 +191,43 @@ export const DbSchemaTreeNodeRecursiveFragmentDoc = gql`
   }
 }
     ${DbSchemaTreeNodeFieldsFragmentDoc}`;
+export const DbExplainQueryDocument = gql`
+    query dbExplainQuery($explainText: String!, $targetId: Int) {
+  dbExplain(text: $explainText, targetId: $targetId) {
+    ...dbExplainRowFields
+    children {
+      ...dbExplainRowFields
+    }
+  }
+}
+    ${DbExplainRowFieldsFragmentDoc}`;
+
+/**
+ * __useDbExplainQueryQuery__
+ *
+ * To run a query within a React component, call `useDbExplainQueryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDbExplainQueryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDbExplainQueryQuery({
+ *   variables: {
+ *      explainText: // value for 'explainText'
+ *      targetId: // value for 'targetId'
+ *   },
+ * });
+ */
+export function useDbExplainQueryQuery(baseOptions: Apollo.QueryHookOptions<DbExplainQueryQuery, DbExplainQueryQueryVariables>) {
+        return Apollo.useQuery<DbExplainQueryQuery, DbExplainQueryQueryVariables>(DbExplainQueryDocument, baseOptions);
+      }
+export function useDbExplainQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DbExplainQueryQuery, DbExplainQueryQueryVariables>) {
+          return Apollo.useLazyQuery<DbExplainQueryQuery, DbExplainQueryQueryVariables>(DbExplainQueryDocument, baseOptions);
+        }
+export type DbExplainQueryQueryHookResult = ReturnType<typeof useDbExplainQueryQuery>;
+export type DbExplainQueryLazyQueryHookResult = ReturnType<typeof useDbExplainQueryLazyQuery>;
+export type DbExplainQueryQueryResult = Apollo.QueryResult<DbExplainQueryQuery, DbExplainQueryQueryVariables>;
 export const DbSchemaSearchDocument = gql`
     query dbSchemaSearch($searchFolder: String!, $searchPattern: String!) {
   dbSchemas(searchFolder: $searchFolder, searchPattern: $searchPattern) {

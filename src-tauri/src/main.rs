@@ -1,13 +1,13 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
-
 
 mod cmd;
 mod core;
-mod graphql;
+mod entity;
 mod event;
+mod graphql;
 mod handlers;
 mod proxies;
 mod utilities;

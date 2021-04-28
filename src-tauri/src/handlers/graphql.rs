@@ -38,5 +38,6 @@ pub fn handle_command(Endpoint { action, payload }: Endpoint<Action, Payload>) -
             data: val,
             errors: exec_errs,
         });
+    log::debug!("Got GraphQL results: {:?}", mapped_res);
     Ok(seralize_response(mapped_res?)?)
 }

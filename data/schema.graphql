@@ -6,6 +6,23 @@ type TreeNode {
   dbFamily: DbFamily
 }
 
+type ExplainRow {
+  id: Int!
+  operation: String!
+  name: String
+  starts: Int!
+  eRows: Int
+  a_rows: Int
+  a_time: String
+  buffers: String!
+  hasChildren: Boolean!
+  o_mem: String
+  one_mem: String
+  used_mem: String
+  predicateInformation: String
+  children: [ExplainRow!]!
+}
+
 type Mutation {
   changeSchemaValues(filePath: String!, values: [String!]!): SchemaFile!
 }
@@ -19,6 +36,7 @@ enum DbFamily {
 type Query {
   apiVersion: String!
   dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
+  dbExplain(text: String!, targetId: Int): ExplainRow!
 }
 
 type NodeValue {

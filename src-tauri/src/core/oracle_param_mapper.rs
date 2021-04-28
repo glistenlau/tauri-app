@@ -1,5 +1,5 @@
 use chrono::{DateTime, NaiveDate, NaiveDateTime, ParseError, Utc};
-use oracle::{Connection, sql_type::ToSql};
+use oracle::{sql_type::ToSql, Connection};
 use regex::Regex;
 use serde_json::Value;
 
@@ -81,9 +81,15 @@ pub fn map_param(
         Value::Bool(val) => Box::new(*val) as Box<dyn ToSql>,
         Value::String(val) => {
             // Try to parse it as timestamp.
-            let timestamp_result: Result<Box<dyn ToSql>, ParseError> = val.parse::<NaiveDate>().map(|date| Box::new(date) as Box<dyn ToSql>)
-                .or(val.parse::<NaiveDateTime>().map(|date_time| Box::new(date_time) as Box<dyn ToSql>))
-                .or(val.parse::<DateTime<Utc>>().map(|date_time| Box::new(date_time) as Box<dyn ToSql>));
+            let timestamp_result: Result<Box<dyn ToSql>, ParseError> = val
+                .parse::<NaiveDate>()
+                .map(|date| Box::new(date) as Box<dyn ToSql>)
+                .or(val
+                    .parse::<NaiveDateTime>()
+                    .map(|date_time| Box::new(date_time) as Box<dyn ToSql>))
+                .or(val
+                    .parse::<DateTime<Utc>>()
+                    .map(|date_time| Box::new(date_time) as Box<dyn ToSql>));
 
             timestamp_result.unwrap_or(Box::new(val.to_string()) as Box<dyn ToSql>)
         }

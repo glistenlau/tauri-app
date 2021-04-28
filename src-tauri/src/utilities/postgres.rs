@@ -8,9 +8,9 @@ use chrono::NaiveDateTime;
 use chrono::NaiveTime;
 use regex::Regex;
 use serde_json::{json, Value};
-use tokio_postgres::{Column, row::RowIndex};
-use tokio_postgres::Row;
 use tokio_postgres::types::Type;
+use tokio_postgres::Row;
+use tokio_postgres::{row::RowIndex, Column};
 use uuid::Uuid;
 
 use crate::proxies::sql_common::{process_statement_params, process_statement_schema};
@@ -21,7 +21,6 @@ pub fn process_statement_array(statement: &str) -> Result<String> {
     let re = Regex::new(ARRAY_PATTERN)?;
     Ok(re.replace_all(statement, "?").to_string())
 }
-
 
 pub fn process_statement(statement: &str, schema: &str) -> Result<String> {
     let mut result = process_statement_array(statement)?;
@@ -40,8 +39,8 @@ pub fn get_row_values(row: &Row, columns: &[Column]) -> Result<Vec<Value>> {
 }
 
 pub fn get_cell_value<I>(row: &Row, idx: I, sql_type: &Type) -> Result<Value>
-    where
-        I: RowIndex + Display,
+where
+    I: RowIndex + Display,
 {
     let cell_val;
 

@@ -1,3 +1,4 @@
+pub mod db_schema_processor;
 pub mod formatter;
 pub mod java_props;
 pub mod log;
@@ -7,4 +8,3 @@ pub mod postgres_param_mapper;
 pub mod query_scanner;
 pub mod result_diff;
 pub mod xml_parser;
-pub mod db_schema_processor;

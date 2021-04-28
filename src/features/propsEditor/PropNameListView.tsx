@@ -8,9 +8,7 @@ import {
 
 const ClassSelectView = React.memo(() => {
   const dispatch = useDispatch();
-  const listSelectedClassName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.listSelectedClassName
-  );
+  const selectedPropName = useSelector((rootState: RootState) => rootState.propsEditor.selectedPropName)
   const propNameList = useSelector(
     (rootState: RootState) => rootState.propsEditor.propNameList
   );
@@ -32,7 +30,7 @@ const ClassSelectView = React.memo(() => {
   return (
     <PropNameList
       propNameList={propNameList}
-      selectedProp={listSelectedClassName}
+      selectedProp={selectedPropName}
       onListItemClick={handleClickPropName}
       validateResults={propsValidateMap}
     />

@@ -1,7 +1,7 @@
 mod cmd;
 mod core;
-pub mod graphql;
 mod event;
+pub mod graphql;
 mod handlers;
 mod proxies;
 mod utilities;

@@ -29,5 +29,7 @@ export const requestAsync = async (
 
   const res = JSON.parse(await promisified(args));
 
+  console.log('request async result: ', res);
+
   return res;
 };

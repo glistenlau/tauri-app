@@ -2,16 +2,18 @@ use std::{fmt::Display, fs, todo};
 
 use anyhow::Result;
 use juniper::{
-    graphql_object, EmptyMutation, EmptySubscription, FieldError, FieldResult, GraphQLEnum,
-    GraphQLInputObject, GraphQLObject, ScalarValue, Value, Variables,
+    graphql_object, graphql_value, EmptyMutation, EmptySubscription, FieldError, FieldResult,
+    GraphQLEnum, GraphQLInputObject, GraphQLObject, ScalarValue, Value, Variables,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::{
     core::db_schema_processor::NodeValue,
-    proxies::db_schema::{search_db_schema, SchemaFile},
+    proxies::{
+        db_explain_tree::{parse_db_explain, ExplainRow},
+        db_schema::{search_db_schema, SchemaFile},
+    },
 };
-
 
 pub struct Context {}
 
@@ -28,6 +30,22 @@ impl Query {
 
     fn db_schemas(search_folder: String, search_pattern: String) -> FieldResult<Vec<SchemaFile>> {
         search_db_schema(&search_folder, &search_pattern).map_err(|err| FieldError::from(err))
+    }
+
+    fn db_explain(text: String, target_id: Option<i32>) -> FieldResult<ExplainRow> {
+        log::debug!(
+            "execute db explain text: {}, target_id: {:?}",
+            text,
+            target_id
+        );
+        if let Some(explain_root) = parse_db_explain(&text, target_id) {
+            Ok(explain_root)
+        } else {
+            Err(FieldError::new(
+                "not valid explain string",
+                graphql_value!({ "internal_error": "Connection refused" }),
+            ))
+        }
     }
 }
 

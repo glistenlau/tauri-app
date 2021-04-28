@@ -5,6 +5,7 @@ import { requestAsync } from "..";
 const rustLink = new ApolloLink((operation, forward) => {
   return new Observable((observer) => {
     fetchGraphql(print(operation.query), operation.variables).then(res => {
+      console.log('fetch result: ', res);
       observer.next(res);
       observer.complete();
     })

@@ -1,11 +1,7 @@
-use std::{
-    cmp,
-    collections::HashMap,
-    fs,
-};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, Result};
 use std::path::Path;
+use std::{cmp, collections::HashMap, fs};
 
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -212,7 +208,7 @@ pub fn save_prop<P: AsRef<Path>>(filepath: P, prop_key: &str, prop_value: &str) 
                         let pre_prop = line_str_vec.join("\n");
                         [pre_prop.trim_end(), &prop_str].join("\n")
                     } else if line_str_vec.len() == 0 {
-                        prop_str
+                        [&prop_str, ""].join("\n")
                     } else {
                         let pre_prop = line_str_vec[0..start.unwrap()].join("\n");
                         let post_prop = line_str_vec
@@ -221,7 +217,7 @@ pub fn save_prop<P: AsRef<Path>>(filepath: P, prop_key: &str, prop_value: &str) 
                         [pre_prop.trim_end(), &prop_str, post_prop.trim_start()].join("\n")
                     }
                 }
-                None => prop_str,
+                None => [&prop_str, ""].join("\n"),
             }
         }
         Err(_) => prop_str,
