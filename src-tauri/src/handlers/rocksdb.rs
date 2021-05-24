@@ -2,7 +2,6 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::proxies::{
-    java_props::load_props,
     rocksdb::{get_proxy, RocksDataStore},
 };
 

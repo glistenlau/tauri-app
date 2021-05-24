@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
-use rocksdb::{ColumnFamily, Options, WriteBatch, DB};
+use rocksdb::{Options, WriteBatch, DB};
 
 use super::dirs::get_data_dir;
 
@@ -95,9 +95,9 @@ pub fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    
 
-    use futures::channel::mpsc::unbounded;
+    
     use rocksdb::{MergeOperands, Options};
     use serde_json::{json, Value};
 
@@ -150,7 +150,7 @@ mod tests {
     }
 
     fn obj_merge(
-        new_key: &[u8],
+        _new_key: &[u8],
         existing_val: Option<&[u8]>,
         operands: &mut MergeOperands,
     ) -> Option<Vec<u8>> {
@@ -163,7 +163,7 @@ mod tests {
                 result.push(*e)
             }
         }
-        let mut new_value: Value = serde_json::from_slice(&result).unwrap();
+        let new_value: Value = serde_json::from_slice(&result).unwrap();
         merge(&mut existing_value, &new_value);
         Some(existing_value.to_string().into_bytes())
     }

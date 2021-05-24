@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import Editor from "../../components/Editor";
 import TabContent from "../../components/TabContent";
-import DBExplainTreeView from "./DBExplainTreeView";
 
 const Container = styled(TabContent)`
   background-color: ${({ theme }) => theme.palette.background.paper};
@@ -22,7 +21,7 @@ const DBExplainView: React.FC = ({ active }) => {
       <EditorContainer>
         <Editor value={text} onChange={setText} />
       </EditorContainer>
-      <DBExplainTreeView explainText={text || ""} />
+      {/* <DBExplainTreeView explainText={text || ""} /> */}
     </Container>
   );
 };

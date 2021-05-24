@@ -1,14 +1,13 @@
-use std::{fmt::Display, fs, todo};
+use std::{todo};
 
-use anyhow::Result;
+
 use juniper::{
     graphql_object, graphql_value, EmptyMutation, EmptySubscription, FieldError, FieldResult,
     GraphQLEnum, GraphQLInputObject, GraphQLObject, ScalarValue, Value, Variables,
 };
-use serde::{Deserialize, Serialize};
+
 
 use crate::{
-    core::db_schema_processor::NodeValue,
     proxies::{
         db_explain_tree::{parse_db_explain, ExplainRow},
         db_schema::{search_db_schema, SchemaFile},
@@ -32,20 +31,13 @@ impl Query {
         search_db_schema(&search_folder, &search_pattern).map_err(|err| FieldError::from(err))
     }
 
-    fn db_explain(text: String, target_id: Option<i32>) -> FieldResult<ExplainRow> {
+    fn db_explain(text: String, target_id: Option<i32>) -> FieldResult<Vec<ExplainRow>> {
         log::debug!(
             "execute db explain text: {}, target_id: {:?}",
             text,
             target_id
         );
-        if let Some(explain_root) = parse_db_explain(&text, target_id) {
-            Ok(explain_root)
-        } else {
-            Err(FieldError::new(
-                "not valid explain string",
-                graphql_value!({ "internal_error": "Connection refused" }),
-            ))
-        }
+        Ok(parse_db_explain(&text))
     }
 }
 
@@ -55,7 +47,7 @@ pub struct Mutation;
 
 #[graphql_object()]
 impl Mutation {
-    fn change_schema_values(file_path: String, values: Vec<String>) -> FieldResult<SchemaFile> {
+    fn change_schema_values(_file_path: String, _values: Vec<String>) -> FieldResult<SchemaFile> {
         todo!()
     }
 }

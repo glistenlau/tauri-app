@@ -373,7 +373,7 @@ pub fn scan_schema_queries(
         {
             let mut first_results: Vec<Option<(Option<Vec<Value>>, SQLResult)>> =
                 query_results.iter_mut().map(|qr| qr.pop_front()).collect();
-            let mut first_results_rows: Vec<Option<&[Vec<Value>]>> = first_results
+            let first_results_rows: Vec<Option<&[Vec<Value>]>> = first_results
                 .iter()
                 .map(|fr| {
                     let (_, sql_result) = fr.as_ref().unwrap();

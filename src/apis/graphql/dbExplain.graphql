@@ -10,6 +10,7 @@ query dbExplainQuery($explainText: String!, $targetId: Int) {
 fragment dbExplainRowFields on ExplainRow {
   id
   operation
+  level
   hasChildren
   name
   starts

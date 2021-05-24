@@ -253,7 +253,7 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
     fn execute<'b>(
         &mut self,
         statement: &str,
-        schema: &str,
+        _schema: &str,
         parameters: &[Value],
     ) -> Result<SQLResult> {
         log::debug!("start executing postgres statement...");
@@ -364,7 +364,7 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
             })
     }
 
-    fn add_savepoint(&mut self, name: &str) -> Result<SQLResult> {
+    fn add_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
         POSTGRES_RUNTIME
             .lock()
             .or_else(|e| {
@@ -388,7 +388,7 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
             })
     }
 
-    fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult> {
+    fn rollback_to_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
         todo!()
     }
 }

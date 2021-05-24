@@ -4,7 +4,7 @@ use juniper::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::graphql::{Context, Mutation, Query, Schema};
+use crate::graphql::{Mutation, Query, Schema};
 
 use super::{seralize_response, Endpoint};
 

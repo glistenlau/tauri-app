@@ -1,5 +1,5 @@
 use super::xml_parser::XmlTag;
-use crate::proxies::sql_common::DBType;
+
 use juniper::{
     graphql_object, EmptySubscription, FieldResult, GraphQLEnum, GraphQLInputObject, GraphQLObject,
     ScalarValue,

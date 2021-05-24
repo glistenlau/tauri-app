@@ -6,9 +6,9 @@ use std::{
     io::Read,
 };
 
-use anyhow::Result;
-use chrono::{DateTime, NaiveTime, Timelike};
-use futures::channel::mpsc::unbounded;
+
+
+
 use juniper::{
     graphql_object, EmptySubscription, FieldResult, GraphQLEnum, GraphQLInputObject, GraphQLObject,
     ScalarValue,
@@ -83,10 +83,10 @@ lazy_static! {
     .collect();
 }
 
-pub fn parse_db_explain(text: &str, target_id: Option<i32>) -> Option<ExplainRow> {
+pub fn parse_db_explain(text: &str) -> Vec<ExplainRow> {
+    let mut results = vec![];
     let mut columns: Vec<&COLUMNS> = vec![];
-    let mut root: Option<ExplainRow> = None;
-    let mut root_level: i32 = 0;
+    let root_level: i32 = 1;
 
     for line in text.lines() {
         let line_trim = line.trim();
@@ -192,63 +192,11 @@ pub fn parse_db_explain(text: &str, target_id: Option<i32>) -> Option<ExplainRow
         }
 
         if !is_column_header {
-            match find_parent(root.as_mut(), 0, row.level) {
-                None => {
-                    if root.is_none() {
-                        log::debug!("set root at level: {}", row.level);
-                        root_level = row.level;
-                        root = Some(row);
-                    }
-                }
-                Some(parent) => {
-                    parent.push_child(row);
-                }
-            }
+            results.push(row);
         }
     }
 
     log::debug!("columns: {:#?}", columns);
 
-    match target_id {
-        Some(id) => find_node(root, id),
-        None => root,
-    }
-}
-
-fn find_parent(
-    root: Option<&mut ExplainRow>,
-    cur_level: i32,
-    target_level: i32,
-) -> Option<&mut ExplainRow> {
-    if cur_level >= target_level - 1 || target_level == 0 {
-        return root;
-    }
-
-    match root {
-        None => None,
-        Some(parent) => find_parent(
-            parent.children.as_mut().and_then(|c| c.last_mut()),
-            cur_level + 1,
-            target_level,
-        ),
-    }
-}
-
-fn find_node(node: Option<ExplainRow>, target_id: i32) -> Option<ExplainRow> {
-    if let Some(n) = node {
-        if n.id == target_id {
-            return Some(n);
-        }
-
-        for child in n.children.unwrap_or(Vec::new()) {
-            if let Some(result) = find_node(Some(child), target_id) {
-                return Some(result);
-            }
-        }
-        None
-    } else {
-        {
-            None
-        }
-    }
+    results
 }

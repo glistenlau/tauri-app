@@ -2,7 +2,7 @@ use crate::core::{
     db_schema_processor::{process_xml_tag, TreeNode},
     xml_parser::parse_xml,
 };
-use futures::channel::mpsc::unbounded;
+
 use juniper::{
     graphql_object, EmptySubscription, FieldResult, GraphQLEnum, GraphQLInputObject, GraphQLObject,
     ScalarValue,
@@ -84,11 +84,11 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<S
 
 #[cfg(test)]
 mod tests {
-    use regex::{escape, Regex};
-    use std::time::Instant;
-    use std::{fs::File, io::Read};
+    
+    
+    
 
-    use glob::glob;
+    
 
     use super::*;
 

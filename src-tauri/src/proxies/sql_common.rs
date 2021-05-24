@@ -1,8 +1,8 @@
 use std::time::Duration;
-use std::{borrow::BorrowMut, cmp, error::Error, fmt};
+use std::{cmp, error::Error, fmt};
 
 use anyhow::Result;
-use cmp::Ordering;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -82,7 +82,7 @@ impl SQLResultSet {
             Some(row_vec) => {
                 row_vec.sort_by(|a, b| {
                     let max_len = cmp::max(a.len(), b.len());
-                    let mut order = cmp::Ordering::Equal;
+                    let order = cmp::Ordering::Equal;
                     for i in 0..max_len {
                         let a_cell = a.get(i);
                         let b_cell = b.get(i);

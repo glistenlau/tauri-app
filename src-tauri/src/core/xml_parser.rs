@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use std::{
     collections::{HashMap, VecDeque},
-    time::Instant,
 };
 
 const OPEN_COMMENT: &str = "<!--";
@@ -252,7 +251,7 @@ pub fn parse_xml(text: &str) -> Result<XmlTag> {
         }
 
         match process_tag(&text_char_vec, &mut index)? {
-            ProcessTagResult::TagStart(mut new_xml_tag, end_index) => {
+            ProcessTagResult::TagStart(mut new_xml_tag, _end_index) => {
                 if pending_comment_start_index != -1 {
                     new_xml_tag.start_offset = pending_comment_start_index as usize;
                     pending_comment_start_index = -1;
@@ -273,7 +272,7 @@ pub fn parse_xml(text: &str) -> Result<XmlTag> {
                     return Err(anyhow!(""));
                 }
             },
-            ProcessTagResult::TagSelfClose(mut new_xml_tag, end_index) => {
+            ProcessTagResult::TagSelfClose(mut new_xml_tag, _end_index) => {
                 if pending_comment_start_index != -1 {
                     new_xml_tag.start_offset = pending_comment_start_index as usize;
                     pending_comment_start_index = -1;
@@ -298,7 +297,7 @@ pub fn parse_xml(text: &str) -> Result<XmlTag> {
 #[cfg(test)]
 mod tests {
     use regex::{escape, Regex};
-    use std::time::Instant;
+    
     use std::{fs::File, io::Read};
 
     use glob::glob;

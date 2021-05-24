@@ -142,7 +142,7 @@ impl SQLClient<OracleConfig> for OracleClient {
     fn execute(
         &mut self,
         statement: &str,
-        schema: &str,
+        _schema: &str,
         parameters: &[Value],
     ) -> Result<SQLResult> {
         log::debug!(
