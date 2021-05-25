@@ -1,6 +1,5 @@
 {
   "build": {
-    "distDir": "../build",
     "devPath": "http://127.0.0.1:3000",
     "beforeDevCommand": "yarn start",
     "beforeBuildCommand": "yarn build"
