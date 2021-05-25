@@ -84,12 +84,6 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<S
 
 #[cfg(test)]
 mod tests {
-    
-    
-    
-
-    
-
     use super::*;
 
     #[test]

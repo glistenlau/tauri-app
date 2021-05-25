@@ -1,8 +1,8 @@
 // import MonacoEditor, { MonacoEditorProps } from "react-monaco-editor";
 import MonacoEditor, {
-  EditorProps as MonacoEditorProps,
-  OnMount
-} from "@monaco-editor/react";
+  MonacoEditorProps,
+  EditorDidMount,
+} from "react-monaco-editor";
 import { editor } from "monaco-editor";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import React, {
@@ -75,7 +75,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
       ) || [];
   }, [decorations, instance]);
 
-  const handleEditorDidMount: OnMount = useCallback(
+  const handleEditorDidMount: EditorDidMount = useCallback(
     (editor, monaco) => {
       setInstance(editor);
       setDecorations();
@@ -113,7 +113,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
     <MonacoEditor
       theme={theme}
       options={effectiveOptions}
-      onMount={handleEditorDidMount}
+      editorDidMount={handleEditorDidMount}
       {...otherProps}
     />
   );

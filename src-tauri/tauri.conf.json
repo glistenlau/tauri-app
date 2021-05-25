@@ -1,5 +1,6 @@
 {
   "build": {
+    "distDir": "../build",
     "devPath": "http://127.0.0.1:3000",
     "beforeDevCommand": "yarn start",
     "beforeBuildCommand": "yarn build"
@@ -31,7 +32,7 @@
         "signingIdentity": null,
         "entitlements": null,
         "frameworks": [],
-        "minimumSystemVersion": "10.12",
+        "minimumSystemVersion": "",
         "useBootstrapper": false
       },
       "windows": {
@@ -56,7 +57,7 @@
       }
     ],
     "security": {
-      "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"
+      "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline' 'self'"
     }
   }
 }

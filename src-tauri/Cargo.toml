@@ -1,11 +1,11 @@
 [package]
-name = "tauri-app"
+name = "APDatabaseDevTool"
 version = "0.1.0"
-description = "A Tauri App"
+description = "AP Database Dev Tool"
 authors = [ "you" ]
 license = ""
 repository = ""
-default-run = "tauri-app"
+default-run = "APDatabaseDevTool"
 edition = "2018"
 build = "src/build.rs"
 
@@ -42,5 +42,5 @@ name = "mylib"
 path = "src/lib.rs"
 
 [[bin]]
-name = "tauri-app"
+name = "APDatabaseDevTool"
 path = "src/main.rs"
