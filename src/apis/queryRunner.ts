@@ -1,4 +1,4 @@
-import { listen } from "tauri/api/event";
+import { listen } from "@tauri-apps/api/event";
 import { requestAsync } from ".";
 import Duration from "./duration";
 import { DBType, SQLResult } from "./sqlCommon";

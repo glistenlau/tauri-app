@@ -18,11 +18,5 @@ pub fn get_data_dir() -> PathBuf {
         return dir;
     }
 
-    match tauri::api::platform::resource_dir() {
-        Ok(path) => path,
-        Err(e) => {
-            log::error!("Got error while trying to get the data dir: {}", e);
-            PathBuf::from(".")
-        }
-    }
+    PathBuf::from(".")
 }

@@ -127,15 +127,16 @@ pub struct RunResults {
     results: HashMap<String, ResultPerSchema>,
 }
 
-pub fn scan_queries(schema_queries: HashMap<String, Vec<Query>>, diff_results: bool) -> RunResults {
+pub fn scan_queries(window: tauri::Window, schema_queries: HashMap<String, Vec<Query>>, diff_results: bool) -> RunResults {
     let mut results = HashMap::with_capacity(schema_queries.len());
     let mut schema_join_handlers = HashMap::with_capacity(schema_queries.len());
     for (schema, queries) in schema_queries {
         let queries_arc = queries.iter().map(|q| Arc::new(q.clone())).collect();
+        let window_clone = window.clone();
         schema_join_handlers.insert(
             schema.clone(),
             thread::spawn(move || {
-                scan_schema_queries(schema.clone(), queries_arc, diff_results, true)
+                scan_schema_queries(window_clone, schema.clone(), queries_arc, diff_results, true)
             }),
         );
     }
@@ -155,6 +156,7 @@ pub fn scan_queries(schema_queries: HashMap<String, Vec<Query>>, diff_results: b
 }
 
 pub fn scan_schema_queries(
+    window: tauri::Window,
     schema: String,
     queries: Arc<[Arc<Query>]>,
     diff_results: bool,
@@ -261,6 +263,7 @@ pub fn scan_schema_queries(
     let mut has_error = false;
 
     fn update_and_emit_progress_vec(
+        window: &tauri::Window,
         progress_vec: &mut Vec<Option<RefCell<ProgressInfo>>>,
         schema: &str,
         index: usize,
@@ -294,6 +297,7 @@ pub fn scan_schema_queries(
 
         if notify_progress {
             emit_progress(
+                window,
                 schema,
                 index,
                 cur_params,
@@ -331,6 +335,7 @@ pub fn scan_schema_queries(
                 let (pending_delta, finished_delta) = if diff_results { (0, 0) } else { (0, 1) };
 
                 update_and_emit_progress_vec(
+                    &window,
                     &mut progress_vec,
                     &schema,
                     i,
@@ -351,6 +356,7 @@ pub fn scan_schema_queries(
                 }
             }
             Message::StartQuery(i, cur_params, total) => update_and_emit_progress_vec(
+                &window,
                 &mut progress_vec,
                 &schema,
                 i,
@@ -396,6 +402,7 @@ pub fn scan_schema_queries(
                     match &scan_result_opt {
                         Some((cur_params, _)) => {
                             update_and_emit_progress_vec(
+                                &window,
                                 &mut progress_vec,
                                 &schema,
                                 index,
@@ -465,12 +472,13 @@ pub fn scan_schema_queries(
         query_results: rst,
         diff_results: diff_rst,
     };
-    emit_schema_result(&schema, &schema_result);
+    emit_schema_result(&window, &schema, &schema_result);
 
     schema_result
 }
 
 fn emit_progress(
+    window: &tauri::Window,
     schema: &str,
     index: usize,
     cur_params: Option<&[Value]>,
@@ -478,9 +486,7 @@ fn emit_progress(
     pending: usize,
     total: usize,
 ) {
-    let emitter_lock = crate::event::get_emitter();
-    let mut emitter = emitter_lock.lock().unwrap();
-    emitter.emit(
+    window.emit(
         "scan_query_progress",
         Some(ProgressMessage::new(
             schema, index, cur_params, finished, pending, total,
@@ -488,8 +494,6 @@ fn emit_progress(
     );
 }
 
-fn emit_schema_result(schema: &str, result: &ResultPerSchema) {
-    let emitter_lock = crate::event::get_emitter();
-    let mut emitter = emitter_lock.lock().unwrap();
-    emitter.emit("scan_query_schema_result", Some((schema, result)));
+fn emit_schema_result(window: &tauri::Window, schema: &str, result: &ResultPerSchema) {
+    window.emit("scan_query_schema_result", Some((schema, result)));
 }

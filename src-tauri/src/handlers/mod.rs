@@ -2,7 +2,6 @@ use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use tauri::{execute_promise, Webview};
 
 use crate::proxies;
 
@@ -103,13 +102,32 @@ pub fn generate_response<T: Serialize>(res: Result<T>, elapsed: Duration) -> Res
     }
 }
 
-pub fn dispath_async(_webview: &mut Webview, handler: Handler, callback: String, error: String) {
-    execute_promise(_webview, move || invoke_handler(handler), callback, error);
+#[derive(Debug, Clone, Serialize)]
+pub struct CommandError {
+    message: String,
 }
 
-fn invoke_handler(handler: Handler) -> Result<String> {
+impl CommandError {
+    fn new(message: String) -> Self {
+        Self { message }
+    }
+}
+
+impl std::fmt::Display for CommandError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl std::error::Error for CommandError {}
+
+#[tauri::command]
+pub fn invoke_handler(
+    window: tauri::Window,
+    handler: Handler,
+) -> Result<String, CommandError> {
     let now = Instant::now();
-    match handler {
+    let result = match handler {
         Handler::Oracle(e) => generate_response(
             sql::handle_command(e.action, e.payload, proxies::oracle::get_proxy()),
             now.elapsed(),
@@ -118,15 +136,19 @@ fn invoke_handler(handler: Handler) -> Result<String> {
             sql::handle_command(e.action, e.payload, proxies::postgres::get_proxy()),
             now.elapsed(),
         ),
-        Handler::RocksDB(e) => seralize_response(rocksdb::handle_command(e.action, e.payload)?),
+        Handler::RocksDB(e) => match rocksdb::handle_command(e.action, e.payload) {
+            Ok(rsp) => seralize_response(rsp),
+            Err(e) => Err(e),
+        },
         Handler::File(e) => seralize_response(fs::handle_command(e)),
         Handler::Log(e) => seralize_response(log::handle_command(e)),
         Handler::JavaProps(e) => generate_response(java_props::handle_command(e), now.elapsed()),
         Handler::QueryRunner(e) => generate_response(
-            query_runner::handle_command(e.action, e.payload),
+            query_runner::handle_command(window, e.action, e.payload),
             now.elapsed(),
         ),
         Handler::Formatter(e) => seralize_response(formatter::handle_command(e)),
         Handler::GraphQL(e) => graphql::handle_command(e),
-    }
+    };
+    result.or_else(|e| Err(CommandError::new(e.to_string()).into()))
 }

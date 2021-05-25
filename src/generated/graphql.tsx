@@ -4,6 +4,7 @@ export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+const defaultOptions =  {}
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -13,19 +14,17 @@ export type Scalars = {
   Float: number;
 };
 
-export type TreeNode = {
-  __typename?: 'TreeNode';
-  tagName: Scalars['String'];
-  nameAttr?: Maybe<Scalars['String']>;
-  values: Array<NodeValue>;
-  children: Array<TreeNode>;
-  dbFamily?: Maybe<DbFamily>;
-};
+export enum DbFamily {
+  Oracle = 'ORACLE',
+  Postgres = 'POSTGRES',
+  Both = 'BOTH'
+}
 
 export type ExplainRow = {
   __typename?: 'ExplainRow';
   id: Scalars['Int'];
   operation: Scalars['String'];
+  level: Scalars['Int'];
   name?: Maybe<Scalars['String']>;
   starts: Scalars['Int'];
   eRows?: Maybe<Scalars['Int']>;
@@ -37,7 +36,7 @@ export type ExplainRow = {
   oneMem?: Maybe<Scalars['String']>;
   usedMem?: Maybe<Scalars['String']>;
   predicateInformation?: Maybe<Scalars['String']>;
-  children: Array<ExplainRow>;
+  children?: Maybe<Array<ExplainRow>>;
 };
 
 export type Mutation = {
@@ -51,17 +50,18 @@ export type MutationChangeSchemaValuesArgs = {
   values: Array<Scalars['String']>;
 };
 
-export enum DbFamily {
-  Oracle = 'ORACLE',
-  Postgres = 'POSTGRES',
-  Both = 'BOTH'
-}
+export type NodeValue = {
+  __typename?: 'NodeValue';
+  start: Scalars['Int'];
+  end: Scalars['Int'];
+  dbFamily?: Maybe<DbFamily>;
+};
 
 export type Query = {
   __typename?: 'Query';
   apiVersion: Scalars['String'];
   dbSchemas: Array<SchemaFile>;
-  dbExplain: ExplainRow;
+  dbExplain: Array<ExplainRow>;
 };
 
 
@@ -76,17 +76,19 @@ export type QueryDbExplainArgs = {
   targetId?: Maybe<Scalars['Int']>;
 };
 
-export type NodeValue = {
-  __typename?: 'NodeValue';
-  start: Scalars['Int'];
-  end: Scalars['Int'];
-  dbFamily?: Maybe<DbFamily>;
-};
-
 export type SchemaFile = {
   __typename?: 'SchemaFile';
   path: Scalars['String'];
   root: TreeNode;
+};
+
+export type TreeNode = {
+  __typename?: 'TreeNode';
+  tagName: Scalars['String'];
+  nameAttr?: Maybe<Scalars['String']>;
+  values: Array<NodeValue>;
+  children: Array<TreeNode>;
+  dbFamily?: Maybe<DbFamily>;
 };
 
 export type DbExplainQueryQueryVariables = Exact<{
@@ -97,19 +99,19 @@ export type DbExplainQueryQueryVariables = Exact<{
 
 export type DbExplainQueryQuery = (
   { __typename?: 'Query' }
-  & { dbExplain: (
+  & { dbExplain: Array<(
     { __typename?: 'ExplainRow' }
-    & { children: Array<(
+    & { children?: Maybe<Array<(
       { __typename?: 'ExplainRow' }
       & DbExplainRowFieldsFragment
-    )> }
+    )>> }
     & DbExplainRowFieldsFragment
-  ) }
+  )> }
 );
 
 export type DbExplainRowFieldsFragment = (
   { __typename?: 'ExplainRow' }
-  & Pick<ExplainRow, 'id' | 'operation' | 'hasChildren' | 'name' | 'starts' | 'eRows' | 'aRows' | 'aTime' | 'buffers' | 'oMem' | 'oneMem' | 'usedMem' | 'predicateInformation'>
+  & Pick<ExplainRow, 'id' | 'operation' | 'level' | 'hasChildren' | 'name' | 'starts' | 'eRows' | 'aRows' | 'aTime' | 'buffers' | 'oMem' | 'oneMem' | 'usedMem' | 'predicateInformation'>
 );
 
 export type DbSchemaSearchQueryVariables = Exact<{
@@ -156,6 +158,7 @@ export const DbExplainRowFieldsFragmentDoc = gql`
     fragment dbExplainRowFields on ExplainRow {
   id
   operation
+  level
   hasChildren
   name
   starts
@@ -220,10 +223,12 @@ export const DbExplainQueryDocument = gql`
  * });
  */
 export function useDbExplainQueryQuery(baseOptions: Apollo.QueryHookOptions<DbExplainQueryQuery, DbExplainQueryQueryVariables>) {
-        return Apollo.useQuery<DbExplainQueryQuery, DbExplainQueryQueryVariables>(DbExplainQueryDocument, baseOptions);
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DbExplainQueryQuery, DbExplainQueryQueryVariables>(DbExplainQueryDocument, options);
       }
 export function useDbExplainQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DbExplainQueryQuery, DbExplainQueryQueryVariables>) {
-          return Apollo.useLazyQuery<DbExplainQueryQuery, DbExplainQueryQueryVariables>(DbExplainQueryDocument, baseOptions);
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DbExplainQueryQuery, DbExplainQueryQueryVariables>(DbExplainQueryDocument, options);
         }
 export type DbExplainQueryQueryHookResult = ReturnType<typeof useDbExplainQueryQuery>;
 export type DbExplainQueryLazyQueryHookResult = ReturnType<typeof useDbExplainQueryLazyQuery>;
@@ -259,10 +264,12 @@ ${DbSchemaTreeNodeRecursiveFragmentDoc}`;
  * });
  */
 export function useDbSchemaSearchQuery(baseOptions: Apollo.QueryHookOptions<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>) {
-        return Apollo.useQuery<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>(DbSchemaSearchDocument, baseOptions);
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>(DbSchemaSearchDocument, options);
       }
 export function useDbSchemaSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>) {
-          return Apollo.useLazyQuery<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>(DbSchemaSearchDocument, baseOptions);
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>(DbSchemaSearchDocument, options);
         }
 export type DbSchemaSearchQueryHookResult = ReturnType<typeof useDbSchemaSearchQuery>;
 export type DbSchemaSearchLazyQueryHookResult = ReturnType<typeof useDbSchemaSearchLazyQuery>;

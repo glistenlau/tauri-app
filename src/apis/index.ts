@@ -1,5 +1,4 @@
-import { promisified } from "tauri/api/tauri";
-
+import { invoke } from '@tauri-apps/api/tauri';
 interface Elapsed {
   secs: number;
   nanos: number;
@@ -19,15 +18,12 @@ export const requestAsync = async (
   payload: any
 ) => {
   const args = {
-    cmd: "asyncCommand",
-    handler: {
       name: handlerName,
       action,
       payload
-    }
   };
 
-  const res = JSON.parse(await promisified(args));
+  const res = JSON.parse(await invoke("invoke_handler", args));
 
   console.log('request async result: ', res);
 

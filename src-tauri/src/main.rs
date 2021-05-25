@@ -3,10 +3,8 @@
     windows_subsystem = "windows"
 )]
 
-mod cmd;
 mod core;
 mod entity;
-mod event;
 mod graphql;
 mod handlers;
 mod proxies;
@@ -18,15 +16,9 @@ fn main() {
         Err(e) => log::error!("logger setup failed: {}", e),
     }
 
-    tauri::AppBuilder::new()
-        .setup(|_webview, _source| {
-            let webview_mut = _webview.as_mut();
-            event::get_emitter()
-                .lock()
-                .unwrap()
-                .set_webview(webview_mut);
-        })
-        .invoke_handler(cmd::dispatch_command)
-        .build()
-        .run();
+    tauri::Builder::default()
+        // This is where you pass in your commands
+        .invoke_handler(tauri::generate_handler![handlers::invoke_handler])
+        .run(tauri::generate_context!())
+        .expect("failed to run app");
 }

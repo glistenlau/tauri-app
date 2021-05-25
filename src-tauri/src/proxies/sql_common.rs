@@ -164,7 +164,7 @@ pub struct SQLError {
     hint: Option<String>,
     line: Option<u32>,
     message: String,
-    offset: Option<u16>,
+    offset: Option<u32>,
     position: Option<QueryErrorPoisition>,
     routine: Option<String>,
     schema: Option<String>,

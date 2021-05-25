@@ -50,6 +50,7 @@ pub enum Action {
 }
 
 pub fn handle_command(
+    window: tauri::Window,
     action: Action,
     Payload {
         schema_queries,
@@ -58,6 +59,6 @@ pub fn handle_command(
 ) -> Result<RunResults> {
     log::debug!("got query runner command.");
     match action {
-        Action::ScanQueries => Ok(scan_queries(schema_queries, diff_results)),
+        Action::ScanQueries => Ok(scan_queries(window, schema_queries, diff_results)),
     }
 }

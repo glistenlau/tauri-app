@@ -171,7 +171,7 @@ mod tests {
     #[test]
     fn test_merge() {
         let mut opts = Options::default();
-        opts.set_merge_operator("object_merger", obj_merge, None);
+        opts.set_merge_operator("object_merger", obj_merge, obj_merge);
         opts.create_if_missing(true);
         let mut path = RocksDataStore::get_path();
         path.push("_test");

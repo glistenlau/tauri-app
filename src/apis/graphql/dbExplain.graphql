@@ -15,11 +15,11 @@ fragment dbExplainRowFields on ExplainRow {
   name
   starts
   eRows
-  a_rows
-  a_time
+  aRows
+  aTime
   buffers
-  o_mem
-  one_mem
-  used_mem
+  oMem
+  oneMem
+  usedMem
   predicateInformation
 }
