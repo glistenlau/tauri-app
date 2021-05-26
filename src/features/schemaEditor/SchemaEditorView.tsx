@@ -6,11 +6,15 @@ import styled from "styled-components";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
+import { extractXmlFileIndex } from "../../core/xmlProcessor";
 import { useDbSchemaSearchLazyQuery } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import {
+  changeLeftPanelWidth,
   changeSearchFile,
   changeSearchPath,
+  changeValuePair,
+  saveTagValue,
   searchXmlFiles
 } from "./schemaEditorSlice";
 import SchemaTreeView from "./SchemaTreeView";

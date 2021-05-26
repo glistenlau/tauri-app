@@ -11,6 +11,7 @@ use std::{
 };
 
 use anyhow::Result;
+use log::warn;
 use oracle::sql_type::ToSql as OracleToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -127,7 +128,11 @@ pub struct RunResults {
     results: HashMap<String, ResultPerSchema>,
 }
 
-pub fn scan_queries(window: tauri::Window, schema_queries: HashMap<String, Vec<Query>>, diff_results: bool) -> RunResults {
+pub fn scan_queries(
+    window: tauri::Window,
+    schema_queries: HashMap<String, Vec<Query>>,
+    diff_results: bool,
+) -> RunResults {
     let mut results = HashMap::with_capacity(schema_queries.len());
     let mut schema_join_handlers = HashMap::with_capacity(schema_queries.len());
     for (schema, queries) in schema_queries {
@@ -136,7 +141,13 @@ pub fn scan_queries(window: tauri::Window, schema_queries: HashMap<String, Vec<Q
         schema_join_handlers.insert(
             schema.clone(),
             thread::spawn(move || {
-                scan_schema_queries(window_clone, schema.clone(), queries_arc, diff_results, true)
+                scan_schema_queries(
+                    window_clone,
+                    schema.clone(),
+                    queries_arc,
+                    diff_results,
+                    true,
+                )
             }),
         );
     }
@@ -486,14 +497,18 @@ fn emit_progress(
     pending: usize,
     total: usize,
 ) {
-    window.emit(
+    if let Err(e) = window.emit(
         "scan_query_progress",
         Some(ProgressMessage::new(
             schema, index, cur_params, finished, pending, total,
         )),
-    );
+    ) {
+        warn!("emit progress error: {}", e);
+    }
 }
 
 fn emit_schema_result(window: &tauri::Window, schema: &str, result: &ResultPerSchema) {
-    window.emit("scan_query_schema_result", Some((schema, result)));
+    if let Err(e) = window.emit("scan_query_schema_result", Some((schema, result))) {
+        warn!("emit schema result error: {}", e);
+    }
 }
