@@ -6,13 +6,8 @@ use std::{
     io::Read,
 };
 
+use async_graphql::*;
 
-
-
-use juniper::{
-    graphql_object, EmptySubscription, FieldResult, GraphQLEnum, GraphQLInputObject, GraphQLObject,
-    ScalarValue,
-};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +27,7 @@ enum COLUMNS {
     Empty,
 }
 
-#[derive(GraphQLObject, Serialize, Debug, Deserialize, Default)]
+#[derive(SimpleObject, Serialize, Debug, Deserialize, Default)]
 pub struct ExplainRow {
     id: i32,
     operation: String,

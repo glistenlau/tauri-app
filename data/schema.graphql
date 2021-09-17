@@ -1,57 +1,42 @@
-type TreeNode {
-  tagName: String!
-  nameAttr: String
-  values: [NodeValue!]!
-  children: [TreeNode!]!
-  dbFamily: DbFamily
-}
-
-type ExplainRow {
-  id: Int!
-  operation: String!
-  level: Int!
-  name: String
-  starts: Int!
-  eRows: Int
-  aRows: Int
-  aTime: String
-  buffers: String!
-  hasChildren: Boolean!
-  oMem: String
-  oneMem: String
-  usedMem: String
-  predicateInformation: String
-  children: [ExplainRow!]
-}
-
-type Mutation {
-  changeSchemaValues(filePath: String!, values: [String!]!): SchemaFile!
-}
-
-enum DbFamily {
-  ORACLE
-  POSTGRES
-  BOTH
-}
-
 type Query {
-  apiVersion: String!
-  dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
-  dbExplain(text: String!, targetId: Int): [ExplainRow!]!
+	dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
+	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
 }
-
-type NodeValue {
-  start: Int!
-  end: Int!
-  dbFamily: DbFamily
-}
-
 type SchemaFile {
-  path: String!
-  root: TreeNode!
+	path: String!
+	root: TreeNode!
 }
-
-schema {
-  query: Query
-  mutation: Mutation
+type TreeNode {
+	tagName: String!
+	nameAttr: String
+	values: [NodeValue!]!
+	children: [TreeNode!]!
+	dbFamily: DbFamily
+}
+type NodeValue {
+	start: Int!
+	end: Int!
+	dbFamily: DbFamily
+}
+enum DbFamily {
+	ORACLE
+	POSTGRES
+	BOTH
+}
+type ExplainRow {
+	id: Int!
+	operation: String!
+	level: Int!
+	name: String
+	starts: Int!
+	eRows: Int
+	aRows: Int
+	aTime: String
+	buffers: String!
+	hasChildren: Boolean!
+	oMem: String
+	oneMem: String
+	usedMem: String
+	predicateInformation: String
+	children: [ExplainRow!]
 }

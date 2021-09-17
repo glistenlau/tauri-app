@@ -55,18 +55,23 @@ const darkTheme = createMuiTheme({
 });
 
 export const GlobalContext = createContext({
+  serverPort: 8888,
   isRunning: false,
   setIsRunning: (value: boolean): void => {},
 });
 
-const App = () => {
+export interface AppProps {
+  serverPort: string;
+}
+
+const App = ({serverPort}: AppProps) => {
   const [isRunning, setIsRunning] = useState(false);
 
   return (
     <MuiThemeProvider theme={lightTheme}>
       <ThemeProvider theme={lightTheme}>
         <ApolloProvider client={apolloClient}>
-          <GlobalContext.Provider value={{ isRunning, setIsRunning }}>
+          <GlobalContext.Provider value={{ serverPort, isRunning, setIsRunning }}>
             <Divider />
             <div className="App">
               <Root />

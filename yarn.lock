@@ -49,10 +49,10 @@
   dependencies:
     "@babel/highlight" "^7.12.13"
 
-"@babel/compat-data@^7.12.1", "@babel/compat-data@^7.13.11", "@babel/compat-data@^7.13.15", "@babel/compat-data@^7.14.0":
-  version "7.14.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/compat-data/-/compat-data-7.14.0.tgz#a901128bce2ad02565df95e6ecbf195cf9465919"
-  integrity sha1-qQESi84q0CVl35Xm7L8ZXPlGWRk=
+"@babel/compat-data@^7.12.1", "@babel/compat-data@^7.13.11", "@babel/compat-data@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/compat-data/-/compat-data-7.14.4.tgz#45720fe0cecf3fd42019e1d12cc3d27fadc98d58"
+  integrity sha1-RXIP4M7PP9QgGeHRLMPSf63JjVg=
 
 "@babel/core@7.12.3":
   version "7.12.3"
@@ -121,26 +121,26 @@
     "@babel/helper-explode-assignable-expression" "^7.12.13"
     "@babel/types" "^7.12.13"
 
-"@babel/helper-compilation-targets@^7.12.1", "@babel/helper-compilation-targets@^7.13.0", "@babel/helper-compilation-targets@^7.13.16":
-  version "7.13.16"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-compilation-targets/-/helper-compilation-targets-7.13.16.tgz#6e91dccf15e3f43e5556dffe32d860109887563c"
-  integrity sha1-bpHczxXj9D5VVt/+MthgEJiHVjw=
+"@babel/helper-compilation-targets@^7.12.1", "@babel/helper-compilation-targets@^7.13.0", "@babel/helper-compilation-targets@^7.13.16", "@babel/helper-compilation-targets@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-compilation-targets/-/helper-compilation-targets-7.14.4.tgz#33ebd0ffc34248051ee2089350a929ab02f2a516"
+  integrity sha1-M+vQ/8NCSAUe4giTUKkpqwLypRY=
   dependencies:
-    "@babel/compat-data" "^7.13.15"
+    "@babel/compat-data" "^7.14.4"
     "@babel/helper-validator-option" "^7.12.17"
-    browserslist "^4.14.5"
+    browserslist "^4.16.6"
     semver "^6.3.0"
 
-"@babel/helper-create-class-features-plugin@^7.12.1", "@babel/helper-create-class-features-plugin@^7.13.0", "@babel/helper-create-class-features-plugin@^7.14.0", "@babel/helper-create-class-features-plugin@^7.14.3":
-  version "7.14.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.14.3.tgz#832111bcf4f57ca57a4c5b1a000fc125abc6554a"
-  integrity sha1-gyERvPT1fKV6TFsaAA/BJavGVUo=
+"@babel/helper-create-class-features-plugin@^7.12.1", "@babel/helper-create-class-features-plugin@^7.13.0", "@babel/helper-create-class-features-plugin@^7.14.0", "@babel/helper-create-class-features-plugin@^7.14.3", "@babel/helper-create-class-features-plugin@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.14.4.tgz#abf888d836a441abee783c75229279748705dc42"
+  integrity sha1-q/iI2DakQavueDx1IpJ5dIcF3EI=
   dependencies:
     "@babel/helper-annotate-as-pure" "^7.12.13"
     "@babel/helper-function-name" "^7.14.2"
     "@babel/helper-member-expression-to-functions" "^7.13.12"
     "@babel/helper-optimise-call-expression" "^7.12.13"
-    "@babel/helper-replace-supers" "^7.14.3"
+    "@babel/helper-replace-supers" "^7.14.4"
     "@babel/helper-split-export-declaration" "^7.12.13"
 
 "@babel/helper-create-regexp-features-plugin@^7.12.13":
@@ -151,10 +151,10 @@
     "@babel/helper-annotate-as-pure" "^7.12.13"
     regexpu-core "^4.7.1"
 
-"@babel/helper-define-polyfill-provider@^0.2.1":
-  version "0.2.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-define-polyfill-provider/-/helper-define-polyfill-provider-0.2.1.tgz#e6f5f4a6edc3722152c21359190de67fc6cf664d"
-  integrity sha1-5vX0pu3DciFSwhNZGQ3mf8bPZk0=
+"@babel/helper-define-polyfill-provider@^0.2.2":
+  version "0.2.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-define-polyfill-provider/-/helper-define-polyfill-provider-0.2.3.tgz#0525edec5094653a282688d34d846e4c75e9c0b6"
+  integrity sha1-BSXt7FCUZTooJojTTYRuTHXpwLY=
   dependencies:
     "@babel/helper-compilation-targets" "^7.13.0"
     "@babel/helper-module-imports" "^7.12.13"
@@ -245,15 +245,15 @@
     "@babel/helper-wrap-function" "^7.13.0"
     "@babel/types" "^7.13.0"
 
-"@babel/helper-replace-supers@^7.12.13", "@babel/helper-replace-supers@^7.13.12", "@babel/helper-replace-supers@^7.14.3":
-  version "7.14.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-replace-supers/-/helper-replace-supers-7.14.3.tgz#ca17b318b859d107f0e9b722d58cf12d94436600"
-  integrity sha1-yhezGLhZ0Qfw6bci1YzxLZRDZgA=
+"@babel/helper-replace-supers@^7.12.13", "@babel/helper-replace-supers@^7.13.12", "@babel/helper-replace-supers@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/helper-replace-supers/-/helper-replace-supers-7.14.4.tgz#b2ab16875deecfff3ddfcd539bc315f72998d836"
+  integrity sha1-sqsWh13uz/89381Tm8MV9ymY2DY=
   dependencies:
     "@babel/helper-member-expression-to-functions" "^7.13.12"
     "@babel/helper-optimise-call-expression" "^7.12.13"
     "@babel/traverse" "^7.14.2"
-    "@babel/types" "^7.14.2"
+    "@babel/types" "^7.14.4"
 
 "@babel/helper-simple-access@^7.13.12":
   version "7.13.12"
@@ -320,9 +320,9 @@
   integrity sha1-zDEldBnSwxidOUCBY1cD9Un8HtQ=
 
 "@babel/parser@^7.0.0", "@babel/parser@^7.1.0", "@babel/parser@^7.12.13", "@babel/parser@^7.12.3", "@babel/parser@^7.14.2", "@babel/parser@^7.14.3", "@babel/parser@^7.7.0":
-  version "7.14.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/parser/-/parser-7.14.3.tgz#9b530eecb071fd0c93519df25c5ff9f14759f298"
-  integrity sha1-m1MO7LBx/QyTUZ3yXF/58UdZ8pg=
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/parser/-/parser-7.14.4.tgz#a5c560d6db6cd8e6ed342368dea8039232cbab18"
+  integrity sha1-pcVg1tts2ObtNCNo3qgDkjLLqxg=
 
 "@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining@^7.13.12":
   version "7.13.12"
@@ -358,7 +358,7 @@
     "@babel/helper-create-class-features-plugin" "^7.13.0"
     "@babel/helper-plugin-utils" "^7.13.0"
 
-"@babel/plugin-proposal-class-static-block@^7.13.11":
+"@babel/plugin-proposal-class-static-block@^7.14.3":
   version "7.14.3"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-proposal-class-static-block/-/plugin-proposal-class-static-block-7.14.3.tgz#5a527e2cae4a4753119c3a3e7f64ecae8ccf1360"
   integrity sha1-WlJ+LK5KR1MRnDo+f2TsrozPE2A=
@@ -440,13 +440,13 @@
     "@babel/helper-plugin-utils" "^7.13.0"
     "@babel/plugin-syntax-numeric-separator" "^7.10.4"
 
-"@babel/plugin-proposal-object-rest-spread@^7.0.0", "@babel/plugin-proposal-object-rest-spread@^7.12.1", "@babel/plugin-proposal-object-rest-spread@^7.14.2":
-  version "7.14.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-proposal-object-rest-spread/-/plugin-proposal-object-rest-spread-7.14.2.tgz#e17d418f81cc103fedd4ce037e181c8056225abc"
-  integrity sha1-4X1Bj4HMED/t1M4DfhgcgFYiWrw=
+"@babel/plugin-proposal-object-rest-spread@^7.0.0", "@babel/plugin-proposal-object-rest-spread@^7.12.1", "@babel/plugin-proposal-object-rest-spread@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-proposal-object-rest-spread/-/plugin-proposal-object-rest-spread-7.14.4.tgz#0e2b4de419915dc0b409378e829412e2031777c4"
+  integrity sha1-DitN5BmRXcC0CTeOgpQS4gMXd8Q=
   dependencies:
-    "@babel/compat-data" "^7.14.0"
-    "@babel/helper-compilation-targets" "^7.13.16"
+    "@babel/compat-data" "^7.14.4"
+    "@babel/helper-compilation-targets" "^7.14.4"
     "@babel/helper-plugin-utils" "^7.13.0"
     "@babel/plugin-syntax-object-rest-spread" "^7.8.3"
     "@babel/plugin-transform-parameters" "^7.14.2"
@@ -666,23 +666,23 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.12.13"
 
-"@babel/plugin-transform-block-scoping@^7.0.0", "@babel/plugin-transform-block-scoping@^7.12.1", "@babel/plugin-transform-block-scoping@^7.14.2":
-  version "7.14.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-block-scoping/-/plugin-transform-block-scoping-7.14.2.tgz#761cb12ab5a88d640ad4af4aa81f820e6b5fdf5c"
-  integrity sha1-dhyxKrWojWQK1K9KqB+CDmtf31w=
+"@babel/plugin-transform-block-scoping@^7.0.0", "@babel/plugin-transform-block-scoping@^7.12.1", "@babel/plugin-transform-block-scoping@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-block-scoping/-/plugin-transform-block-scoping-7.14.4.tgz#caf140b0b2e2462c509553d140e6d0abefb61ed8"
+  integrity sha1-yvFAsLLiRixQlVPRQObQq++2Htg=
   dependencies:
     "@babel/helper-plugin-utils" "^7.13.0"
 
-"@babel/plugin-transform-classes@^7.0.0", "@babel/plugin-transform-classes@^7.12.1", "@babel/plugin-transform-classes@^7.14.2":
-  version "7.14.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-classes/-/plugin-transform-classes-7.14.2.tgz#3f1196c5709f064c252ad056207d87b7aeb2d03d"
-  integrity sha1-PxGWxXCfBkwlKtBWIH2Ht66y0D0=
+"@babel/plugin-transform-classes@^7.0.0", "@babel/plugin-transform-classes@^7.12.1", "@babel/plugin-transform-classes@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-classes/-/plugin-transform-classes-7.14.4.tgz#a83c15503fc71a0f99e876fdce7dadbc6575ec3a"
+  integrity sha1-qDwVUD/HGg+Z6Hb9zn2tvGV17Do=
   dependencies:
     "@babel/helper-annotate-as-pure" "^7.12.13"
     "@babel/helper-function-name" "^7.14.2"
     "@babel/helper-optimise-call-expression" "^7.12.13"
     "@babel/helper-plugin-utils" "^7.13.0"
-    "@babel/helper-replace-supers" "^7.13.12"
+    "@babel/helper-replace-supers" "^7.14.4"
     "@babel/helper-split-export-declaration" "^7.12.13"
     globals "^11.1.0"
 
@@ -693,10 +693,10 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.13.0"
 
-"@babel/plugin-transform-destructuring@^7.0.0", "@babel/plugin-transform-destructuring@^7.12.1", "@babel/plugin-transform-destructuring@^7.13.17":
-  version "7.13.17"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-destructuring/-/plugin-transform-destructuring-7.13.17.tgz#678d96576638c19d5b36b332504d3fd6e06dea27"
-  integrity sha1-Z42WV2Y4wZ1bNrMyUE0/1uBt6ic=
+"@babel/plugin-transform-destructuring@^7.0.0", "@babel/plugin-transform-destructuring@^7.12.1", "@babel/plugin-transform-destructuring@^7.14.4":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-destructuring/-/plugin-transform-destructuring-7.14.4.tgz#acbec502e9951f30f4441eaca1d2f29efade59ed"
+  integrity sha1-rL7FAumVHzD0RB6sodLynvreWe0=
   dependencies:
     "@babel/helper-plugin-utils" "^7.13.0"
 
@@ -964,11 +964,11 @@
     "@babel/helper-plugin-utils" "^7.12.13"
 
 "@babel/plugin-transform-typescript@^7.12.1":
-  version "7.14.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-typescript/-/plugin-transform-typescript-7.14.3.tgz#44f67f725a60cccee33d9d6fee5e4f338258f34f"
-  integrity sha1-RPZ/clpgzM7jPZ1v7l5PM4JY808=
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/plugin-transform-typescript/-/plugin-transform-typescript-7.14.4.tgz#1c48829fa6d5f2de646060cd08abb6cda4b521a7"
+  integrity sha1-HEiCn6bV8t5kYGDNCKu2zaS1Iac=
   dependencies:
-    "@babel/helper-create-class-features-plugin" "^7.14.3"
+    "@babel/helper-create-class-features-plugin" "^7.14.4"
     "@babel/helper-plugin-utils" "^7.13.0"
     "@babel/plugin-syntax-typescript" "^7.12.13"
 
@@ -1060,25 +1060,25 @@
     semver "^5.5.0"
 
 "@babel/preset-env@^7.12.1", "@babel/preset-env@^7.8.4":
-  version "7.14.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/preset-env/-/preset-env-7.14.2.tgz#e80612965da73579c84ad2f963c2359c71524ed5"
-  integrity sha1-6AYSll2nNXnIStL5Y8I1nHFSTtU=
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/preset-env/-/preset-env-7.14.4.tgz#73fc3228c59727e5e974319156f304f0d6685a2d"
+  integrity sha1-c/wyKMWXJ+XpdDGRVvME8NZoWi0=
   dependencies:
-    "@babel/compat-data" "^7.14.0"
-    "@babel/helper-compilation-targets" "^7.13.16"
+    "@babel/compat-data" "^7.14.4"
+    "@babel/helper-compilation-targets" "^7.14.4"
     "@babel/helper-plugin-utils" "^7.13.0"
     "@babel/helper-validator-option" "^7.12.17"
     "@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining" "^7.13.12"
     "@babel/plugin-proposal-async-generator-functions" "^7.14.2"
     "@babel/plugin-proposal-class-properties" "^7.13.0"
-    "@babel/plugin-proposal-class-static-block" "^7.13.11"
+    "@babel/plugin-proposal-class-static-block" "^7.14.3"
     "@babel/plugin-proposal-dynamic-import" "^7.14.2"
     "@babel/plugin-proposal-export-namespace-from" "^7.14.2"
     "@babel/plugin-proposal-json-strings" "^7.14.2"
     "@babel/plugin-proposal-logical-assignment-operators" "^7.14.2"
     "@babel/plugin-proposal-nullish-coalescing-operator" "^7.14.2"
     "@babel/plugin-proposal-numeric-separator" "^7.14.2"
-    "@babel/plugin-proposal-object-rest-spread" "^7.14.2"
+    "@babel/plugin-proposal-object-rest-spread" "^7.14.4"
     "@babel/plugin-proposal-optional-catch-binding" "^7.14.2"
     "@babel/plugin-proposal-optional-chaining" "^7.14.2"
     "@babel/plugin-proposal-private-methods" "^7.13.0"
@@ -1101,10 +1101,10 @@
     "@babel/plugin-transform-arrow-functions" "^7.13.0"
     "@babel/plugin-transform-async-to-generator" "^7.13.0"
     "@babel/plugin-transform-block-scoped-functions" "^7.12.13"
-    "@babel/plugin-transform-block-scoping" "^7.14.2"
-    "@babel/plugin-transform-classes" "^7.14.2"
+    "@babel/plugin-transform-block-scoping" "^7.14.4"
+    "@babel/plugin-transform-classes" "^7.14.4"
     "@babel/plugin-transform-computed-properties" "^7.13.0"
-    "@babel/plugin-transform-destructuring" "^7.13.17"
+    "@babel/plugin-transform-destructuring" "^7.14.4"
     "@babel/plugin-transform-dotall-regex" "^7.12.13"
     "@babel/plugin-transform-duplicate-keys" "^7.12.13"
     "@babel/plugin-transform-exponentiation-operator" "^7.12.13"
@@ -1131,7 +1131,7 @@
     "@babel/plugin-transform-unicode-escapes" "^7.12.13"
     "@babel/plugin-transform-unicode-regex" "^7.12.13"
     "@babel/preset-modules" "^0.1.4"
-    "@babel/types" "^7.14.2"
+    "@babel/types" "^7.14.4"
     babel-plugin-polyfill-corejs2 "^0.2.0"
     babel-plugin-polyfill-corejs3 "^0.2.0"
     babel-plugin-polyfill-regenerator "^0.2.0"
@@ -1251,10 +1251,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@babel/types@^7.0.0", "@babel/types@^7.12.1", "@babel/types@^7.12.13", "@babel/types@^7.12.6", "@babel/types@^7.13.0", "@babel/types@^7.13.12", "@babel/types@^7.13.16", "@babel/types@^7.14.0", "@babel/types@^7.14.2", "@babel/types@^7.3.0", "@babel/types@^7.3.3", "@babel/types@^7.4.4", "@babel/types@^7.7.0":
-  version "7.14.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/types/-/types-7.14.2.tgz#4208ae003107ef8a057ea8333e56eb64d2f6a2c3"
-  integrity sha1-QgiuADEH74oFfqgzPlbrZNL2osM=
+"@babel/types@^7.0.0", "@babel/types@^7.12.1", "@babel/types@^7.12.13", "@babel/types@^7.12.6", "@babel/types@^7.13.0", "@babel/types@^7.13.12", "@babel/types@^7.13.16", "@babel/types@^7.14.0", "@babel/types@^7.14.2", "@babel/types@^7.14.4", "@babel/types@^7.3.0", "@babel/types@^7.3.3", "@babel/types@^7.4.4", "@babel/types@^7.7.0":
+  version "7.14.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@babel/types/-/types-7.14.4.tgz#bfd6980108168593b38b3eb48a24aa026b919bc0"
+  integrity sha1-v9aYAQgWhZOziz60iiSqAmuRm8A=
   dependencies:
     "@babel/helper-validator-identifier" "^7.14.0"
     to-fast-properties "^2.0.0"
@@ -1344,9 +1344,9 @@
     strip-json-comments "^3.1.1"
 
 "@graphiql/toolkit@^0.2.0":
-  version "0.2.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphiql/toolkit/-/toolkit-0.2.1.tgz#2e23829ab7327d79006126dfe72cfed72c61250c"
-  integrity sha1-LiOCmrcyfXkAYSbf5yz+1yxhJQw=
+  version "0.2.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphiql/toolkit/-/toolkit-0.2.2.tgz#193d570afcf686c9ee61c92054c1782b9f3c1255"
+  integrity sha1-GT1XCvz2hsnuYckgVMF4K588ElU=
   dependencies:
     "@n1ru4l/push-pull-async-iterable-iterator" "^2.1.4"
     graphql-ws "^4.3.2"
@@ -1410,12 +1410,12 @@
     "@graphql-tools/utils" "^6"
     tslib "~2.0.1"
 
-"@graphql-codegen/plugin-helpers@^1.18.2", "@graphql-codegen/plugin-helpers@^1.18.5":
-  version "1.18.6"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/plugin-helpers/-/plugin-helpers-1.18.6.tgz#eedd5d0fbca43ab2a19705cdfe3d72eb4b29db64"
-  integrity sha1-7t1dD7ykOrKhlwXN/j1y60sp22Q=
+"@graphql-codegen/plugin-helpers@^1.18.2", "@graphql-codegen/plugin-helpers@^1.18.5", "@graphql-codegen/plugin-helpers@^1.18.7":
+  version "1.18.7"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/plugin-helpers/-/plugin-helpers-1.18.7.tgz#465af3e5b02de89e49ddc76ad2546b880fe240f2"
+  integrity sha1-Rlrz5bAt6J5J3cdq0lRriA/iQPI=
   dependencies:
-    "@graphql-tools/utils" "^7.0.0"
+    "@graphql-tools/utils" "^7.9.1"
     common-tags "1.8.0"
     import-from "3.0.0"
     lodash "~4.17.0"
@@ -1433,34 +1433,34 @@
     tslib "~2.2.0"
 
 "@graphql-codegen/typescript-react-apollo@^2.2.1":
-  version "2.2.4"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/typescript-react-apollo/-/typescript-react-apollo-2.2.4.tgz#149b8e4f2b684295a2e6be8b9e88285a0f8be0f6"
-  integrity sha1-FJuOTytoQpWi5r6LnogoWg+L4PY=
+  version "2.2.5"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/typescript-react-apollo/-/typescript-react-apollo-2.2.5.tgz#e561d77c3c1cfe32e42ab34c08d517bffc5e9f30"
+  integrity sha1-5WHXfDwc/jLkKrNMCNUXv/xenzA=
   dependencies:
-    "@graphql-codegen/plugin-helpers" "^1.18.5"
-    "@graphql-codegen/visitor-plugin-common" "^1.20.0"
+    "@graphql-codegen/plugin-helpers" "^1.18.7"
+    "@graphql-codegen/visitor-plugin-common" "1.21.0"
     auto-bind "~4.0.0"
     change-case-all "1.0.14"
     tslib "~2.2.0"
 
 "@graphql-codegen/typescript@^1.21.0", "@graphql-codegen/typescript@^1.22.0":
-  version "1.22.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/typescript/-/typescript-1.22.0.tgz#d05be3a971e5d75a076a43e123b6330f4366a6ab"
-  integrity sha1-0FvjqXHl11oHakPhI7YzD0Nmpqs=
+  version "1.22.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/typescript/-/typescript-1.22.1.tgz#9a2e215d4cf095d942c1671db4bad78b619b11ce"
+  integrity sha1-mi4hXUzwldlCwWcdtLrXi2GbEc4=
   dependencies:
-    "@graphql-codegen/plugin-helpers" "^1.18.5"
-    "@graphql-codegen/visitor-plugin-common" "^1.20.0"
+    "@graphql-codegen/plugin-helpers" "^1.18.7"
+    "@graphql-codegen/visitor-plugin-common" "1.21.0"
     auto-bind "~4.0.0"
     tslib "~2.2.0"
 
-"@graphql-codegen/visitor-plugin-common@^1.20.0":
-  version "1.20.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/visitor-plugin-common/-/visitor-plugin-common-1.20.0.tgz#38d829eab7370c79aa5229190788f94adcae8f76"
-  integrity sha1-ONgp6rc3DHmqUikZB4j5Styuj3Y=
+"@graphql-codegen/visitor-plugin-common@1.21.0", "@graphql-codegen/visitor-plugin-common@^1.20.0":
+  version "1.21.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-codegen/visitor-plugin-common/-/visitor-plugin-common-1.21.0.tgz#1cb59a8ce9a9d6486f859a254645e162c6736cfb"
+  integrity sha1-HLWajOmp1khvhZolRkXhYsZzbPs=
   dependencies:
-    "@graphql-codegen/plugin-helpers" "^1.18.5"
+    "@graphql-codegen/plugin-helpers" "^1.18.7"
     "@graphql-tools/optimize" "^1.0.1"
-    "@graphql-tools/relay-operation-optimizer" "^6"
+    "@graphql-tools/relay-operation-optimizer" "^6.3.0"
     array.prototype.flatmap "^1.2.4"
     auto-bind "~4.0.0"
     change-case-all "1.0.14"
@@ -1623,7 +1623,7 @@
     tslib "~2.1.0"
     yaml-ast-parser "^0.0.43"
 
-"@graphql-tools/relay-operation-optimizer@^6":
+"@graphql-tools/relay-operation-optimizer@^6.3.0":
   version "6.3.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-tools/relay-operation-optimizer/-/relay-operation-optimizer-6.3.0.tgz#f8c7f6c8aa4a9cf50ab151fbc5db4f4282a79532"
   integrity sha1-+Mf2yKpKnPUKsVH7xdtPQoKnlTI=
@@ -1675,7 +1675,7 @@
     camel-case "4.1.1"
     tslib "~2.0.1"
 
-"@graphql-tools/utils@^7.0.0", "@graphql-tools/utils@^7.1.0", "@graphql-tools/utils@^7.1.2", "@graphql-tools/utils@^7.5.0", "@graphql-tools/utils@^7.7.0", "@graphql-tools/utils@^7.7.1", "@graphql-tools/utils@^7.8.1", "@graphql-tools/utils@^7.9.0":
+"@graphql-tools/utils@^7.0.0", "@graphql-tools/utils@^7.1.0", "@graphql-tools/utils@^7.1.2", "@graphql-tools/utils@^7.5.0", "@graphql-tools/utils@^7.7.0", "@graphql-tools/utils@^7.7.1", "@graphql-tools/utils@^7.8.1", "@graphql-tools/utils@^7.9.0", "@graphql-tools/utils@^7.9.1":
   version "7.10.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@graphql-tools/utils/-/utils-7.10.0.tgz#07a4cb5d1bec1ff1dc1d47a935919ee6abd38699"
   integrity sha1-B6TLXRvsH/HcHUepNZGe5qvThpk=
@@ -2245,33 +2245,34 @@
   dependencies:
     defer-to-connect "^2.0.0"
 
-"@tauri-apps/api@^1.0.0-beta.1":
-  version "1.0.0-beta.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@tauri-apps/api/-/api-1.0.0-beta.1.tgz#5b3696235c841cfe68d31b65a61c381778e5c733"
-  integrity sha1-WzaWI1yEHP5o0xtlphw4F3jlxzM=
+"@tauri-apps/api@^1.0.0-beta.8":
+  version "1.0.0-beta.8"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@tauri-apps/api/-/api-1.0.0-beta.8.tgz#a43dc4a4515148f29bfb616db85445b771e84f78"
+  integrity sha1-pD3EpFFRSPKb+2FtuFRFt3HoT3g=
 
-"@tauri-apps/cli@^1.0.0-beta.2":
-  version "1.0.0-beta.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@tauri-apps/cli/-/cli-1.0.0-beta.2.tgz#2ae81c1dd87df7fb2cb6d80ce769a5f9566d0153"
-  integrity sha1-KugcHdh99/ssttgM52ml+VZtAVM=
+"@tauri-apps/cli@^1.0.0-beta.10":
+  version "1.0.0-beta.10"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@tauri-apps/cli/-/cli-1.0.0-beta.10.tgz#753a011d6fbbf1a903e18593b5b99d7dee8ccc5b"
+  integrity sha1-dToBHW+78akD4YWTtbmdfe6MzFs=
   dependencies:
     "@tauri-apps/toml" "2.2.4"
-    chalk "4.1.1"
+    chalk "4.1.2"
     cross-env "7.0.3"
     cross-spawn "7.0.3"
     fs-extra "10.0.0"
+    global-agent "3.0.0"
     got "11.8.2"
-    imagemin "8.0.0"
+    imagemin "8.0.1"
     imagemin-optipng "8.0.0"
     imagemin-zopfli "7.0.0"
-    inquirer "8.0.0"
+    inquirer "8.1.2"
     is-png "3.0.0"
     minimist "1.2.5"
     ms "2.1.3"
     png2icons "2.0.1"
     read-chunk "3.2.0"
     semver "7.3.5"
-    sharp "0.28.2"
+    sharp "0.28.3"
     update-notifier "5.1.0"
 
 "@tauri-apps/toml@2.2.4":
@@ -2322,10 +2323,10 @@
   dependencies:
     "@babel/runtime" "^7.12.5"
 
-"@tokenizer/token@^0.1.1":
-  version "0.1.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@tokenizer/token/-/token-0.1.1.tgz#f0d92c12f87079ddfd1b29f614758b9696bc29e3"
-  integrity sha1-8NksEvhwed39Gyn2FHWLlpa8KeM=
+"@tokenizer/token@^0.3.0":
+  version "0.3.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@tokenizer/token/-/token-0.3.0.tgz#fe98a93fe789247e998c75e74e9c7c63217aa276"
+  integrity sha1-/pipP+eJJH6ZjHXnTpx8YyF6onY=
 
 "@tootallnate/once@1":
   version "1.1.2"
@@ -2385,15 +2386,10 @@
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/crypto-js/-/crypto-js-4.0.1.tgz#3a4bd24518b0e6c5940da4e2659eeb2ef0806963"
   integrity sha1-OkvSRRiw5sWUDaTiZZ7rLvCAaWM=
 
-"@types/debug@^4.1.5":
-  version "4.1.5"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/debug/-/debug-4.1.5.tgz#b14efa8852b7768d898906613c23f688713e02cd"
-  integrity sha1-sU76iFK3do2JiQZhPCP2iHE+As0=
-
 "@types/eslint@^7.2.6":
-  version "7.2.11"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/eslint/-/eslint-7.2.11.tgz#180b58f5bb7d7376e39d22496e2b08901aa52fd2"
-  integrity sha1-GAtY9bt9c3bjnSJJbisIkBqlL9I=
+  version "7.2.12"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/eslint/-/eslint-7.2.12.tgz#fefaa48a4db2415b621fe315e4baeedde525927e"
+  integrity sha1-/vqkik2yQVtiH+MV5Lru3eUlkn4=
   dependencies:
     "@types/estree" "*"
     "@types/json-schema" "*"
@@ -2576,9 +2572,9 @@
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^17.0.1":
-  version "17.0.7"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/react/-/react-17.0.7.tgz#5f2ca73d8baee8c286e96c95df557799ac0d1996"
-  integrity sha1-XyynPYuu6MKG6WyV31V3mawNGZY=
+  version "17.0.8"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/react/-/react-17.0.8.tgz#fe76e3ba0fbb5602704110fd1e3035cf394778e3"
+  integrity sha1-/nbjug+7VgJwQRD9HjA1zzlHeOM=
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -3294,6 +3290,11 @@ array-union@^2.1.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/array-union/-/array-union-2.1.0.tgz#b798420adbeb1de828d84acd8a2e23d3efe85e8d"
   integrity sha1-t5hCCtvrHego2ErNii4j0+/oXo0=
 
+array-union@^3.0.1:
+  version "3.0.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/array-union/-/array-union-3.0.1.tgz#da52630d327f8b88cfbfb57728e2af5cd9b6b975"
+  integrity sha1-2lJjDTJ/i4jPv7V3KOKvXNm2uXU=
+
 array-uniq@^1.0.1:
   version "1.0.3"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/array-uniq/-/array-uniq-1.0.3.tgz#af6ac877a25cc7f74e058894753858dfdb24fdb6"
@@ -3518,28 +3519,28 @@ babel-plugin-named-asset-import@^0.3.7:
   integrity sha1-FWzVXT8SKKV2V3Q0CTevyDmAZ90=
 
 babel-plugin-polyfill-corejs2@^0.2.0:
-  version "0.2.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/babel-plugin-polyfill-corejs2/-/babel-plugin-polyfill-corejs2-0.2.1.tgz#ae2cf6d6f1aa7c0edcf04a25180e8856a6d1184f"
-  integrity sha1-riz21vGqfA7c8EolGA6IVqbRGE8=
+  version "0.2.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/babel-plugin-polyfill-corejs2/-/babel-plugin-polyfill-corejs2-0.2.2.tgz#e9124785e6fd94f94b618a7954e5693053bf5327"
+  integrity sha1-6RJHheb9lPlLYYp5VOVpMFO/Uyc=
   dependencies:
     "@babel/compat-data" "^7.13.11"
-    "@babel/helper-define-polyfill-provider" "^0.2.1"
+    "@babel/helper-define-polyfill-provider" "^0.2.2"
     semver "^6.1.1"
 
 babel-plugin-polyfill-corejs3@^0.2.0:
-  version "0.2.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/babel-plugin-polyfill-corejs3/-/babel-plugin-polyfill-corejs3-0.2.1.tgz#786f40218040030f0edecfd48e6e59f1ee9bef53"
-  integrity sha1-eG9AIYBAAw8O3s/Ujm5Z8e6b71M=
+  version "0.2.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/babel-plugin-polyfill-corejs3/-/babel-plugin-polyfill-corejs3-0.2.2.tgz#7424a1682ee44baec817327710b1b094e5f8f7f5"
+  integrity sha1-dCShaC7kS67IFzJ3ELGwlOX49/U=
   dependencies:
-    "@babel/helper-define-polyfill-provider" "^0.2.1"
+    "@babel/helper-define-polyfill-provider" "^0.2.2"
     core-js-compat "^3.9.1"
 
 babel-plugin-polyfill-regenerator@^0.2.0:
-  version "0.2.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/babel-plugin-polyfill-regenerator/-/babel-plugin-polyfill-regenerator-0.2.1.tgz#ca9595d7d5f3afefec2d83126148b90db751a091"
-  integrity sha1-ypWV19Xzr+/sLYMSYUi5DbdRoJE=
+  version "0.2.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/babel-plugin-polyfill-regenerator/-/babel-plugin-polyfill-regenerator-0.2.2.tgz#b310c8d642acada348c1fa3b3e6ce0e851bee077"
+  integrity sha1-sxDI1kKsraNIwfo7Pmzg6FG+4Hc=
   dependencies:
-    "@babel/helper-define-polyfill-provider" "^0.2.1"
+    "@babel/helper-define-polyfill-provider" "^0.2.2"
 
 babel-plugin-relay@^11.0.2:
   version "11.0.2"
@@ -3805,7 +3806,7 @@ bl@^1.0.0:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
 
-bl@^4.0.3:
+bl@^4.0.3, bl@^4.1.0:
   version "4.1.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/bl/-/bl-4.1.0.tgz#451535264182bec2fbbc83a62ab98cf11d9f7b3a"
   integrity sha1-RRU1JkGCvsL7vIOmKrmM8R2fezo=
@@ -3861,6 +3862,11 @@ boolbase@^1.0.0, boolbase@~1.0.0:
   version "1.0.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
+
+boolean@^3.0.1:
+  version "3.1.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/boolean/-/boolean-3.1.4.tgz#f51a2fb5838a99e06f9b6ec1edb674de67026435"
+  integrity sha1-9RovtYOKmeBvm27B7bZ03mcCZDU=
 
 boxen@^5.0.0:
   version "5.0.1"
@@ -3988,7 +3994,7 @@ browserslist@4.14.2:
     escalade "^3.0.2"
     node-releases "^1.1.61"
 
-browserslist@^4.0.0, browserslist@^4.12.0, browserslist@^4.14.5, browserslist@^4.16.6, browserslist@^4.6.2, browserslist@^4.6.4:
+browserslist@^4.0.0, browserslist@^4.12.0, browserslist@^4.16.6, browserslist@^4.6.2, browserslist@^4.6.4:
   version "4.16.6"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/browserslist/-/browserslist-4.16.6.tgz#d7901277a5a88e554ed305b183ec9b0c08f66fa2"
   integrity sha1-15ASd6WojlVO0wWxg+ybDAj2b6I=
@@ -4276,9 +4282,9 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001125, caniuse-lite@^1.0.30001219:
-  version "1.0.30001228"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/caniuse-lite/-/caniuse-lite-1.0.30001228.tgz#bfdc5942cd3326fa51ee0b42fbef4da9d492a7fa"
-  integrity sha1-v9xZQs0zJvpR7gtC++9NqdSSp/o=
+  version "1.0.30001230"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/caniuse-lite/-/caniuse-lite-1.0.30001230.tgz#8135c57459854b2240b57a4a6786044bdc5a9f71"
+  integrity sha1-gTXFdFmFSyJAtXpKZ4YES9xan3E=
 
 capital-case@^1.0.4:
   version "1.0.4"
@@ -4320,10 +4326,10 @@ chalk@2.4.2, chalk@^2.0.0, chalk@^2.4.1, chalk@^2.4.2:
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
 
-chalk@4.1.1, chalk@^4.0.0, chalk@^4.1.0:
-  version "4.1.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/chalk/-/chalk-4.1.1.tgz#c80b3fab28bf6371e6863325eee67e618b77e6ad"
-  integrity sha1-yAs/qyi/Y3HmhjMl7uZ+YYt35q0=
+chalk@4.1.2, chalk@^4.1.1:
+  version "4.1.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
+  integrity sha1-qsTit3NKdAhnrrFr8CqtVWoeegE=
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
@@ -4343,6 +4349,14 @@ chalk@^3.0.0:
   version "3.0.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/chalk/-/chalk-3.0.0.tgz#3f73c2bf526591f574cc492c51e2456349f844e4"
   integrity sha1-P3PCv1JlkfV0zEksUeJFY0n4ROQ=
+  dependencies:
+    ansi-styles "^4.1.0"
+    supports-color "^7.1.0"
+
+chalk@^4.0.0, chalk@^4.1.0:
+  version "4.1.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/chalk/-/chalk-4.1.1.tgz#c80b3fab28bf6371e6863325eee67e618b77e6ad"
+  integrity sha1-yAs/qyi/Y3HmhjMl7uZ+YYt35q0=
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
@@ -4504,6 +4518,11 @@ cli-cursor@^3.1.0:
   dependencies:
     restore-cursor "^3.1.0"
 
+cli-spinners@^2.5.0:
+  version "2.6.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/cli-spinners/-/cli-spinners-2.6.0.tgz#36c7dc98fb6a9a76bd6238ec3f77e2425627e939"
+  integrity sha1-NsfcmPtqmna9YjjsP3fiQlYn6Tk=
+
 cli-truncate@^0.2.1:
   version "0.2.1"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/cli-truncate/-/cli-truncate-0.2.1.tgz#9f15cfbb0705005369216c626ac7d05ab90dd574"
@@ -4551,6 +4570,11 @@ clone-response@1.0.2, clone-response@^1.0.2:
   dependencies:
     mimic-response "^1.0.0"
 
+clone@^1.0.2:
+  version "1.0.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
+  integrity sha1-2jCcwmPfFZlMaIypAheco8fNfH4=
+
 clsx@^1.0.4, clsx@^1.1.0:
   version "1.1.1"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/clsx/-/clsx-1.1.1.tgz#98b3134f9abbdf23b2663491ace13c5c03a73188"
@@ -4576,9 +4600,9 @@ code-point-at@^1.0.0:
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
 codemirror-graphql@^1.0.0:
-  version "1.0.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/codemirror-graphql/-/codemirror-graphql-1.0.1.tgz#858fd43b0c5d48fd2f6e90a0efe72ee95033b139"
-  integrity sha1-hY/UOwxdSP0vbpCg7+cu6VAzsTk=
+  version "1.0.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/codemirror-graphql/-/codemirror-graphql-1.0.2.tgz#cfbfb4ab9ed81467dc606848c5eb84e1f5d82766"
+  integrity sha1-z7+0q57YFGfcYGhIxeuE4fXYJ2Y=
   dependencies:
     graphql-language-service-interface "^2.8.2"
     graphql-language-service-parser "^1.9.0"
@@ -4859,17 +4883,17 @@ copy-to-clipboard@^3.2.0:
     toggle-selection "^1.0.6"
 
 core-js-compat@^3.6.2, core-js-compat@^3.9.0, core-js-compat@^3.9.1:
-  version "3.12.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/core-js-compat/-/core-js-compat-3.12.1.tgz#2c302c4708505fa7072b0adb5156d26f7801a18b"
-  integrity sha1-LDAsRwhQX6cHKwrbUVbSb3gBoYs=
+  version "3.13.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/core-js-compat/-/core-js-compat-3.13.0.tgz#a88f5fa81d8e9b15d7f98abc4447a4dfca2a358f"
+  integrity sha1-qI9fqB2OmxXX+Yq8REek38oqNY8=
   dependencies:
     browserslist "^4.16.6"
     semver "7.0.0"
 
 core-js-pure@^3.0.0:
-  version "3.12.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/core-js-pure/-/core-js-pure-3.12.1.tgz#934da8b9b7221e2a2443dc71dfa5bd77a7ea00b8"
-  integrity sha1-k02oubciHiokQ9xx36W9d6fqALg=
+  version "3.13.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/core-js-pure/-/core-js-pure-3.13.0.tgz#9d267fb47d1d7046cfbc05e7b67bb235b6735355"
+  integrity sha1-nSZ/tH0dcEbPvAXntnuyNbZzU1U=
 
 core-js@^2.4.0:
   version "2.6.12"
@@ -4877,9 +4901,9 @@ core-js@^2.4.0:
   integrity sha1-2TM9+nsGXjR8xWgiGdb2kIWcwuw=
 
 core-js@^3.6.5:
-  version "3.12.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/core-js/-/core-js-3.12.1.tgz#6b5af4ff55616c08a44d386f1f510917ff204112"
-  integrity sha1-a1r0/1VhbAikTThvH1EJF/8gQRI=
+  version "3.13.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/core-js/-/core-js-3.13.0.tgz#58ca436bf01d6903aee3d364089868d0d89fe58d"
+  integrity sha1-WMpDa/AdaQOu49NkCJho0Nif5Y0=
 
 core-util-is@~1.0.0:
   version "1.0.2"
@@ -5506,6 +5530,13 @@ default-gateway@^4.2.0:
     execa "^1.0.0"
     ip-regex "^2.1.0"
 
+defaults@^1.0.3:
+  version "1.0.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/defaults/-/defaults-1.0.3.tgz#c656051e9817d9ff08ed881477f3fe4019f3ef7d"
+  integrity sha1-xlYFHpgX2f8I7YgUd/P+QBnz730=
+  dependencies:
+    clone "^1.0.2"
+
 defer-to-connect@^1.0.1:
   version "1.1.3"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/defer-to-connect/-/defer-to-connect-1.1.3.tgz#331ae050c08dcf789f8c83a7b81f0ed94f4ac591"
@@ -5592,9 +5623,9 @@ destroy@~1.0.4:
   integrity sha1-l4hXRCxEdJ5CBmE+N5RiBYJqvYA=
 
 detect-indent@^6.0.0:
-  version "6.0.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/detect-indent/-/detect-indent-6.0.0.tgz#0abd0f549f69fc6659a254fe96786186b6f528fd"
-  integrity sha1-Cr0PVJ9p/GZZolT+lnhhhrb1KP0=
+  version "6.1.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/detect-indent/-/detect-indent-6.1.0.tgz#592485ebbbf6b3b1ab2be175c8393d04ca0d57e6"
+  integrity sha1-WSSF67v2s7GrK+F1yDk9BMoNV+Y=
 
 detect-libc@^1.0.3:
   version "1.0.3"
@@ -5651,9 +5682,9 @@ dns-equal@^1.0.0:
   integrity sha1-s55/HabrCnW6nBcySzR1PEfgZU0=
 
 dns-packet@^1.3.1:
-  version "1.3.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/dns-packet/-/dns-packet-1.3.3.tgz#7b62ee6e6aaac0c2de27cfc4a06af59cacb9cb38"
-  integrity sha1-e2LubmqqwMLeJ8/EoGr1nKy5yzg=
+  version "1.3.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/dns-packet/-/dns-packet-1.3.4.tgz#e3455065824a2507ba886c55a89963bb107dec6f"
+  integrity sha1-40VQZYJKJQe6iGxVqJljuxB97G8=
   dependencies:
     ip "^1.1.0"
     safe-buffer "^5.0.1"
@@ -5852,9 +5883,9 @@ ejs@^2.6.1:
   integrity sha1-SGYSh1c9zFPjZsehrlLDoSDuybo=
 
 electron-to-chromium@^1.3.564, electron-to-chromium@^1.3.723:
-  version "1.3.738"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/electron-to-chromium/-/electron-to-chromium-1.3.738.tgz#aec24b091c82acbfabbdcce08076a703941d17ca"
-  integrity sha1-rsJLCRyCrL+rvczggHanA5QdF8o=
+  version "1.3.741"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/electron-to-chromium/-/electron-to-chromium-1.3.741.tgz#dc1024b19b31e27fb2c8c0a1f120cb05fc6ca695"
+  integrity sha1-3BAksZsx4n+yyMCh8SDLBfxsppU=
 
 elegant-spinner@^1.0.1:
   version "1.0.1"
@@ -5980,10 +6011,10 @@ error-stack-parser@^2.0.6:
   dependencies:
     stackframe "^1.1.1"
 
-es-abstract@^1.17.2, es-abstract@^1.18.0-next.1, es-abstract@^1.18.0-next.2:
-  version "1.18.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/es-abstract/-/es-abstract-1.18.0.tgz#ab80b359eecb7ede4c298000390bc5ac3ec7b5a4"
-  integrity sha1-q4CzWe7Lft5MKYAAOQvFrD7HtaQ=
+es-abstract@^1.17.2, es-abstract@^1.18.0-next.1, es-abstract@^1.18.0-next.2, es-abstract@^1.18.2:
+  version "1.18.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/es-abstract/-/es-abstract-1.18.3.tgz#25c4c3380a27aa203c44b2b685bba94da31b63e0"
+  integrity sha1-JcTDOAonqiA8RLK2hbupTaMbY+A=
   dependencies:
     call-bind "^1.0.2"
     es-to-primitive "^1.2.1"
@@ -5993,14 +6024,14 @@ es-abstract@^1.17.2, es-abstract@^1.18.0-next.1, es-abstract@^1.18.0-next.2:
     has-symbols "^1.0.2"
     is-callable "^1.2.3"
     is-negative-zero "^2.0.1"
-    is-regex "^1.1.2"
-    is-string "^1.0.5"
-    object-inspect "^1.9.0"
+    is-regex "^1.1.3"
+    is-string "^1.0.6"
+    object-inspect "^1.10.3"
     object-keys "^1.1.1"
     object.assign "^4.1.2"
     string.prototype.trimend "^1.0.4"
     string.prototype.trimstart "^1.0.4"
-    unbox-primitive "^1.0.0"
+    unbox-primitive "^1.0.1"
 
 es-to-primitive@^1.2.1:
   version "1.2.1"
@@ -6019,6 +6050,11 @@ es5-ext@^0.10.35, es5-ext@^0.10.50:
     es6-iterator "~2.0.3"
     es6-symbol "~3.1.3"
     next-tick "~1.0.0"
+
+es6-error@^4.1.1:
+  version "4.1.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/es6-error/-/es6-error-4.1.1.tgz#9e3af407459deed47e9a91f9b885a84eb05c561d"
+  integrity sha1-njr0B0Wd7tR+mpH5uIWoTrBcVh0=
 
 es6-iterator@2.0.3, es6-iterator@~2.0.3:
   version "2.0.3"
@@ -6585,6 +6621,17 @@ fast-glob@^3.1.1:
     micromatch "^4.0.2"
     picomatch "^2.2.1"
 
+fast-glob@^3.2.7:
+  version "3.2.7"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/fast-glob/-/fast-glob-3.2.7.tgz#fd6cb7a2d7e9aa7a7846111e85a196d6b2f766a1"
+  integrity sha1-/Wy3otfpqnp4RhEehaGW1rL3ZqE=
+  dependencies:
+    "@nodelib/fs.stat" "^2.0.2"
+    "@nodelib/fs.walk" "^1.2.3"
+    glob-parent "^5.1.2"
+    merge2 "^1.3.0"
+    micromatch "^4.0.4"
+
 fast-json-stable-stringify@^2.0.0, fast-json-stable-stringify@^2.1.0:
   version "2.1.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz#874bf69c6f404c2b5d99c481341399fd55892633"
@@ -6708,15 +6755,14 @@ file-type@5.2.0, file-type@^5.2.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/file-type/-/file-type-5.2.0.tgz#2ddbea7c73ffe36368dfae49dc338c058c2b8ad6"
   integrity sha1-LdvqfHP/42No365J3DOMBYwritY=
 
-file-type@^14.6.0:
-  version "14.7.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/file-type/-/file-type-14.7.1.tgz#f748732b3e70478bff530e1cf0ec2fe33608b1bb"
-  integrity sha1-90hzKz5wR4v/Uw4c8Owv4zYIsbs=
+file-type@^16.5.3:
+  version "16.5.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/file-type/-/file-type-16.5.3.tgz#474b7e88c74724046abb505e9b8ed4db30c4fc06"
+  integrity sha1-R0t+iMdHJARqu1Bem47U2zDE/AY=
   dependencies:
-    readable-web-to-node-stream "^2.0.0"
-    strtok3 "^6.0.3"
-    token-types "^2.0.0"
-    typedarray-to-buffer "^3.1.5"
+    readable-web-to-node-stream "^3.0.0"
+    strtok3 "^6.2.4"
+    token-types "^4.1.1"
 
 file-type@^3.8.0:
   version "3.9.0"
@@ -7131,7 +7177,7 @@ glob-parent@^3.1.0:
     is-glob "^3.1.0"
     path-dirname "^1.0.0"
 
-glob-parent@^5.0.0, glob-parent@^5.1.0, glob-parent@~5.1.0:
+glob-parent@^5.0.0, glob-parent@^5.1.0, glob-parent@^5.1.2, glob-parent@~5.1.0:
   version "5.1.2"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/glob-parent/-/glob-parent-5.1.2.tgz#869832c58034fe68a4093c17dc15e8340d8401c4"
   integrity sha1-hpgyxYA0/mikCTwX3BXoNA2EAcQ=
@@ -7149,6 +7195,18 @@ glob@^7.0.3, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6:
     minimatch "^3.0.4"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
+
+global-agent@3.0.0:
+  version "3.0.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/global-agent/-/global-agent-3.0.0.tgz#ae7cd31bd3583b93c5a16437a1afe27cc33a1ab6"
+  integrity sha1-rnzTG9NYO5PFoWQ3oa/ifMM6GrY=
+  dependencies:
+    boolean "^3.0.1"
+    es6-error "^4.1.1"
+    matcher "^3.0.0"
+    roarr "^2.15.3"
+    semver "^7.3.2"
+    serialize-error "^7.0.1"
 
 global-dirs@^3.0.0:
   version "3.0.0"
@@ -7186,11 +7244,18 @@ globals@^12.1.0:
     type-fest "^0.8.1"
 
 globals@^13.6.0:
-  version "13.8.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/globals/-/globals-13.8.0.tgz#3e20f504810ce87a8d72e55aecf8435b50f4c1b3"
-  integrity sha1-PiD1BIEM6HqNcuVa7PhDW1D0wbM=
+  version "13.9.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/globals/-/globals-13.9.0.tgz#4bf2bf635b334a173fb1daf7c5e6b218ecdc06cb"
+  integrity sha1-S/K/Y1szShc/sdr3xeayGOzcBss=
   dependencies:
     type-fest "^0.20.2"
+
+globalthis@^1.0.1:
+  version "1.0.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/globalthis/-/globalthis-1.0.2.tgz#2a235d34f4d8036219f7e34929b5de9e18166b8b"
+  integrity sha1-KiNdNPTYA2IZ9+NJKbXenhgWa4s=
+  dependencies:
+    define-properties "^1.1.3"
 
 globby@11.0.1:
   version "11.0.1"
@@ -7204,7 +7269,7 @@ globby@11.0.1:
     merge2 "^1.3.0"
     slash "^3.0.0"
 
-globby@11.0.3, globby@^11.0.1, globby@^11.0.3:
+globby@11.0.3, globby@^11.0.1:
   version "11.0.3"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/globby/-/globby-11.0.3.tgz#9b1f0cb523e171dd1ad8c7b2a9fb4b644b9593cb"
   integrity sha1-mx8MtSPhcd0a2MeyqftLZEuVk8s=
@@ -7215,6 +7280,18 @@ globby@11.0.3, globby@^11.0.1, globby@^11.0.3:
     ignore "^5.1.4"
     merge2 "^1.3.0"
     slash "^3.0.0"
+
+globby@^12.0.0:
+  version "12.0.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/globby/-/globby-12.0.2.tgz#53788b2adf235602ed4cabfea5c70a1139e1ab11"
+  integrity sha1-U3iLKt8jVgLtTKv+pccKETnhqxE=
+  dependencies:
+    array-union "^3.0.1"
+    dir-glob "^3.0.1"
+    fast-glob "^3.2.7"
+    ignore "^5.1.8"
+    merge2 "^1.4.1"
+    slash "^4.0.0"
 
 globby@^6.1.0:
   version "6.1.0"
@@ -7304,15 +7381,20 @@ got@^9.6.0:
     to-readable-stream "^1.0.0"
     url-parse-lax "^3.0.0"
 
-graceful-fs@^4.1.10, graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4, graceful-fs@^4.2.6:
+graceful-fs@^4.1.10, graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4:
   version "4.2.6"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graceful-fs/-/graceful-fs-4.2.6.tgz#ff040b2b0853b23c3d31027523706f1885d76bee"
   integrity sha1-/wQLKwhTsjw9MQJ1I3BvGIXXa+4=
 
-graphiql@^1.4.1:
-  version "1.4.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphiql/-/graphiql-1.4.1.tgz#8df7a60a487aef32b71274ad1bb93118ac9f2213"
-  integrity sha1-jfemCkh67zK3EnStG7kxGKyfIhM=
+graceful-fs@^4.2.8:
+  version "4.2.8"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graceful-fs/-/graceful-fs-4.2.8.tgz#e412b8d33f5e006593cbd3cee6df9f2cebbe802a"
+  integrity sha1-5BK40z9eAGWTy9PO5t+fLOu+gCo=
+
+graphiql@^1.4.2:
+  version "1.4.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphiql/-/graphiql-1.4.2.tgz#a1dc1a4d8d35f60c90d6d8a9eb62a99756e9fd9b"
+  integrity sha1-odwaTY019gyQ1tip62Kpl1bp/Zs=
   dependencies:
     "@graphiql/toolkit" "^0.2.0"
     codemirror "^5.54.0"
@@ -7340,57 +7422,40 @@ graphql-config@^3.2.0:
     minimatch "3.0.4"
     string-env-interpolation "1.0.1"
 
-graphql-language-service-interface@2.8.2:
-  version "2.8.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-interface/-/graphql-language-service-interface-2.8.2.tgz#b3bb2aef7eaf0dff0b4ea419fa412c5f66fa268b"
-  integrity sha1-s7sq736vDf8LTqQZ+kEsX2b6Jos=
-  dependencies:
-    graphql-language-service-parser "^1.9.0"
-    graphql-language-service-types "^1.8.0"
-    graphql-language-service-utils "^2.5.1"
-    vscode-languageserver-types "^3.15.1"
-
 graphql-language-service-interface@^2.8.2:
-  version "2.8.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-interface/-/graphql-language-service-interface-2.8.3.tgz#bb579742cd021ee5b63207a20b1974b7e01d855d"
-  integrity sha1-u1eXQs0CHuW2MgeiCxl0t+AdhV0=
+  version "2.8.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-interface/-/graphql-language-service-interface-2.8.4.tgz#3ff31754e9b295b1abc26b97d286c00835aacff0"
+  integrity sha1-P/MXVOmylbGrwmuX0obACDWqz/A=
   dependencies:
     graphql-language-service-parser "^1.9.0"
     graphql-language-service-types "^1.8.0"
     graphql-language-service-utils "^2.5.1"
     vscode-languageserver-types "^3.15.1"
-
-graphql-language-service-parser@1.9.0:
-  version "1.9.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-parser/-/graphql-language-service-parser-1.9.0.tgz#79af21294119a0a7e81b6b994a1af36833bab724"
-  integrity sha1-ea8hKUEZoKfoG2uZShrzaDO6tyQ=
-  dependencies:
-    graphql-language-service-types "^1.8.0"
 
 graphql-language-service-parser@^1.9.0:
-  version "1.9.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-parser/-/graphql-language-service-parser-1.9.1.tgz#e982d697d70b6eae8cc798b449f7cb61ea5caf34"
-  integrity sha1-6YLWl9cLbq6Mx5i0SffLYepcrzQ=
+  version "1.9.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-parser/-/graphql-language-service-parser-1.9.2.tgz#b2dc45620cb6b9bac8ac175c197c77f0ff12d679"
+  integrity sha1-stxFYgy2ubrIrBdcGXx38P8S1nk=
   dependencies:
     graphql-language-service-types "^1.8.0"
 
 graphql-language-service-types@^1.8.0:
-  version "1.8.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-types/-/graphql-language-service-types-1.8.1.tgz#963810010924f2b5eaea415d5b8eb0b7d42c479b"
-  integrity sha1-ljgQAQkk8rXq6kFdW46wt9QsR5s=
+  version "1.8.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-types/-/graphql-language-service-types-1.8.2.tgz#50ae56f69cc24fcfc3daa129b68b0eb9421e8578"
+  integrity sha1-UK5W9pzCT8/D2qEptosOuUIehXg=
 
 graphql-language-service-utils@^2.5.1:
-  version "2.5.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-utils/-/graphql-language-service-utils-2.5.2.tgz#f2c0ccd407515a741e3a12f777328497d9e8012b"
-  integrity sha1-8sDM1AdRWnQeOhL3dzKEl9noASs=
+  version "2.5.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service-utils/-/graphql-language-service-utils-2.5.3.tgz#185f4f65cf8c010871eb9405452a3a0bfdf88748"
+  integrity sha1-GF9PZc+MAQhx65QFRSo6C/34h0g=
   dependencies:
     graphql-language-service-types "^1.8.0"
     nullthrows "^1.0.0"
 
 graphql-language-service@^3.1.2:
-  version "3.1.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service/-/graphql-language-service-3.1.3.tgz#8374d750895c76957f4168d96bf99cf6443d84ae"
-  integrity sha1-g3TXUIlcdpV/QWjZa/mc9kQ9hK4=
+  version "3.1.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-language-service/-/graphql-language-service-3.1.4.tgz#ca8698f70e9923e3267e3d457228bc55a7dd75f9"
+  integrity sha1-yoaY9w6ZI+Mmfj1Fcii8Vafddfk=
   dependencies:
     graphql-language-service-interface "^2.8.2"
     graphql-language-service-types "^1.8.0"
@@ -7412,9 +7477,9 @@ graphql-tag@^2.11.0, graphql-tag@^2.12.0:
     tslib "^2.1.0"
 
 graphql-ws@^4.3.2, graphql-ws@^4.4.1:
-  version "4.5.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-ws/-/graphql-ws-4.5.1.tgz#d9dc6e047c6d4ddb928ccbfb3ca3022580a89925"
-  integrity sha1-2dxuBHxtTduSjMv7PKMCJYComSU=
+  version "4.5.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-ws/-/graphql-ws-4.5.2.tgz#68d3b926ddef2fadf81b4a1a89c81db175042d2d"
+  integrity sha1-aNO5Jt3vL634G0oaicgdsXUELS0=
 
 graphql@^15.5.0:
   version "15.5.0"
@@ -7816,7 +7881,7 @@ ignore@^4.0.6:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ignore/-/ignore-4.0.6.tgz#750e3db5862087b4737ebac8207ffd1ef27b25fc"
   integrity sha1-dQ49tYYgh7RzfrrIIH/9HvJ7Jfw=
 
-ignore@^5.1.4:
+ignore@^5.1.4, ignore@^5.1.8:
   version "5.1.8"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ignore/-/ignore-5.1.8.tgz#f150a8b50a34289b33e22f5889abd4d8016f0e57"
   integrity sha1-8VCotQo0KJsz4i9YiavU2AFvDlc=
@@ -7839,17 +7904,18 @@ imagemin-zopfli@7.0.0:
     is-png "^2.0.0"
     zopflipng-bin "^6.0.0"
 
-imagemin@8.0.0:
-  version "8.0.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/imagemin/-/imagemin-8.0.0.tgz#d707920d6c7a7f8b329d2e02d8c78d5dcc826356"
-  integrity sha1-1weSDWx6f4synS4C2MeNXcyCY1Y=
+imagemin@8.0.1:
+  version "8.0.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/imagemin/-/imagemin-8.0.1.tgz#8b29ecb78197d8f0eac6a782f2e6b38fb3780d9e"
+  integrity sha1-iynst4GX2PDqxqeC8uazj7N4DZ4=
   dependencies:
-    file-type "^14.6.0"
-    globby "^11.0.3"
-    graceful-fs "^4.2.6"
+    file-type "^16.5.3"
+    globby "^12.0.0"
+    graceful-fs "^4.2.8"
     junk "^3.1.0"
     p-pipe "^4.0.0"
     replace-ext "^2.0.0"
+    slash "^3.0.0"
 
 immer@8.0.1:
   version "8.0.1"
@@ -8001,21 +8067,22 @@ ini@^1.3.4, ini@^1.3.5, ini@~1.3.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ini/-/ini-1.3.8.tgz#a29da425b48806f34767a4efce397269af28432c"
   integrity sha1-op2kJbSIBvNHZ6Tvzjlyaa8oQyw=
 
-inquirer@8.0.0:
-  version "8.0.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/inquirer/-/inquirer-8.0.0.tgz#957a46db1abcf0fdd2ab82deb7470e90afc7d0ac"
-  integrity sha1-lXpG2xq88P3Sq4Let0cOkK/H0Kw=
+inquirer@8.1.2:
+  version "8.1.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/inquirer/-/inquirer-8.1.2.tgz#65b204d2cd7fb63400edd925dfe428bafd422e3d"
+  integrity sha1-ZbIE0s1/tjQA7dkl3+Qouv1CLj0=
   dependencies:
     ansi-escapes "^4.2.1"
-    chalk "^4.1.0"
+    chalk "^4.1.1"
     cli-cursor "^3.1.0"
     cli-width "^3.0.0"
     external-editor "^3.0.3"
     figures "^3.0.0"
     lodash "^4.17.21"
     mute-stream "0.0.8"
+    ora "^5.3.0"
     run-async "^2.4.0"
-    rxjs "^6.6.6"
+    rxjs "^7.2.0"
     string-width "^4.1.0"
     strip-ansi "^6.0.0"
     through "^2.3.6"
@@ -8315,6 +8382,11 @@ is-installed-globally@^0.4.0:
     global-dirs "^3.0.0"
     is-path-inside "^3.0.2"
 
+is-interactive@^1.0.0:
+  version "1.0.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/is-interactive/-/is-interactive-1.0.0.tgz#cea6e6ae5c870a7b0a0004070b7b587e0252912e"
+  integrity sha1-zqbmrlyHCnsKAAQHC3tYfgJSkS4=
+
 is-lower-case@^2.0.2:
   version "2.0.2"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/is-lower-case/-/is-lower-case-2.0.2.tgz#1c0884d3012c841556243483aa5d522f47396d2a"
@@ -8442,7 +8514,7 @@ is-promise@^2.1.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/is-promise/-/is-promise-2.2.2.tgz#39ab959ccbf9a774cf079f7b40c7a26f763135f1"
   integrity sha1-OauVnMv5p3TPB597QMeib3YxNfE=
 
-is-regex@^1.0.4, is-regex@^1.1.2:
+is-regex@^1.0.4, is-regex@^1.1.3:
   version "1.1.3"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/is-regex/-/is-regex-1.1.3.tgz#d029f9aff6448b93ebbe3f33dac71511fdcbef9f"
   integrity sha1-0Cn5r/ZEi5Prvj8z2scVEf3L758=
@@ -8487,7 +8559,7 @@ is-stream@^2.0.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/is-stream/-/is-stream-2.0.0.tgz#bde9c32680d6fae04129d6ac9d921ce7815f78e3"
   integrity sha1-venDJoDW+uBBKdasnZIc54FfeOM=
 
-is-string@^1.0.5:
+is-string@^1.0.5, is-string@^1.0.6:
   version "1.0.6"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/is-string/-/is-string-1.0.6.tgz#3fe5d5992fb0d93404f32584d4b0179a71b54a5f"
   integrity sha1-P+XVmS+w2TQE8yWE1LAXmnG1Sl8=
@@ -9179,6 +9251,11 @@ json-stable-stringify@^1.0.1:
   dependencies:
     jsonify "~0.0.0"
 
+json-stringify-safe@^5.0.1:
+  version "5.0.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
+  integrity sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
+
 json-to-pretty-yaml@^1.2.2:
   version "1.2.2"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/json-to-pretty-yaml/-/json-to-pretty-yaml-1.2.2.tgz#f4cd0bd0a5e8fe1df25aaf5ba118b099fd992d5b"
@@ -9696,7 +9773,7 @@ log-symbols@^1.0.2:
   dependencies:
     chalk "^1.0.0"
 
-log-symbols@^4.0.0:
+log-symbols@^4.0.0, log-symbols@^4.1.0:
   version "4.1.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/log-symbols/-/log-symbols-4.1.0.tgz#3fbdbb95b4683ac9fc785111e792e558d4abd503"
   integrity sha1-P727lbRoOsn8eFER55LlWNSr1QM=
@@ -9892,6 +9969,13 @@ markdown-it@^10.0.0:
     mdurl "^1.0.1"
     uc.micro "^1.0.5"
 
+matcher@^3.0.0:
+  version "3.0.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/matcher/-/matcher-3.0.0.tgz#bd9060f4c5b70aa8041ccc6f80368760994f30ca"
+  integrity sha1-vZBg9MW3CqgEHMxvgDaHYJlPMMo=
+  dependencies:
+    escape-string-regexp "^4.0.0"
+
 md5.js@^1.3.4:
   version "1.3.5"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/md5.js/-/md5.js-1.3.5.tgz#b5d07b8e3216e3e27cd728d72f70d1e6a342005f"
@@ -9968,7 +10052,7 @@ merge-stream@^2.0.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/merge-stream/-/merge-stream-2.0.0.tgz#52823629a14dd00c9770fb6ad47dc6310f2c1f60"
   integrity sha1-UoI2KaFN0AyXcPtq1H3GMQ8sH2A=
 
-merge2@^1.3.0:
+merge2@^1.3.0, merge2@^1.4.1:
   version "1.4.1"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/merge2/-/merge2-1.4.1.tgz#4368892f885e907455a6fd7dc55c0c9d404990ae"
   integrity sha1-Q2iJL4hekHRVpv19xVwMnUBJkK4=
@@ -10007,7 +10091,7 @@ micromatch@^3.1.10, micromatch@^3.1.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.2"
 
-micromatch@^4.0.2:
+micromatch@^4.0.2, micromatch@^4.0.4:
   version "4.0.4"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/micromatch/-/micromatch-4.0.4.tgz#896d519dfe9db25fce94ceb7a500919bf881ebf9"
   integrity sha1-iW1Rnf6dsl/OlM63pQCRm/iB6/k=
@@ -10326,16 +10410,16 @@ no-case@^3.0.4:
     tslib "^2.0.3"
 
 node-abi@^2.21.0:
-  version "2.28.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/node-abi/-/node-abi-2.28.0.tgz#bd7995b5d06efd247c86229f2c2eb0ca56af8ec8"
-  integrity sha1-vXmVtdBu/SR8hiKfLC6wylavjsg=
+  version "2.30.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/node-abi/-/node-abi-2.30.0.tgz#8be53bf3e7945a34eea10e0fc9a5982776cf550b"
+  integrity sha1-i+U78+eUWjTuoQ4PyaWYJ3bPVQs=
   dependencies:
     semver "^5.4.1"
 
-node-addon-api@^3.1.0:
-  version "3.2.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/node-addon-api/-/node-addon-api-3.2.0.tgz#7028b56a7eb572b73873aed731a7f9c9365f5ee4"
-  integrity sha1-cCi1an61crc4c67XMaf5yTZfXuQ=
+node-addon-api@^3.2.0:
+  version "3.2.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/node-addon-api/-/node-addon-api-3.2.1.tgz#81325e0a2117789c0128dab65e7e38f07ceba161"
+  integrity sha1-gTJeCiEXeJwBKNq2Xn448HzroWE=
 
 node-fetch@2.6.1, node-fetch@^2.6.1:
   version "2.6.1"
@@ -10545,7 +10629,7 @@ object-copy@^0.1.0:
     define-property "^0.2.5"
     kind-of "^3.0.3"
 
-object-inspect@^1.9.0:
+object-inspect@^1.10.3, object-inspect@^1.9.0:
   version "1.10.3"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/object-inspect/-/object-inspect-1.10.3.tgz#c2aa7d2d09f50c99375704f7a0adf24c5782d369"
   integrity sha1-wqp9LQn1DJk3VwT3oK3yTFeC02k=
@@ -10581,14 +10665,13 @@ object.assign@^4.1.0, object.assign@^4.1.2:
     object-keys "^1.1.1"
 
 object.entries@^1.1.0, object.entries@^1.1.3:
-  version "1.1.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/object.entries/-/object.entries-1.1.3.tgz#c601c7f168b62374541a07ddbd3e2d5e4f7711a6"
-  integrity sha1-xgHH8Wi2I3RUGgfdvT4tXk93EaY=
+  version "1.1.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/object.entries/-/object.entries-1.1.4.tgz#43ccf9a50bc5fd5b649d45ab1a579f24e088cafd"
+  integrity sha1-Q8z5pQvF/VtknUWrGlefJOCIyv0=
   dependencies:
-    call-bind "^1.0.0"
+    call-bind "^1.0.2"
     define-properties "^1.1.3"
-    es-abstract "^1.18.0-next.1"
-    has "^1.0.3"
+    es-abstract "^1.18.2"
 
 object.fromentries@^2.0.4:
   version "2.0.4"
@@ -10617,14 +10700,13 @@ object.pick@^1.3.0:
     isobject "^3.0.1"
 
 object.values@^1.1.0, object.values@^1.1.3:
-  version "1.1.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/object.values/-/object.values-1.1.3.tgz#eaa8b1e17589f02f698db093f7c62ee1699742ee"
-  integrity sha1-6qix4XWJ8C9pjbCT98Yu4WmXQu4=
+  version "1.1.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/object.values/-/object.values-1.1.4.tgz#0d273762833e816b693a637d30073e7051535b30"
+  integrity sha1-DSc3YoM+gWtpOmN9MAc+cFFTWzA=
   dependencies:
     call-bind "^1.0.2"
     define-properties "^1.1.3"
-    es-abstract "^1.18.0-next.2"
-    has "^1.0.3"
+    es-abstract "^1.18.2"
 
 obuf@^1.0.0, obuf@^1.1.2:
   version "1.1.2"
@@ -10734,6 +10816,21 @@ optipng-bin@^7.0.0:
     bin-build "^3.0.0"
     bin-wrapper "^4.0.0"
     logalot "^2.0.0"
+
+ora@^5.3.0:
+  version "5.4.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ora/-/ora-5.4.1.tgz#1b2678426af4ac4a509008e5e4ac9e9959db9e18"
+  integrity sha1-GyZ4Qmr0rEpQkAjl5KyemVnbnhg=
+  dependencies:
+    bl "^4.1.0"
+    chalk "^4.1.0"
+    cli-cursor "^3.1.0"
+    cli-spinners "^2.5.0"
+    is-interactive "^1.0.0"
+    is-unicode-supported "^0.1.0"
+    log-symbols "^4.1.0"
+    strip-ansi "^6.0.0"
+    wcwidth "^1.0.1"
 
 original@^1.0.0:
   version "1.0.2"
@@ -11126,10 +11223,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-peek-readable@^3.1.3:
-  version "3.1.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/peek-readable/-/peek-readable-3.1.3.tgz#932480d46cf6aa553c46c68566c4fb69a82cd2b1"
-  integrity sha1-kySA1Gz2qlU8RsaFZsT7aags0rE=
+peek-readable@^4.0.1:
+  version "4.0.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/peek-readable/-/peek-readable-4.0.1.tgz#9a045f291db254111c3412c1ce4fec27ddd4d202"
+  integrity sha1-mgRfKR2yVBEcNBLBzk/sJ93U0gI=
 
 pend@~1.2.0:
   version "1.2.0"
@@ -12529,10 +12626,12 @@ readable-stream@^3.0.6, readable-stream@^3.1.1, readable-stream@^3.4.0, readable
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
 
-readable-web-to-node-stream@^2.0.0:
-  version "2.0.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/readable-web-to-node-stream/-/readable-web-to-node-stream-2.0.0.tgz#751e632f466552ac0d5c440cc01470352f93c4b7"
-  integrity sha1-dR5jL0ZlUqwNXEQMwBRwNS+TxLc=
+readable-web-to-node-stream@^3.0.0:
+  version "3.0.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/readable-web-to-node-stream/-/readable-web-to-node-stream-3.0.2.tgz#5d52bb5df7b54861fd48d015e93a2cb87b3ee0bb"
+  integrity sha1-XVK7Xfe1SGH9SNAV6TosuHs+4Ls=
+  dependencies:
+    readable-stream "^3.6.0"
 
 readdirp@^2.2.1:
   version "2.2.1"
@@ -12972,6 +13071,18 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
+roarr@^2.15.3:
+  version "2.15.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/roarr/-/roarr-2.15.4.tgz#f5fe795b7b838ccfe35dc608e0282b9eba2e7afd"
+  integrity sha1-9f55W3uDjM/jXcYI4Cgrnrouev0=
+  dependencies:
+    boolean "^3.0.1"
+    detect-node "^2.0.4"
+    globalthis "^1.0.1"
+    json-stringify-safe "^5.0.1"
+    semver-compare "^1.0.0"
+    sprintf-js "^1.1.2"
+
 rollup-plugin-babel@^4.3.3:
   version "4.4.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/rollup-plugin-babel/-/rollup-plugin-babel-4.4.0.tgz#d15bd259466a9d1accbdb2fe2fff17c52d030acb"
@@ -13031,12 +13142,19 @@ run-queue@^1.0.0, run-queue@^1.0.3:
   dependencies:
     aproba "^1.1.1"
 
-rxjs@^6.3.3, rxjs@^6.6.0, rxjs@^6.6.6:
+rxjs@^6.3.3, rxjs@^6.6.0:
   version "6.6.7"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/rxjs/-/rxjs-6.6.7.tgz#90ac018acabf491bf65044235d5863c4dab804c9"
   integrity sha1-kKwBisq/SRv2UEQjXVhjxNq4BMk=
   dependencies:
     tslib "^1.9.0"
+
+rxjs@^7.2.0:
+  version "7.3.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/rxjs/-/rxjs-7.3.0.tgz#39fe4f3461dc1e50be1475b2b85a0a88c1e938c6"
+  integrity sha1-Of5PNGHcHlC+FHWyuFoKiMHpOMY=
+  dependencies:
+    tslib "~2.1.0"
 
 safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
@@ -13162,6 +13280,11 @@ selfsigned@^1.10.8:
   dependencies:
     node-forge "^0.10.0"
 
+semver-compare@^1.0.0:
+  version "1.0.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/semver-compare/-/semver-compare-1.0.0.tgz#0dee216a1c941ab37e9efb1788f6afc5ff5537fc"
+  integrity sha1-De4hahyUGrN+nvsXiPavxf9VN/w=
+
 semver-diff@^3.1.1:
   version "3.1.1"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/semver-diff/-/semver-diff-3.1.1.tgz#05f77ce59f325e00e2706afd67bb506ddb1ca32b"
@@ -13235,6 +13358,13 @@ sentence-case@^3.0.4:
     no-case "^3.0.4"
     tslib "^2.0.3"
     upper-case-first "^2.0.2"
+
+serialize-error@^7.0.1:
+  version "7.0.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/serialize-error/-/serialize-error-7.0.1.tgz#f1360b0447f61ffb483ec4157c737fab7d778e18"
+  integrity sha1-8TYLBEf2H/tIPsQVfHN/q313jhg=
+  dependencies:
+    type-fest "^0.13.1"
 
 serialize-javascript@^4.0.0:
   version "4.0.0"
@@ -13316,14 +13446,14 @@ shallowequal@^1.1.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/shallowequal/-/shallowequal-1.1.0.tgz#188d521de95b9087404fd4dcb68b13df0ae4e7f8"
   integrity sha1-GI1SHelbkIdAT9TctosT3wrk5/g=
 
-sharp@0.28.2:
-  version "0.28.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/sharp/-/sharp-0.28.2.tgz#31c6ebdf8ddb9b4ca3e30179e3f4a73f0c7474e4"
-  integrity sha1-Mcbr343bm0yj4wF54/SnPwx0dOQ=
+sharp@0.28.3:
+  version "0.28.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/sharp/-/sharp-0.28.3.tgz#ecd74cefd020bee4891bb137c9850ee2ce277a8b"
+  integrity sha1-7NdM79AgvuSJG7E3yYUO4s4neos=
   dependencies:
     color "^3.1.3"
     detect-libc "^1.0.3"
-    node-addon-api "^3.1.0"
+    node-addon-api "^3.2.0"
     prebuild-install "^6.1.2"
     semver "^7.3.5"
     simple-get "^3.1.0"
@@ -13413,6 +13543,11 @@ slash@^3.0.0:
   version "3.0.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha1-ZTm+hwwWWtvVJAIg2+Nh8bxNRjQ=
+
+slash@^4.0.0:
+  version "4.0.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/slash/-/slash-4.0.0.tgz#2422372176c4c6c5addb5e2ada885af984b396a7"
+  integrity sha1-JCI3IXbExsWt214q2oha+YSzlqc=
 
 slice-ansi@0.0.4:
   version "0.0.4"
@@ -13633,6 +13768,11 @@ sponge-case@^1.0.1:
   dependencies:
     tslib "^2.0.3"
 
+sprintf-js@^1.1.2:
+  version "1.1.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/sprintf-js/-/sprintf-js-1.1.2.tgz#da1765262bf8c0f571749f2ad6c26300207ae673"
+  integrity sha1-2hdlJiv4wPVxdJ8q1sJjACB65nM=
+
 sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
@@ -13787,14 +13927,15 @@ string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0:
     strip-ansi "^6.0.0"
 
 string.prototype.matchall@^4.0.4:
-  version "4.0.4"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/string.prototype.matchall/-/string.prototype.matchall-4.0.4.tgz#608f255e93e072107f5de066f81a2dfb78cf6b29"
-  integrity sha1-YI8lXpPgchB/XeBm+Bot+3jPayk=
+  version "4.0.5"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/string.prototype.matchall/-/string.prototype.matchall-4.0.5.tgz#59370644e1db7e4c0c045277690cf7b01203c4da"
+  integrity sha1-WTcGROHbfkwMBFJ3aQz3sBIDxNo=
   dependencies:
     call-bind "^1.0.2"
     define-properties "^1.1.3"
-    es-abstract "^1.18.0-next.2"
-    has-symbols "^1.0.1"
+    es-abstract "^1.18.2"
+    get-intrinsic "^1.1.1"
+    has-symbols "^1.0.2"
     internal-slot "^1.0.3"
     regexp.prototype.flags "^1.3.1"
     side-channel "^1.0.4"
@@ -13939,14 +14080,13 @@ strip-outer@^1.0.0:
   dependencies:
     escape-string-regexp "^1.0.2"
 
-strtok3@^6.0.3:
-  version "6.0.8"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/strtok3/-/strtok3-6.0.8.tgz#c839157f615c10ba0f4ae35067dad9959eeca346"
-  integrity sha1-yDkVf2FcELoPSuNQZ9rZlZ7so0Y=
+strtok3@^6.2.4:
+  version "6.2.4"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/strtok3/-/strtok3-6.2.4.tgz#302aea64c0fa25d12a0385069ba66253fdc38a81"
+  integrity sha1-MCrqZMD6JdEqA4UGm6ZiU/3DioE=
   dependencies:
-    "@tokenizer/token" "^0.1.1"
-    "@types/debug" "^4.1.5"
-    peek-readable "^3.1.3"
+    "@tokenizer/token" "^0.3.0"
+    peek-readable "^4.0.1"
 
 style-loader@1.3.0:
   version "1.3.0"
@@ -14371,12 +14511,12 @@ toidentifier@1.0.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/toidentifier/-/toidentifier-1.0.0.tgz#7e1be3470f1e77948bc43d94a3c8f4d7752ba553"
   integrity sha1-fhvjRw8ed5SLxD2Uo8j013UrpVM=
 
-token-types@^2.0.0:
-  version "2.1.1"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/token-types/-/token-types-2.1.1.tgz#bd585d64902aaf720b8979d257b4b850b4d45c45"
-  integrity sha1-vVhdZJAqr3ILiXnSV7S4ULTUXEU=
+token-types@^4.1.1:
+  version "4.1.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/token-types/-/token-types-4.1.1.tgz#ef9e8c8e2e0ded9f1b3f8dbaa46a3228b113ba1a"
+  integrity sha1-756Mji4N7Z8bP426pGoyKLETuho=
   dependencies:
-    "@tokenizer/token" "^0.1.1"
+    "@tokenizer/token" "^0.3.0"
     ieee754 "^1.2.1"
 
 tough-cookie@^4.0.0:
@@ -14514,6 +14654,11 @@ type-detect@4.0.8:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/type-detect/-/type-detect-4.0.8.tgz#7646fb5f18871cfbb7749e69bd39a6388eb7450c"
   integrity sha1-dkb7XxiHHPu3dJ5pvTmmOI63RQw=
 
+type-fest@^0.13.1:
+  version "0.13.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/type-fest/-/type-fest-0.13.1.tgz#0172cb5bce80b0bd542ea348db50c7e21834d934"
+  integrity sha1-AXLLW86AsL1ULqNI21DH4hg02TQ=
+
 type-fest@^0.20.2:
   version "0.20.2"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/type-fest/-/type-fest-0.20.2.tgz#1bf207f4b28f91583666cb5fbd327887301cd5f4"
@@ -14580,9 +14725,9 @@ typeface-ubuntu-mono@^1.1.13:
   integrity sha1-68xinPGhlwNCL++/0VgkQEz2tzg=
 
 typescript@^4.1.5:
-  version "4.2.4"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"
-  integrity sha1-hhC1l0feAo/aiYqK7w4QPxVtCWE=
+  version "4.3.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/typescript/-/typescript-4.3.2.tgz#399ab18aac45802d6f2498de5054fcbbe716a805"
+  integrity sha1-OZqxiqxFgC1vJJjeUFT8u+cWqAU=
 
 ua-parser-js@^0.7.18:
   version "0.7.28"
@@ -14594,7 +14739,7 @@ uc.micro@^1.0.1, uc.micro@^1.0.5:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/uc.micro/-/uc.micro-1.0.6.tgz#9c411a802a409a91fc6cf74081baba34b24499ac"
   integrity sha1-nEEagCpAmpH8bPdAgbq6NLJEmaw=
 
-unbox-primitive@^1.0.0:
+unbox-primitive@^1.0.1:
   version "1.0.1"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/unbox-primitive/-/unbox-primitive-1.0.1.tgz#085e215625ec3162574dc8859abee78a59b14471"
   integrity sha1-CF4hViXsMWJXTciFmr7nilmxRHE=
@@ -14977,6 +15122,13 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   integrity sha1-wdjRSTFtPqhShIiVy2oL/oh7h98=
   dependencies:
     minimalistic-assert "^1.0.0"
+
+wcwidth@^1.0.1:
+  version "1.0.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/wcwidth/-/wcwidth-1.0.1.tgz#f0b0dcf915bc5ff1528afadb2c0e17b532da2fe8"
+  integrity sha1-8LDc+RW8X/FSivrbLA4XtTLaL+g=
+  dependencies:
+    defaults "^1.0.3"
 
 webidl-conversions@^5.0.0:
   version "5.0.0"
@@ -15431,7 +15583,7 @@ write-file-atomic@^3.0.0:
     signal-exit "^3.0.2"
     typedarray-to-buffer "^3.1.5"
 
-ws@7.4.5, ws@^7.4.5:
+ws@7.4.5:
   version "7.4.5"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ws/-/ws-7.4.5.tgz#a484dd851e9beb6fdb420027e3885e8ce48986c1"
   integrity sha1-pITdhR6b62/bQgAn44hejOSJhsE=
@@ -15449,6 +15601,11 @@ ws@^6.2.1:
   integrity sha1-RC/fCkftZPWbal2P8TD0dI7VJPs=
   dependencies:
     async-limiter "~1.0.0"
+
+ws@^7.4.5:
+  version "7.4.6"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ws/-/ws-7.4.6.tgz#5654ca8ecdeee47c33a9a4bf6d28e2be2980377c"
+  integrity sha1-VlTKjs3u5HwzqaS/bSjivimAN3w=
 
 xdg-basedir@^4.0.0:
   version "4.0.0"

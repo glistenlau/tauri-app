@@ -39,17 +39,6 @@ export type ExplainRow = {
   children?: Maybe<Array<ExplainRow>>;
 };
 
-export type Mutation = {
-  __typename?: 'Mutation';
-  changeSchemaValues: SchemaFile;
-};
-
-
-export type MutationChangeSchemaValuesArgs = {
-  filePath: Scalars['String'];
-  values: Array<Scalars['String']>;
-};
-
 export type NodeValue = {
   __typename?: 'NodeValue';
   start: Scalars['Int'];
@@ -59,7 +48,6 @@ export type NodeValue = {
 
 export type Query = {
   __typename?: 'Query';
-  apiVersion: Scalars['String'];
   dbSchemas: Array<SchemaFile>;
   dbExplain: Array<ExplainRow>;
 };

@@ -1,10 +1,9 @@
 use std::fs;
 
-use juniper::EmptySubscription;
-
-use mylib::graphql::{Mutation, Query, Schema};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use mylib::graphql::{Query};
 
 pub fn main() {
-    let schema = Schema::new(Query, Mutation, EmptySubscription::new());
-    fs::write("../data/schema.graphql", schema.as_schema_language()).unwrap();
+    let schema = Schema::new(Query, EmptyMutation, EmptySubscription);
+    fs::write("../data/schema.graphql", schema.federation_sdl()).unwrap();
 }

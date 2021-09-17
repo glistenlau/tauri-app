@@ -1,12 +1,10 @@
 use super::xml_parser::XmlTag;
 
-use juniper::{
-    graphql_object, EmptySubscription, FieldResult, GraphQLEnum, GraphQLInputObject, GraphQLObject,
-    ScalarValue,
-};
+use async_graphql::*;
+
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, cmp::Ordering, collections::HashMap, rc::Rc, todo};
-#[derive(GraphQLEnum, Clone, Copy, Deserialize, Serialize)]
+#[derive(Enum, Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
 enum DbFamily {
     Oracle,
     Postgres,
@@ -42,14 +40,14 @@ impl Node {
     }
 }
 
-#[derive(GraphQLObject, Serialize, Deserialize)]
+#[derive(SimpleObject, Serialize, Deserialize)]
 pub struct NodeValue {
     start: i32,
     end: i32,
     db_family: Option<DbFamily>,
 }
 
-#[derive(GraphQLObject, Deserialize, Serialize)]
+#[derive(SimpleObject, Deserialize, Serialize)]
 pub struct TreeNode {
     tag_name: String,
     name_attr: Option<String>,

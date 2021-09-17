@@ -19,9 +19,14 @@ const fetchGraphql = async(query: string, variables: Record<string, any> ) => {
   return requestAsync("graphQL", "query", {query, variables});
 }
 
+// const client = new ApolloClient({
+//   cache: new InMemoryCache(),
+//   link: rustLink,
+// });
+
 const client = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: rustLink,
+  uri: 'http://127.0.0.1:8888/graphql',
+  cache: new InMemoryCache()
 });
 
 export default client;

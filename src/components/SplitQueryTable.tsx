@@ -11,23 +11,23 @@ const styles = makeStyles((theme) => ({
     flex: 1,
     display: "flex",
     flexDirection: "row",
-    width: "100%"
+    width: "100%",
   },
   tableContainer: {
     backgroundColor: theme.palette.background.paper,
     display: "flex",
     flexDirection: "row",
     height: "100%",
-    width: "10%"
+    width: "10%",
   },
   hideContainer: {
     height: 0,
     width: 0,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   hide: {
-    height: 0
-  }
+    height: 0,
+  },
 }));
 
 interface SplitQueryTableProps {
@@ -51,7 +51,7 @@ const SplitQueryTable = React.memo((props: SplitQueryTableProps) => {
 
   const queryData = useMemo(() => mapToView(value), [value]);
   const queryLen = useMemo(() => queryData.viewValues.length, [
-    queryData.viewValues.length
+    queryData.viewValues.length,
   ]);
   const needDivider = useMemo(() => {
     let hasDataRendered = false;
@@ -77,16 +77,16 @@ const SplitQueryTable = React.memo((props: SplitQueryTableProps) => {
             className={
               isActive ? classes.tableContainer : classes.hideContainer
             }
-            style={{      width: tableWidth + (needDivider[i] ? 12      : 0)      }}
+            style={{ width: tableWidth + (needDivider[i] ? 12 : 0) }}
           >
             {needDivider[i] && (
               <Divider
                 style={{ marginRight: 10 }}
-                orientation='vertical'
+                orientation="vertical"
                 flexItem
               />
             )}
-            {needDivider[i] && <Divider orientation='vertical' flexItem />}
+            {needDivider[i] && <Divider orientation="vertical" flexItem />}
             <QueryTable
               diff={diff}
               data={d}

@@ -20,14 +20,17 @@ const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+const root = document.getElementById('root');
+const serverPort = root?.dataset.serverPort || "8888";
+
 
 ReactDOM.render(
   <Provider store={store}>
     <PersistGate persistor={persistor}>
       <SnackbarProvider maxSnack={3}>
-        <App />
+        <App serverPort={serverPort}/>
       </SnackbarProvider>
     </PersistGate>
   </Provider>,
-  document.getElementById("root")
+  root
 );

@@ -306,8 +306,6 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
     [dataColumns]
   );
 
-  const tableHeight = React.useMemo(() => height, [height]);
-
   const innerElementType = React.useMemo(
     () =>
       forwardRef(({ children, ...rest }, ref: any) => (
@@ -321,7 +319,8 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
               left: 0,
               width: totalColumnsWidth,
               height: 35,
-              backgroundColor: "f8f8f8"
+              backgroundColor: "f8f8f8",
+              overflow: 'hidden',
             }}
           />
           <div>
@@ -365,8 +364,9 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
     }
   }, [dataRows]);
 
+
   return (
-    <StickyColumnContext.Provider value={{ displayHeight: tableHeight }}>
+    <StickyColumnContext.Provider value={{ displayHeight: height }}>
       <VariableSizeGrid
         ref={gridRef}
         className='gridContainer'
@@ -375,7 +375,7 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
         columnCount={dataColumns.length}
         columnWidth={(index) => dataColumns[index].width}
         overscanRowCount={10}
-        height={tableHeight}
+        height={height}
         rowCount={dataRows.length + 1}
         rowHeight={() => 35}
         width={width}

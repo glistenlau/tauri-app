@@ -177,7 +177,7 @@ const QueryParameterModal = React.memo(
         if (!paramUpdate) {
           return;
         }
-        if (!parameters) {
+        if (!parameters || !parameters[curTab] || !parameters[curTab][curParam]) {
           return;
         }
 

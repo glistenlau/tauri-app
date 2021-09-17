@@ -3,10 +3,8 @@ use crate::core::{
     xml_parser::parse_xml,
 };
 
-use juniper::{
-    graphql_object, EmptySubscription, FieldResult, GraphQLEnum, GraphQLInputObject, GraphQLObject,
-    ScalarValue,
-};
+use async_graphql::*;
+
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 use std::{
@@ -21,7 +19,7 @@ use super::rocksdb::{get_proxy, RocksDataStore};
 
 use anyhow::Result;
 
-#[derive(GraphQLObject, Serialize, Deserialize)]
+#[derive(SimpleObject, Serialize, Deserialize)]
 pub struct SchemaFile {
     path: String,
     root: TreeNode,
