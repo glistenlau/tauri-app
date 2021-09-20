@@ -5,10 +5,11 @@
 
 use std::{net::TcpListener, thread};
 
-use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{BadRequest, Response};
 use mylib::graphql::Query;
+use tauri::Submenu;
 use tauri::{api::process::Command, CustomMenuItem, Menu, MenuItem};
 use tokio::runtime::Runtime;
 mod core;
@@ -17,16 +18,64 @@ mod graphql;
 mod handlers;
 mod proxies;
 mod utilities;
-use std::{env, pin::Pin, sync::Arc, time::Duration};
 use std::convert::Infallible;
+use std::{env, pin::Pin, sync::Arc, time::Duration};
 use warp::{http::Response as HttpResponse, Filter, Rejection};
 
 use futures::{FutureExt as _, Stream};
+
+static app_name: &str = "AP Database Dev Tool";
 
 fn find_random_open_port() -> u16 {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     // We retrieve the port assigned to us by the OS
     listener.local_addr().unwrap().port()
+}
+
+fn get_menu() -> Menu {
+    Menu::new()
+        .add_submenu(Submenu::new(
+            app_name,
+            Menu::new()
+                .add_native_item(MenuItem::About(app_name.to_string()))
+                .add_native_item(MenuItem::Separator)
+                .add_native_item(MenuItem::Services)
+                .add_native_item(MenuItem::Separator)
+                .add_native_item(MenuItem::Hide)
+                .add_native_item(MenuItem::HideOthers)
+                .add_native_item(MenuItem::ShowAll)
+                .add_native_item(MenuItem::Separator)
+                .add_native_item(MenuItem::Quit),
+        ))
+        .add_submenu(Submenu::new(
+            "File",
+            if cfg!(macos) {
+                Menu::new().add_native_item(MenuItem::CloseWindow)
+            } else {
+                Menu::new().add_native_item(MenuItem::Quit)
+            },
+        ))
+        .add_submenu(Submenu::new(
+            "Edit",
+            Menu::new()
+                .add_native_item(MenuItem::Undo)
+                .add_native_item(MenuItem::Redo)
+                .add_native_item(MenuItem::Separator)
+                .add_native_item(MenuItem::Cut)
+                .add_native_item(MenuItem::Copy)
+                .add_native_item(MenuItem::Paste)
+                .add_native_item(MenuItem::SelectAll),
+        ))
+        .add_submenu(Submenu::new(
+            "View",
+            Menu::new().add_native_item(MenuItem::EnterFullScreen),
+        ))
+        .add_submenu(Submenu::new("Window", 
+            Menu::new()
+                .add_native_item(MenuItem::Minimize)
+                .add_native_item(MenuItem::Zoom)
+                .add_native_item(MenuItem::CloseWindow
+        )))
 }
 
 fn main() {
@@ -37,73 +86,33 @@ fn main() {
 
     let port = 8888;
 
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let close = CustomMenuItem::new("close".to_string(), "Close");
-    // let menu = vec![
-    //     // on macOS first menu is always app name
-    //     Menu::new(
-    //         "AP Database Dev Tool",
-    //         vec![
-    //             MenuItem::Services,
-    //             MenuItem::Separator,
-    //             MenuItem::Hide,
-    //             MenuItem::HideOthers,
-    //             MenuItem::ShowAll,
-    //             MenuItem::Separator,
-    //             MenuItem::Custom(quit),
-    //             MenuItem::Custom(close),
-    //         ],
-    //     ),
-    //     Menu::new(
-    //         "Edit",
-    //         vec![
-    //             MenuItem::Undo,
-    //             MenuItem::Redo,
-    //             MenuItem::Separator,
-    //             MenuItem::Cut,
-    //             MenuItem::Copy,
-    //             MenuItem::Paste,
-    //             MenuItem::Separator,
-    //             MenuItem::SelectAll,
-    //         ],
-    //     ),
-    // ];
-
     tauri::Builder::default()
-        // .menu(menu)
-        // .on_menu_event(|event| match event.menu_item_id().as_str() {
-        //     "quit" => {
-        //         std::process::exit(0);
-        //     }
-        //     "close" => {
-        //         event.window().close().unwrap();
-        //     }
-        //     _ => {}
-        // })
+        .menu(get_menu())
         .setup(move |app| {
-            thread::spawn(move ||{
+            thread::spawn(move || {
                 let web_runtime = Runtime::new().unwrap();
                 web_runtime.block_on(async {
                     let schema = Schema::build(Query, EmptyMutation, EmptySubscription).finish();
 
-                    let graphql_post = warp::path("graphql").and(async_graphql_warp::graphql(schema.clone())).and_then(
-                        |(schema, request): (
-                            Schema<Query, EmptyMutation, EmptySubscription>,
-                            async_graphql::Request,
-                        )| async move { Ok::<_, Infallible>(Response::from(schema.execute(request).await)) },
-                    );
+                    let graphql_post = warp::path("graphql")
+                        .and(async_graphql_warp::graphql(schema.clone()))
+                        .and_then(
+                            |(schema, request): (
+                                Schema<Query, EmptyMutation, EmptySubscription>,
+                                async_graphql::Request,
+                            )| async move {
+                                Ok::<_, Infallible>(Response::from(schema.execute(request).await))
+                            },
+                        );
 
                     let graphql_playground = warp::path("playground").and(warp::get()).map(|| {
                         HttpResponse::builder()
                             .header("content-type", "text/html")
-                            .body(playground_source(
-                                GraphQLPlaygroundConfig::new("/graphql"),
-                            ))
+                            .body(playground_source(GraphQLPlaygroundConfig::new("/graphql")))
                     });
-    
-                    let routes = graphql_playground
-                    .or(graphql_post);
-     
+
+                    let routes = graphql_playground.or(graphql_post);
+
                     warp::serve(routes).run(([127, 0, 0, 1], port)).await;
                 });
             });
