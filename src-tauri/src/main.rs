@@ -7,10 +7,10 @@ use std::{net::TcpListener, thread};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
-use async_graphql_warp::{BadRequest, Response};
+use async_graphql_warp::{Response};
 use mylib::graphql::Query;
 use tauri::Submenu;
-use tauri::{api::process::Command, CustomMenuItem, Menu, MenuItem};
+use tauri::{Menu, MenuItem};
 use tokio::runtime::Runtime;
 mod core;
 mod entity;
@@ -20,10 +20,10 @@ mod proxies;
 mod utilities;
 mod state;
 use std::convert::Infallible;
-use std::{env, pin::Pin, sync::Arc, time::Duration};
-use warp::{http::Response as HttpResponse, Filter, Rejection};
 
-use futures::{FutureExt as _, Stream};
+use warp::{http::Response as HttpResponse, Filter};
+
+use futures::{FutureExt as _};
 
 use crate::state::AppState;
 
@@ -91,7 +91,7 @@ fn main() {
 
     tauri::Builder::default()
         .menu(get_menu())
-        .setup(move |app| {
+        .setup(move |_app| {
             thread::spawn(move || {
                 let web_runtime = Runtime::new().unwrap();
                 web_runtime.block_on(async {
