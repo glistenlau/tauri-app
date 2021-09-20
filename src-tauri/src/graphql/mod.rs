@@ -1,5 +1,3 @@
-
-
 use async_graphql::*;
 
 use crate::proxies::{
@@ -48,7 +46,6 @@ mod tests {
             let res = schema
                 .execute("query { human(id: \"testid\") {id name} }")
                 .await;
-
 
             println!("graphql test: {}", serde_json::to_string(&res).unwrap());
         });

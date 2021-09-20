@@ -1,7 +1,5 @@
 use std::{fs::create_dir_all, path::PathBuf};
 
-
-
 const APP_FOLDER_NAME: &str = "APDatabaseDevTool";
 
 pub fn get_data_dir() -> PathBuf {

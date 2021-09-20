@@ -1,9 +1,7 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::proxies::{
-    rocksdb::{get_proxy, RocksDataStore},
-};
+use crate::proxies::rocksdb::{get_proxy, RocksDataStore};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

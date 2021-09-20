@@ -1,7 +1,5 @@
 use anyhow::{anyhow, Result};
-use std::{
-    collections::{HashMap, VecDeque},
-};
+use std::collections::{HashMap, VecDeque};
 
 const OPEN_COMMENT: &str = "<!--";
 const CLOSE_COMMENT: &str = "-->";
@@ -297,7 +295,7 @@ pub fn parse_xml(text: &str) -> Result<XmlTag> {
 #[cfg(test)]
 mod tests {
     use regex::{escape, Regex};
-    
+
     use std::{fs::File, io::Read};
 
     use glob::glob;

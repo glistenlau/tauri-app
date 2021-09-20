@@ -7,7 +7,7 @@ use std::{net::TcpListener, thread};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
-use async_graphql_warp::{Response};
+use async_graphql_warp::Response;
 use mylib::graphql::Query;
 use tauri::Submenu;
 use tauri::{Menu, MenuItem};
@@ -17,13 +17,13 @@ mod entity;
 mod graphql;
 mod handlers;
 mod proxies;
-mod utilities;
 mod state;
+mod utilities;
 use std::convert::Infallible;
 
 use warp::{http::Response as HttpResponse, Filter};
 
-use futures::{FutureExt as _};
+use futures::FutureExt as _;
 
 use crate::state::AppState;
 
@@ -73,12 +73,13 @@ fn get_menu() -> Menu {
             "View",
             Menu::new().add_native_item(MenuItem::EnterFullScreen),
         ))
-        .add_submenu(Submenu::new("Window", 
+        .add_submenu(Submenu::new(
+            "Window",
             Menu::new()
                 .add_native_item(MenuItem::Minimize)
                 .add_native_item(MenuItem::Zoom)
-                .add_native_item(MenuItem::CloseWindow
-        )))
+                .add_native_item(MenuItem::CloseWindow),
+        ))
 }
 
 fn main() {
@@ -121,7 +122,7 @@ fn main() {
             });
             Ok(())
         })
-        .manage(AppState {server_port: port})
+        .manage(AppState { server_port: port })
         // This is where you pass in your commands
         .invoke_handler(tauri::generate_handler![handlers::invoke_handler])
         .run(tauri::generate_context!())

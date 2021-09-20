@@ -95,9 +95,7 @@ pub fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
 
 #[cfg(test)]
 mod tests {
-    
 
-    
     use rocksdb::{MergeOperands, Options};
     use serde_json::{json, Value};
 
