@@ -18,11 +18,14 @@ mod graphql;
 mod handlers;
 mod proxies;
 mod utilities;
+mod state;
 use std::convert::Infallible;
 use std::{env, pin::Pin, sync::Arc, time::Duration};
 use warp::{http::Response as HttpResponse, Filter, Rejection};
 
 use futures::{FutureExt as _, Stream};
+
+use crate::state::AppState;
 
 static app_name: &str = "AP Database Dev Tool";
 
@@ -84,7 +87,7 @@ fn main() {
         Err(e) => log::error!("logger setup failed: {}", e),
     }
 
-    let port = 8888;
+    let port = find_random_open_port();
 
     tauri::Builder::default()
         .menu(get_menu())
@@ -118,6 +121,7 @@ fn main() {
             });
             Ok(())
         })
+        .manage(AppState {server_port: port})
         // This is where you pass in your commands
         .invoke_handler(tauri::generate_handler![handlers::invoke_handler])
         .run(tauri::generate_context!())

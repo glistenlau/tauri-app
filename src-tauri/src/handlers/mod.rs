@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::proxies;
+use crate::{proxies, state::AppState};
 
 pub mod formatter;
 pub mod fs;
@@ -124,6 +124,7 @@ impl std::error::Error for CommandError {}
 #[tauri::command]
 pub fn invoke_handler(
     window: tauri::Window,
+    state: tauri::State<AppState>,
     handler: Handler,
 ) -> Result<String, CommandError> {
     let now = Instant::now();
@@ -148,7 +149,7 @@ pub fn invoke_handler(
             now.elapsed(),
         ),
         Handler::Formatter(e) => seralize_response(formatter::handle_command(e)),
-        Handler::GraphQL(e) => graphql::handle_command(e),
+        Handler::GraphQL(e) => graphql::handle_command(e, state),
     };
     result.or_else(|e| Err(CommandError::new(e.to_string()).into()))
 }

@@ -1,9 +1,13 @@
-import { ApolloProvider } from "@apollo/client";
+import {
+  ApolloClient,
+  ApolloProvider,
+  NormalizedCacheObject
+} from "@apollo/client";
 import { Divider } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { ThemeProvider } from "styled-components";
-import apolloClient from "./apis/graphql";
+import Graphql, { getClient } from "./apis/graphql";
 import Root from "./containers/Root";
 import { initLogger } from "./core/logger";
 
@@ -54,30 +58,55 @@ const darkTheme = createMuiTheme({
   },
 });
 
-export const GlobalContext = createContext({
-  serverPort: 8888,
+interface GlobalContextType{
+  serverPort?: number,
+  isRunning: boolean,
+  setIsRunning: (value: boolean) => void,
+}
+
+export const GlobalContext = createContext<GlobalContextType>({
+  serverPort: undefined,
   isRunning: false,
-  setIsRunning: (value: boolean): void => {},
+  setIsRunning: (value: boolean) => {},
 });
 
 export interface AppProps {
-  serverPort: string;
 }
 
-const App = ({serverPort}: AppProps) => {
+const App = ({}: AppProps) => {
   const [isRunning, setIsRunning] = useState(false);
+  const [serverPort, setServerPort] = useState<number>();
+  const [apolloClient, setApolloClient] = useState<
+    ApolloClient<NormalizedCacheObject>
+  >();
+
+  useEffect(() => {
+    Graphql.getServerPort().then((port) => {
+      setServerPort(port);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (serverPort) {
+      setApolloClient(getClient(serverPort));
+    }
+  }, [serverPort])
 
   return (
     <MuiThemeProvider theme={lightTheme}>
       <ThemeProvider theme={lightTheme}>
-        <ApolloProvider client={apolloClient}>
-          <GlobalContext.Provider value={{ serverPort, isRunning, setIsRunning }}>
-            <Divider />
-            <div className="App">
-              <Root />
-            </div>
-          </GlobalContext.Provider>
-        </ApolloProvider>
+        {apolloClient && (
+          <ApolloProvider client={apolloClient}>
+            <GlobalContext.Provider
+              value={{ serverPort, isRunning, setIsRunning }}
+            >
+              <Divider />
+              <div className="App">
+                <Root />
+              </div>
+            </GlobalContext.Provider>
+          </ApolloProvider>
+        )}
       </ThemeProvider>
     </MuiThemeProvider>
   );
