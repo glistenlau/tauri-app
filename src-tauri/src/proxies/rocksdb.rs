@@ -21,6 +21,7 @@ impl RocksDataStore {
 
     pub fn get_conn(&mut self) -> Result<Arc<Mutex<DB>>> {
         if self.conn.is_none() {
+            log::info!("No existing rocksdb connection, try to create a new one.");
             let path = Self::get_path();
 
             match DB::list_cf(&Options::default(), &path) {
@@ -89,7 +90,8 @@ lazy_static! {
     static ref DATA_STORE: Arc<Mutex<RocksDataStore>> = Arc::new(Mutex::new(RocksDataStore::new()));
 }
 
-pub fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
+#[tokio::main]
+pub async fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
     Arc::clone(&DATA_STORE)
 }
 

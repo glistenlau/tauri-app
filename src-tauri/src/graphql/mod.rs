@@ -23,7 +23,10 @@ impl Query {
         search_folder: String,
         search_pattern: String,
     ) -> Result<Vec<SchemaFile>> {
-        search_db_schema(&search_folder, &search_pattern).map_err(|err| FieldError::from(err))
+        search_db_schema(&search_folder, &search_pattern).map_err(|err| {
+            log::error!("db schema error: {:?}", err);
+            return FieldError::from(err)
+        })
     }
 
     async fn db_explain(&self, text: String, target_id: Option<i32>) -> Result<Vec<ExplainRow>> {
