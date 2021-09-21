@@ -20,12 +20,18 @@ pub struct Payload {
     variables: Option<Variables>,
 }
 
+#[derive(Clone, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ResponseBody {
+    server_port: u16,
+}
+
 pub fn handle_command(
     Endpoint { action, payload: _ }: Endpoint<Action, Payload>,
     state: tauri::State<AppState>,
-) -> Result<String> {
+) -> Result<ResponseBody> {
     match action {
-        Action::Query => Ok(state.server_port.to_string()),
-        Action::ServerPort => Ok(state.server_port.to_string()),
+        Action::Query => Ok(ResponseBody {server_port: state.server_port}),
+        Action::ServerPort => Ok(ResponseBody {server_port: state.server_port}),
     }
 }

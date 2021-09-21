@@ -70,6 +70,16 @@ export type SchemaFile = {
   root: TreeNode;
 };
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  integers: Scalars['Int'];
+};
+
+
+export type SubscriptionIntegersArgs = {
+  step?: Scalars['Int'];
+};
+
 export type TreeNode = {
   __typename?: 'TreeNode';
   tagName: Scalars['String'];
@@ -140,6 +150,14 @@ export type DbSchemaTreeNodeFieldsFragment = (
     { __typename?: 'NodeValue' }
     & Pick<NodeValue, 'start' | 'end' | 'dbFamily'>
   )> }
+);
+
+export type SubSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SubSubscription = (
+  { __typename?: 'Subscription' }
+  & Pick<Subscription, 'integers'>
 );
 
 export const DbExplainRowFieldsFragmentDoc = gql`
@@ -262,3 +280,30 @@ export function useDbSchemaSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type DbSchemaSearchQueryHookResult = ReturnType<typeof useDbSchemaSearchQuery>;
 export type DbSchemaSearchLazyQueryHookResult = ReturnType<typeof useDbSchemaSearchLazyQuery>;
 export type DbSchemaSearchQueryResult = Apollo.QueryResult<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>;
+export const SubDocument = gql`
+    subscription sub {
+  integers(step: 2)
+}
+    `;
+
+/**
+ * __useSubSubscription__
+ *
+ * To run a query within a React component, call `useSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSubSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSubSubscription(baseOptions?: Apollo.SubscriptionHookOptions<SubSubscription, SubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<SubSubscription, SubSubscriptionVariables>(SubDocument, options);
+      }
+export type SubSubscriptionHookResult = ReturnType<typeof useSubSubscription>;
+export type SubSubscriptionResult = Apollo.SubscriptionResult<SubSubscription>;

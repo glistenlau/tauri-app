@@ -1,8 +1,8 @@
+import { useSnackbar, VariantType } from "notistack";
 import React from "react";
-import { VariantType, useSnackbar } from "notistack";
 import { connect } from "react-redux";
-
 import { processedNotification } from "../actions";
+
 
 interface NotificationProps {
   messages: {

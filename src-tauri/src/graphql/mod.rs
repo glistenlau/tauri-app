@@ -1,4 +1,8 @@
+use std::time::Duration;
+
 use async_graphql::*;
+use futures::Stream;
+use tokio_stream::StreamExt;
 
 use crate::proxies::{
     db_explain_tree::{parse_db_explain, ExplainRow},
@@ -29,6 +33,20 @@ impl Query {
             target_id
         );
         Ok(parse_db_explain(&text))
+    }
+}
+
+pub struct Subscription;
+
+#[Subscription]
+impl Subscription {
+    async fn integers(&self, #[graphql(default = 1)] step: i32) -> impl Stream<Item = i32> {
+        let mut value = 0;
+        tokio_stream::wrappers::IntervalStream::new(tokio::time::interval(Duration::from_secs(1)))
+            .map(move |_| {
+                value += step;
+                value
+            })
     }
 }
 

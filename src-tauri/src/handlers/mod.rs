@@ -149,7 +149,7 @@ pub fn invoke_handler(
             now.elapsed(),
         ),
         Handler::Formatter(e) => seralize_response(formatter::handle_command(e)),
-        Handler::GraphQL(e) => graphql::handle_command(e, state),
+        Handler::GraphQL(e) => generate_response(graphql::handle_command(e, state), now.elapsed()),
     };
     result.or_else(|e| Err(CommandError::new(e.to_string()).into()))
 }

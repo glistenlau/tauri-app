@@ -1,7 +1,6 @@
 import {
   ApolloClient,
-  ApolloProvider,
-  NormalizedCacheObject
+  ApolloProvider
 } from "@apollo/client";
 import { Divider } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
@@ -77,7 +76,7 @@ const App = ({}: AppProps) => {
   const [isRunning, setIsRunning] = useState(false);
   const [serverPort, setServerPort] = useState<number>();
   const [apolloClient, setApolloClient] = useState<
-    ApolloClient<NormalizedCacheObject>
+    ApolloClient<any>
   >();
 
   useEffect(() => {
@@ -91,6 +90,7 @@ const App = ({}: AppProps) => {
       setApolloClient(getClient(serverPort));
     }
   }, [serverPort])
+
 
   return (
     <MuiThemeProvider theme={lightTheme}>

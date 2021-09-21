@@ -7,7 +7,6 @@ import styled from "styled-components";
 import ExitDialog from "../components/ExitDialog";
 import DatabaseConsolePage from "../features/databaseConsole/DatabaseConsoleView";
 import DBExplainView from "../features/dbExplain/DBExplainView";
-import GraphqlView from "../features/graphql/GraphqlView";
 import PropsEditorView from "../features/propsEditor/PropsEditorView";
 import QueryScanModal from "../features/queryScan/QueryScanModal";
 import RunnerResultPanel from "../features/runnerResult/RunnerResultPanel";
@@ -60,7 +59,6 @@ class Root extends React.Component<any, any> {
           <SchemaEditorView active={activeView === 2} />
           <SettingsPanel active={activeView === 3} />
           <DBExplainView active={activeView === 4}/>
-          <GraphqlView active={activeView === 5} />
         </RightContainer>
         <QueryScanModal />
         <Notification />

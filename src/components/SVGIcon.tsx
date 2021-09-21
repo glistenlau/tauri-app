@@ -59,6 +59,7 @@ interface SVGIconProps {
     | "postgres"
     | "plane"
     | "plusSquare"
+    | "graphql"
     | "minusSquare";
   fill?: any;
   color?: any;

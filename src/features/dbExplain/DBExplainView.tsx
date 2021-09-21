@@ -14,7 +14,11 @@ const EditorContainer = styled.div`
   height: 100%;
 `;
 
-const DBExplainView: React.FC = ({ active }) => {
+interface DBExplainProps {
+  active: boolean;
+}
+
+const DBExplainView: React.FC<DBExplainProps> = ({ active }) => {
   const [text, setText] = useState<string>();
   return (
     <Container active={active}>

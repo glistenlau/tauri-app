@@ -7,7 +7,7 @@ use std::{net::TcpListener, thread};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
-use async_graphql_warp::Response;
+use async_graphql_warp::{graphql_subscription, Response};
 use mylib::graphql::Query;
 use tauri::Submenu;
 use tauri::{Menu, MenuItem};
@@ -23,11 +23,10 @@ use std::convert::Infallible;
 
 use warp::{http::Response as HttpResponse, Filter};
 
-use futures::FutureExt as _;
-
+use crate::graphql::Subscription;
 use crate::state::AppState;
 
-static app_name: &str = "AP Database Dev Tool";
+static APP_NAME: &str = "AP Database Dev Tool";
 
 fn find_random_open_port() -> u16 {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
@@ -38,9 +37,9 @@ fn find_random_open_port() -> u16 {
 fn get_menu() -> Menu {
     Menu::new()
         .add_submenu(Submenu::new(
-            app_name,
+            APP_NAME,
             Menu::new()
-                .add_native_item(MenuItem::About(app_name.to_string()))
+                .add_native_item(MenuItem::About(APP_NAME.to_string()))
                 .add_native_item(MenuItem::Separator)
                 .add_native_item(MenuItem::Services)
                 .add_native_item(MenuItem::Separator)
@@ -96,26 +95,43 @@ fn main() {
             thread::spawn(move || {
                 let web_runtime = Runtime::new().unwrap();
                 web_runtime.block_on(async {
-                    let schema = Schema::build(Query, EmptyMutation, EmptySubscription).finish();
+                    let schema = Schema::build(Query, EmptyMutation, Subscription).finish();
 
-                    let graphql_post = warp::path("graphql")
-                        .and(async_graphql_warp::graphql(schema.clone()))
-                        .and_then(
-                            |(schema, request): (
-                                Schema<Query, EmptyMutation, EmptySubscription>,
-                                async_graphql::Request,
-                            )| async move {
-                                Ok::<_, Infallible>(Response::from(schema.execute(request).await))
-                            },
-                        );
+                    // let graphql_post = warp::path("graphql")
+                    //     .and(async_graphql_warp::graphql(schema.clone()))
+                    //     .and_then(
+                    //         |(schema, request): (
+                    //             Schema<Query, EmptyMutation, Subscription>,
+                    //             async_graphql::Request,
+                    //         )| async move {
+                    //             Ok::<_, Infallible>(Response::from(schema.execute(request).await))
+                    //         },
+                    //     );
 
-                    let graphql_playground = warp::path("playground").and(warp::get()).map(|| {
+                    // let graphql_playground = warp::path("playground").and(warp::get()).map(|| {
+                    //     HttpResponse::builder()
+                    //         .header("content-type", "text/html")
+                    //         .body(playground_source(GraphQLPlaygroundConfig::new("/graphql")))
+                    // });
+
+                    let graphql_post = async_graphql_warp::graphql(schema.clone()).and_then(
+                        |(schema, request): (
+                            Schema<Query, EmptyMutation, Subscription>,
+                            async_graphql::Request,
+                        )| async move { Ok::<_, Infallible>(Response::from(schema.execute(request).await)) },
+                    );
+                
+                    let graphql_playground = warp::path::end().and(warp::get()).map(|| {
                         HttpResponse::builder()
                             .header("content-type", "text/html")
-                            .body(playground_source(GraphQLPlaygroundConfig::new("/graphql")))
+                            .body(playground_source(
+                                GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+                            ))
                     });
 
-                    let routes = graphql_playground.or(graphql_post);
+                    let routes = graphql_subscription(schema)
+                        .or(graphql_playground)
+                        .or(graphql_post);
 
                     warp::serve(routes).run(([127, 0, 0, 1], port)).await;
                 });

@@ -1,5 +1,7 @@
-import React, { useCallback } from "react";
+import { Link, Typography } from "@material-ui/core";
+import React, { useCallback, useContext } from "react";
 import styled from "styled-components";
+import { GlobalContext } from "../App";
 import EditorSettingsPanel from "../features/editorSettings/EditorSetttinsPanel";
 import {
   isOracleSettings,
@@ -7,6 +9,7 @@ import {
   PostgreSettings
 } from "../features/settings/settingsSlice";
 import DBSettings from "./DBSettings";
+import SVGIcon from "./SVGIcon";
 
 const Container = styled.div`
   display: flex;
@@ -41,6 +44,8 @@ const Settings = ({
     [onOracleConfigChange, onPostgresConfigChange]
   );
 
+  const { serverPort } = useContext(GlobalContext);
+
   return (
     <Container>
       <DBSettings
@@ -54,6 +59,32 @@ const Settings = ({
         value={postgreSettings}
       />
       <EditorSettingsPanel />
+      <div
+        style={{
+          height: 48,
+          paddingLeft: 16,
+          paddingRight: 16,
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <SVGIcon
+          width={20}
+          height={20}
+          name="graphql"
+          style={{ marginRight: 10 }}
+        />
+        <Typography>
+          running at{" "}
+          <Link
+            href={`http://127.0.0.1:${serverPort}/`}
+            target="_blank"
+          >
+            127.0.0.1:{serverPort}
+          </Link>
+        </Typography>
+      </div>
     </Container>
   );
 };
