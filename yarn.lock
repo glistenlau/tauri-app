@@ -2,24 +2,23 @@
 # yarn lockfile v1
 
 
-"@apollo/client@^3.3.11":
-  version "3.3.19"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@apollo/client/-/client-3.3.19.tgz#f1172dc9b9d7eae04c8940b047fd3b452ef92d2c"
-  integrity sha1-8RctybnX6uBMiUCwR/07RS75LSw=
+"@apollo/client@^3.4.13":
+  version "3.4.13"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@apollo/client/-/client-3.4.13.tgz#81670c27b376e80e3845ecf6468e534d908fa5b5"
+  integrity sha1-gWcMJ7N26A44Rez2Ro5TTZCPpbU=
   dependencies:
     "@graphql-typed-document-node/core" "^3.0.0"
-    "@types/zen-observable" "^0.8.0"
     "@wry/context" "^0.6.0"
-    "@wry/equality" "^0.4.0"
-    fast-json-stable-stringify "^2.0.0"
-    graphql-tag "^2.12.0"
+    "@wry/equality" "^0.5.0"
+    "@wry/trie" "^0.3.0"
+    graphql-tag "^2.12.3"
     hoist-non-react-statics "^3.3.2"
-    optimism "^0.16.0"
+    optimism "^0.16.1"
     prop-types "^15.7.2"
-    symbol-observable "^2.0.0"
-    ts-invariant "^0.7.0"
-    tslib "^1.10.0"
-    zen-observable "^0.8.14"
+    symbol-observable "^4.0.0"
+    ts-invariant "^0.9.0"
+    tslib "^2.3.0"
+    zen-observable-ts "~1.1.0"
 
 "@ardatan/aggregate-error@0.0.6":
   version "0.0.6"
@@ -2684,10 +2683,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@types/zen-observable@^0.8.0":
-  version "0.8.2"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/zen-observable/-/zen-observable-0.8.2.tgz#808c9fa7e4517274ed555fa158f2de4b4f468e71"
-  integrity sha1-gIyfp+RRcnTtVV+hWPLeS09GjnE=
+"@types/zen-observable@0.8.3":
+  version "0.8.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@types/zen-observable/-/zen-observable-0.8.3.tgz#781d360c282436494b32fe7d9f7f8e64b3118aa3"
+  integrity sha1-eB02DCgkNklLMv59n3+OZLMRiqM=
 
 "@typescript-eslint/eslint-plugin@^4.5.0":
   version "4.25.0"
@@ -2948,12 +2947,12 @@
   dependencies:
     tslib "^2.1.0"
 
-"@wry/equality@^0.4.0":
-  version "0.4.0"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@wry/equality/-/equality-0.4.0.tgz#474491869a8d0590f4a33fd2a4850a77a0f63408"
-  integrity sha1-R0SRhpqNBZD0oz/SpIUKd6D2NAg=
+"@wry/equality@^0.5.0":
+  version "0.5.2"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/@wry/equality/-/equality-0.5.2.tgz#72c8a7a7d884dff30b612f4f8464eba26c080e73"
+  integrity sha1-csinp9iE3/MLYS9PhGTromwIDnM=
   dependencies:
-    tslib "^2.1.0"
+    tslib "^2.3.0"
 
 "@wry/trie@^0.3.0":
   version "0.3.0"
@@ -7469,10 +7468,17 @@ graphql-request@^3.3.0:
     extract-files "^9.0.0"
     form-data "^3.0.0"
 
-graphql-tag@^2.11.0, graphql-tag@^2.12.0:
+graphql-tag@^2.11.0:
   version "2.12.4"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-tag/-/graphql-tag-2.12.4.tgz#d34066688a4f09e72d6f4663c74211e9b4b7c4bf"
   integrity sha1-00BmaIpPCectb0Zjx0IR6bS3xL8=
+  dependencies:
+    tslib "^2.1.0"
+
+graphql-tag@^2.12.3:
+  version "2.12.5"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/graphql-tag/-/graphql-tag-2.12.5.tgz#5cff974a67b417747d05c8d9f5f3cb4495d0db8f"
+  integrity sha1-XP+XSme0F3R9BcjZ9fPLRJXQ248=
   dependencies:
     tslib "^2.1.0"
 
@@ -10768,7 +10774,7 @@ opn@^5.5.0:
   dependencies:
     is-wsl "^1.1.0"
 
-optimism@^0.16.0:
+optimism@^0.16.1:
   version "0.16.1"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/optimism/-/optimism-0.16.1.tgz#7c8efc1f3179f18307b887e18c15c5b7133f6e7d"
   integrity sha1-fI78HzF58YMHuIfhjBXFtxM/bn0=
@@ -14213,10 +14219,10 @@ symbol-observable@1.2.0, symbol-observable@^1.0.4, symbol-observable@^1.1.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
   integrity sha1-wiaIrtTqs83C3+rLtWFmBWCgCAQ=
 
-symbol-observable@^2.0.0:
-  version "2.0.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/symbol-observable/-/symbol-observable-2.0.3.tgz#5b521d3d07a43c351055fa43b8355b62d33fd16a"
-  integrity sha1-W1IdPQekPDUQVfpDuDVbYtM/0Wo=
+symbol-observable@^4.0.0:
+  version "4.0.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/symbol-observable/-/symbol-observable-4.0.0.tgz#5b425f192279e87f2f9b937ac8540d1984b39205"
+  integrity sha1-W0JfGSJ56H8vm5N6yFQNGYSzkgU=
 
 symbol-tree@^3.2.4:
   version "3.2.4"
@@ -14568,10 +14574,10 @@ tryer@^1.0.1:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/tryer/-/tryer-1.0.1.tgz#f2c85406800b9b0f74c9f7465b81eaad241252f8"
   integrity sha1-8shUBoALmw90yfdGW4HqrSQSUvg=
 
-ts-invariant@^0.7.0:
-  version "0.7.3"
-  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ts-invariant/-/ts-invariant-0.7.3.tgz#13aae22a4a165393aaf5cecdee45ef4128d358b8"
-  integrity sha1-E6riKkoWU5Oq9c7N7kXvQSjTWLg=
+ts-invariant@^0.9.0:
+  version "0.9.3"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/ts-invariant/-/ts-invariant-0.9.3.tgz#4b41e0a80c2530a56ce4b8fd4e14183aaac0efa8"
+  integrity sha1-S0HgqAwlMKVs5Lj9ThQYOqrA76g=
   dependencies:
     tslib "^2.1.0"
 
@@ -14616,6 +14622,11 @@ tslib@^2, tslib@^2.0.3, tslib@^2.1.0, tslib@~2.2.0:
   version "2.2.0"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
   integrity sha1-+yxHWXfjXiQTEe3iaTzuHsZpj1w=
+
+tslib@^2.3.0:
+  version "2.3.1"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/tslib/-/tslib-2.3.1.tgz#e8a335add5ceae51aa261d32a490158ef042ef01"
+  integrity sha1-6KM1rdXOrlGqJh0ypJAVjvBC7wE=
 
 tslib@~2.0.1:
   version "2.0.3"
@@ -15763,7 +15774,15 @@ yocto-queue@^0.1.0:
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha1-ApTrPe4FAo0x7hpfosVWpqrxChs=
 
-zen-observable@^0.8.14:
+zen-observable-ts@~1.1.0:
+  version "1.1.0"
+  resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/zen-observable-ts/-/zen-observable-ts-1.1.0.tgz#2d1aa9d79b87058e9b75698b92791c1838551f83"
+  integrity sha1-LRqp15uHBY6bdWmLknkcGDhVH4M=
+  dependencies:
+    "@types/zen-observable" "0.8.3"
+    zen-observable "0.8.15"
+
+zen-observable@0.8.15:
   version "0.8.15"
   resolved "https://adaptiveinsights.jfrog.io/adaptiveinsights/api/npm/npm-adaptive/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha1-lkFcUS2OP/2SCv04iWBOMLnqrBU=

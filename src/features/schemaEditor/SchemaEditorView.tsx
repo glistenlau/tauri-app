@@ -7,7 +7,7 @@ import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
 import { extractXmlFileIndex } from "../../core/xmlProcessor";
-import { useDbSchemaSearchLazyQuery } from "../../generated/graphql";
+import {useDbSchemaSearchLazyQuery} from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import {
   changeLeftPanelWidth,
@@ -73,8 +73,10 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
 
   const [
     searchDbSchema,
-    { called, loading, data },
-  ] = useDbSchemaSearchLazyQuery();
+    { called, loading, data, error },
+  ] = useDbSchemaSearchLazyQuery({ errorPolicy: 'all' });
+
+  console.log(called, data, loading, error);
 
   const handleClickSearch = useCallback(() => {
     searchDbSchema({
@@ -137,6 +139,7 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     },
     [dispatch]
   );
+
 
   return (
     <Container active={active}>

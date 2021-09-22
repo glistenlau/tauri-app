@@ -60,11 +60,11 @@ const fetchGraphql = async (query: string, variables: Record<string, any>) => {
 
 export const getClient = (serverPort: number) => {
   const httpLink = new HttpLink({
-    uri: `http://localhost:${serverPort}/`,
+    uri: `http://127.0.0.1:${serverPort}/graphql/`,
   });
 
   const wsLink = new WebSocketLink({
-    uri: `ws://localhost:${serverPort}/`,
+    uri: `ws://127.0.0.1:${serverPort}/`,
     options: {
       reconnect: true,
     },

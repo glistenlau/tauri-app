@@ -9,11 +9,6 @@ use crate::proxies::{
     db_schema::{search_db_schema, SchemaFile},
 };
 
-pub struct Context {}
-
-// To make our context usable by Juniper, we have to implement a marker trait.
-impl juniper::Context for Context {}
-
 pub struct Query;
 
 #[Object]

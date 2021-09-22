@@ -4,7 +4,7 @@ use async_graphql::*;
 
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, cmp::Ordering, collections::HashMap, rc::Rc, todo};
-#[derive(Enum, Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Enum, Clone, Copy, Eq, PartialEq, Deserialize, Serialize, Debug)]
 enum DbFamily {
     Oracle,
     Postgres,
@@ -40,14 +40,14 @@ impl Node {
     }
 }
 
-#[derive(SimpleObject, Serialize, Deserialize)]
+#[derive(SimpleObject, Serialize, Deserialize, Debug)]
 pub struct NodeValue {
     start: i32,
     end: i32,
     db_family: Option<DbFamily>,
 }
 
-#[derive(SimpleObject, Deserialize, Serialize)]
+#[derive(SimpleObject, Deserialize, Serialize, Debug)]
 pub struct TreeNode {
     tag_name: String,
     name_attr: Option<String>,

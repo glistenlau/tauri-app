@@ -19,29 +19,49 @@ impl RocksDataStore {
         RocksDataStore { conn: None }
     }
 
-    pub fn get_conn(&mut self) -> Result<Arc<Mutex<DB>>> {
-        if self.conn.is_none() {
-            log::info!("No existing rocksdb connection, try to create a new one.");
-            let path = Self::get_path();
-
-            match DB::list_cf(&Options::default(), &path) {
-                Ok(cf_list) => {
-                    self.conn = match DB::open_cf(&Options::default(), &path, cf_list) {
-                        Ok(db) => Some(Arc::new(Mutex::new(db))),
-                        Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
-                    };
-                }
-                Err(e) => {
-                    log::info!("list cf error: {}", e);
-                    self.conn = match DB::open_default(&path) {
-                        Ok(db) => Some(Arc::new(Mutex::new(db))),
-                        Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
-                    }
+    fn new_conn(&mut self) -> Result<DB> {
+        let path = Self::get_path();
+        match DB::list_cf(&Options::default(), &path) {
+            Ok(cf_list) => {
+                match DB::open_cf(&Options::default(), &path, cf_list) {
+                    Ok(db) => return Ok(db),
+                    Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
+                };
+            }
+            Err(e) => {
+                log::info!("list cf error: {}", e);
+                match DB::open_default(&path) {
+                    Ok(db) => return Ok(db),
+                    Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
                 }
             }
         }
+    }
 
-        Ok(Arc::clone(&self.conn.as_ref().unwrap()))
+    pub fn get_conn(&mut self) -> Result<Arc<Mutex<DB>>> {
+        // if self.conn.is_none() {
+        //     log::info!("No existing rocksdb connection, try to create a new one.");
+        //     let path = Self::get_path();
+        //
+        //     match DB::list_cf(&Options::default(), &path) {
+        //         Ok(cf_list) => {
+        //             self.conn = match DB::open_cf(&Options::default(), &path, cf_list) {
+        //                 Ok(db) => Some(Arc::new(Mutex::new(db))),
+        //                 Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
+        //             };
+        //         }
+        //         Err(e) => {
+        //             log::info!("list cf error: {}", e);
+        //             self.conn = match DB::open_default(&path) {
+        //                 Ok(db) => Some(Arc::new(Mutex::new(db))),
+        //                 Err(e) => return Err(anyhow!("failed to connect rocksdb {}", e)),
+        //             }
+        //         }
+        //     }
+        // }
+        //
+        // Ok(Arc::clone(&self.conn.as_ref().unwrap()))
+        self.new_conn().map(|db| Arc::new(Mutex::new(db)))
     }
 
     fn get_path() -> PathBuf {
@@ -90,8 +110,7 @@ lazy_static! {
     static ref DATA_STORE: Arc<Mutex<RocksDataStore>> = Arc::new(Mutex::new(RocksDataStore::new()));
 }
 
-#[tokio::main]
-pub async fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
+pub fn get_proxy() -> Arc<Mutex<RocksDataStore>> {
     Arc::clone(&DATA_STORE)
 }
 

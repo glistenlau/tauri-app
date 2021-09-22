@@ -19,7 +19,7 @@ use super::rocksdb::{get_proxy, RocksDataStore};
 
 use anyhow::Result;
 
-#[derive(SimpleObject, Serialize, Deserialize)]
+#[derive(SimpleObject, Serialize, Deserialize, Debug)]
 pub struct SchemaFile {
     path: String,
     root: TreeNode,
@@ -91,7 +91,7 @@ mod tests {
 
         match search_db_schema(planning_path, "/src/db/*.xml") {
             Ok(res) => {
-                println!("got {} res", res.len());
+                print!("res: {:?}", res)
             }
             Err(e) => {
                 panic!("shouldn't have error: {}", e)
