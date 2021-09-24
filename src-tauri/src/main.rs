@@ -1,8 +1,9 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 
+use std::net::SocketAddr;
 use std::{net::TcpListener, thread};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
@@ -27,14 +28,19 @@ use warp::{http::Response as HttpResponse, Filter, Reply};
 
 use crate::graphql::Subscription;
 use crate::state::AppState;
-use std::sync::{Arc, Mutex};
 use proxies::rocksdb::RocksDataStore;
+use std::sync::{Arc, Mutex};
 use warp::http::HeaderValue;
 
 static APP_NAME: &str = "AP Database Dev Tool";
 
-fn find_random_open_port() -> u16 {
-    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
+fn find_open_port() -> u16 {
+    let addrs = [
+        SocketAddr::from(([127, 0, 0, 1], 8888)),
+        SocketAddr::from(([127, 0, 0, 1], 0)),
+    ];
+
+    let listener = TcpListener::bind(&addrs[..]).expect("Failed to bind random port");
     // We retrieve the port assigned to us by the OS
     listener.local_addr().unwrap().port()
 }
@@ -88,17 +94,20 @@ fn get_menu() -> Menu {
 
 #[tokio::main]
 async fn run_graphql_server(port: u16, rocksdb_proxy: Arc<Mutex<RocksDataStore>>) {
-    let schema = Schema::build(Query, EmptyMutation, Subscription).data(rocksdb_proxy).finish();
+    let schema = Schema::build(Query, EmptyMutation, Subscription)
+        .data(rocksdb_proxy)
+        .finish();
 
-    let graphql_post = warp::path("graphql").and(async_graphql_warp::graphql(schema.clone()).and_then(
-        |(schema, request): (
-            Schema<Query, EmptyMutation, Subscription>,
-            async_graphql::Request,
-        )| async move {
-            let mut rsp = Response::from(schema.execute(request).await);
-            Ok::<_, Infallible>(rsp)
-        },
-    ));
+    let graphql_post =
+        warp::path("graphql").and(async_graphql_warp::graphql(schema.clone()).and_then(
+            |(schema, request): (
+                Schema<Query, EmptyMutation, Subscription>,
+                async_graphql::Request,
+            )| async move {
+                let mut rsp = Response::from(schema.execute(request).await);
+                Ok::<_, Infallible>(rsp)
+            },
+        ));
 
     let graphql_playground = warp::path::end().and(warp::get()).map(|| {
         HttpResponse::builder()
@@ -114,7 +123,7 @@ async fn run_graphql_server(port: u16, rocksdb_proxy: Arc<Mutex<RocksDataStore>>
             warp::cors()
                 .allow_any_origin()
                 .allow_header("Content-Type")
-                .allow_method("POST")
+                .allow_method("POST"),
         ));
 
     warp::serve(routes).run(([127, 0, 0, 1], port)).await;
@@ -126,13 +135,13 @@ fn main() {
         Err(e) => log::error!("logger setup failed: {}", e),
     }
 
-    let port = find_random_open_port();
+    let port = find_open_port();
 
     tauri::Builder::default()
         .menu(get_menu())
         .setup(move |_app| {
             let rocksdb_proxy = crate::proxies::rocksdb::get_proxy();
-            thread::spawn(move || { run_graphql_server(port, Arc::clone(&rocksdb_proxy)) });
+            thread::spawn(move || run_graphql_server(port, Arc::clone(&rocksdb_proxy)));
             Ok(())
         })
         .manage(AppState { server_port: port })

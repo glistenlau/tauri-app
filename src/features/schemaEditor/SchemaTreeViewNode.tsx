@@ -1,11 +1,13 @@
-import React from "react";
+import { createStyles, makeStyles } from "@material-ui/core/styles";
+import React, { useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import SVGIcon from "../../components/SVGIcon";
-import { makeStyles, createStyles } from "@material-ui/core/styles";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../reducers";
-import SchemaTreeViewNodeLabel from "./SchemaTreeViewNodeLabel";
-import { toggleOpen, selectXmlNode } from "./schemaEditorSlice";
 import { extractXmlFileIndex } from "../../core/xmlProcessor";
+import { RootState } from "../../reducers";
+import { getHashColor } from "../../util";
+import { selectXmlNode, toggleOpen } from "./schemaEditorSlice";
+import { NodeData } from "./SchemaTreeView";
+import SchemaTreeViewNodeLabel from "./SchemaTreeViewNodeLabel";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -26,21 +28,28 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
+interface SchemaTreeViewNodeProps {
+  data: NodeData,
+  isOpen: boolean,
+  style: any,
+  setOpen: (open: boolean) => {},
+  treeData?: any,
+}
+
 const SchemaTreeViewNode = React.memo(
   ({
-    data: { isLeaf, attrName, tagName, id, nestingLevel, tagColor },
+    data: { isLeaf, nameAttr, tagName, id, nestingLevel },
     treeData: { filterText, activeNodeId },
     isOpen,
+    setOpen,
     style,
-    toggle,
-  }: any) => {
+  }: SchemaTreeViewNodeProps) => {
     const classes = useStyles();
     const dispatch = useDispatch();
-    const xmlList = useSelector(
-      (state: RootState) => state.schemaEditor.xmlList
-    );
 
     const rootIndex = React.useMemo(() => extractXmlFileIndex(id), [id]);
+
+    const tagColor = useMemo(() => getHashColor(tagName)[800], [tagName])
 
     const handleClickLabel = React.useCallback(
       () => dispatch(selectXmlNode(id)),
@@ -51,11 +60,11 @@ const SchemaTreeViewNode = React.memo(
       if (isLeaf) {
         return;
       }
-      toggle();
+      setOpen(!isOpen);
       if (!filterText) {
         dispatch(toggleOpen(id));
       }
-    }, [isLeaf, filterText, dispatch, id, toggle]);
+    }, [isLeaf, setOpen, isOpen, filterText, dispatch, id]);
 
     return (
       <div
@@ -104,13 +113,8 @@ const SchemaTreeViewNode = React.memo(
         <SchemaTreeViewNodeLabel
           highlight={activeNodeId === id}
           onClick={handleClickLabel}
-          statusPair={
-            !isNaN(rootIndex) &&
-            rootIndex < xmlList.length &&
-            xmlList[rootIndex].pathStatusMap[id]
-          }
           tagName={tagName}
-          attrName={attrName}
+          attrName={nameAttr}
           filterText={filterText}
           tagColor={tagColor}
         />

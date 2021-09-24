@@ -1,14 +1,15 @@
+import { Typography } from "@material-ui/core";
+import { Maybe } from "graphql/jsutils/Maybe";
 import React from "react";
 import MatchText from "../../components/MatchText";
 import SVGIcon from "../../components/SVGIcon";
-import { Typography } from "@material-ui/core";
 import Tooltip from "../../components/Tooltip";
 
 interface SchemaTreeViewNodeLabelProps {
   onClick?: any;
   statusPair?: [boolean, boolean];
   tagName?: string;
-  attrName?: string;
+  attrName: Maybe<string>;
   highlight?: boolean;
   filterText?: string;
   tagColor?: string;
@@ -85,7 +86,7 @@ const SchemaTreeViewNodeLabel = React.memo(
                   color: highlight ? "#6200EE" : tagColor,
                 }}
               >
-                <MatchText text={tagName} highlightText={filterText} />{" "}
+                <MatchText text={tagName} highlightText={filterText || ""} />{" "}
               </Typography>
             )}
             {attrName && (
@@ -95,7 +96,7 @@ const SchemaTreeViewNodeLabel = React.memo(
                 }}
                 component="span"
               >
-                <MatchText text={attrName} highlightText={filterText} />
+                <MatchText text={attrName} highlightText={filterText || ""} />
               </Typography>
             )}
           </span>

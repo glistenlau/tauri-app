@@ -8,6 +8,7 @@ use crate::proxies::{
     db_explain_tree::{parse_db_explain, ExplainRow},
     db_schema::{search_db_schema, SchemaFile},
 };
+use crate::proxies::db_schema::{FlatSchemaFile, search_db_schema_flat};
 
 pub struct Query;
 
@@ -18,10 +19,23 @@ impl Query {
         search_folder: String,
         search_pattern: String,
     ) -> Result<Vec<SchemaFile>> {
-        search_db_schema(&search_folder, &search_pattern).map_err(|err| {
+        let search_results = search_db_schema(&search_folder, &search_pattern).map_err(|err| {
             log::error!("db schema error: {:?}", err);
             return FieldError::from(err)
-        })
+        });
+        search_results
+    }
+
+    async fn db_schemas_flat(
+        &self,
+        search_folder: String,
+        search_pattern: String,
+    ) -> Result<Vec<FlatSchemaFile>> {
+        let search_results = search_db_schema_flat(&search_folder, &search_pattern).map_err(|err| {
+            log::error!("db schema error: {:?}", err);
+            return FieldError::from(err)
+        });
+        search_results
     }
 
     async fn db_explain(&self, text: String, target_id: Option<i32>) -> Result<Vec<ExplainRow>> {

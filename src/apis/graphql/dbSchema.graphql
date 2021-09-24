@@ -27,3 +27,22 @@ fragment dbSchemaTreeNodeFields on TreeNode {
   nameAttr
   dbFamily
 }
+
+query dbSchemaSearchFlat($searchFolder: String!, $searchPattern: String!) {
+  dbSchemasFlat(searchFolder: $searchFolder, searchPattern: $searchPattern) {
+    path,
+    nodes {
+      tagName,
+      nameAttr,
+      values {
+        start,
+        end,
+        dbFamily
+      }
+      parentIndex,
+      childIndexes,
+      nestingLevel,
+      fileIndex
+    }
+  }
+}

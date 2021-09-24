@@ -425,7 +425,7 @@ export const extractXmlFileIndex = (path: string) => {
     return NaN;
   }
   const endIndex = path.indexOf("-");
-  const indexStr = endIndex !== -1 ? path.substring(0, endIndex) : path;
+  const indexStr = endIndex !== -1 ? path.substring('file'.length, endIndex) : path;
   return parseInt(indexStr, 10);
 };
 

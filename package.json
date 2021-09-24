@@ -54,7 +54,7 @@
     "bundle": "tauri build",
     "generate-schema": "pushd src-tauri && cargo run --bin generate_schema && popd",
     "generate": "graphql-codegen",
-    "dev": "yarn run generate-schema & yarn run generate & tauri dev"
+    "dev": "yarn generate-schema && yarn generate && tauri dev"
   },
   "eslintConfig": {
     "extends": "react-app"

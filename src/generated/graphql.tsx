@@ -39,6 +39,24 @@ export type ExplainRow = {
   children?: Maybe<Array<ExplainRow>>;
 };
 
+export type FlatNode = {
+  __typename?: 'FlatNode';
+  tagName: Scalars['String'];
+  nameAttr?: Maybe<Scalars['String']>;
+  values: Array<NodeValue>;
+  dbFamily?: Maybe<DbFamily>;
+  parentIndex?: Maybe<Scalars['Int']>;
+  childIndexes?: Maybe<Array<Scalars['Int']>>;
+  nestingLevel: Scalars['Int'];
+  fileIndex: Scalars['Int'];
+};
+
+export type FlatSchemaFile = {
+  __typename?: 'FlatSchemaFile';
+  path: Scalars['String'];
+  nodes: Array<FlatNode>;
+};
+
 export type NodeValue = {
   __typename?: 'NodeValue';
   start: Scalars['Int'];
@@ -49,11 +67,18 @@ export type NodeValue = {
 export type Query = {
   __typename?: 'Query';
   dbSchemas: Array<SchemaFile>;
+  dbSchemasFlat: Array<FlatSchemaFile>;
   dbExplain: Array<ExplainRow>;
 };
 
 
 export type QueryDbSchemasArgs = {
+  searchFolder: Scalars['String'];
+  searchPattern: Scalars['String'];
+};
+
+
+export type QueryDbSchemasFlatArgs = {
   searchFolder: Scalars['String'];
   searchPattern: Scalars['String'];
 };
@@ -149,6 +174,28 @@ export type DbSchemaTreeNodeFieldsFragment = (
   & { values: Array<(
     { __typename?: 'NodeValue' }
     & Pick<NodeValue, 'start' | 'end' | 'dbFamily'>
+  )> }
+);
+
+export type DbSchemaSearchFlatQueryVariables = Exact<{
+  searchFolder: Scalars['String'];
+  searchPattern: Scalars['String'];
+}>;
+
+
+export type DbSchemaSearchFlatQuery = (
+  { __typename?: 'Query' }
+  & { dbSchemasFlat: Array<(
+    { __typename?: 'FlatSchemaFile' }
+    & Pick<FlatSchemaFile, 'path'>
+    & { nodes: Array<(
+      { __typename?: 'FlatNode' }
+      & Pick<FlatNode, 'tagName' | 'nameAttr' | 'parentIndex' | 'childIndexes' | 'nestingLevel' | 'fileIndex'>
+      & { values: Array<(
+        { __typename?: 'NodeValue' }
+        & Pick<NodeValue, 'start' | 'end' | 'dbFamily'>
+      )> }
+    )> }
   )> }
 );
 
@@ -280,6 +327,55 @@ export function useDbSchemaSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type DbSchemaSearchQueryHookResult = ReturnType<typeof useDbSchemaSearchQuery>;
 export type DbSchemaSearchLazyQueryHookResult = ReturnType<typeof useDbSchemaSearchLazyQuery>;
 export type DbSchemaSearchQueryResult = Apollo.QueryResult<DbSchemaSearchQuery, DbSchemaSearchQueryVariables>;
+export const DbSchemaSearchFlatDocument = gql`
+    query dbSchemaSearchFlat($searchFolder: String!, $searchPattern: String!) {
+  dbSchemasFlat(searchFolder: $searchFolder, searchPattern: $searchPattern) {
+    path
+    nodes {
+      tagName
+      nameAttr
+      values {
+        start
+        end
+        dbFamily
+      }
+      parentIndex
+      childIndexes
+      nestingLevel
+      fileIndex
+    }
+  }
+}
+    `;
+
+/**
+ * __useDbSchemaSearchFlatQuery__
+ *
+ * To run a query within a React component, call `useDbSchemaSearchFlatQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDbSchemaSearchFlatQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDbSchemaSearchFlatQuery({
+ *   variables: {
+ *      searchFolder: // value for 'searchFolder'
+ *      searchPattern: // value for 'searchPattern'
+ *   },
+ * });
+ */
+export function useDbSchemaSearchFlatQuery(baseOptions: Apollo.QueryHookOptions<DbSchemaSearchFlatQuery, DbSchemaSearchFlatQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DbSchemaSearchFlatQuery, DbSchemaSearchFlatQueryVariables>(DbSchemaSearchFlatDocument, options);
+      }
+export function useDbSchemaSearchFlatLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DbSchemaSearchFlatQuery, DbSchemaSearchFlatQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DbSchemaSearchFlatQuery, DbSchemaSearchFlatQueryVariables>(DbSchemaSearchFlatDocument, options);
+        }
+export type DbSchemaSearchFlatQueryHookResult = ReturnType<typeof useDbSchemaSearchFlatQuery>;
+export type DbSchemaSearchFlatLazyQueryHookResult = ReturnType<typeof useDbSchemaSearchFlatLazyQuery>;
+export type DbSchemaSearchFlatQueryResult = Apollo.QueryResult<DbSchemaSearchFlatQuery, DbSchemaSearchFlatQueryVariables>;
 export const SubDocument = gql`
     subscription sub {
   integers(step: 2)

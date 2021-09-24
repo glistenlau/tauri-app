@@ -1,7 +1,6 @@
 // @ts-ignore
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initApp, showNotification } from "../../actions";
-import { dbSchemaSearchQueryResponse } from "../../apis/graphql/__generated__/dbSchemaSearchQuery.graphql";
 import { XmlTag } from "../../core/xmlParser";
 import xmlProcessor, {
   aggregateSameNamePair,
@@ -10,6 +9,7 @@ import xmlProcessor, {
 
   getAncestors, XmlFile
 } from "../../core/xmlProcessor";
+import { DbSchemaSearchFlatQuery } from "../../generated/graphql";
 import { AppThunk } from "../../reducers";
 
 
@@ -17,7 +17,7 @@ export interface SchemaEditorState {
   activePair: [boolean, boolean];
   valuePair: [string, string];
   leftPanelWidth: number;
-  xmlList?: dbSchemaSearchQueryResponse;
+  flatTreeData?: DbSchemaSearchFlatQuery;
   searchPath: string;
   searchFile: string;
   activeNodeId: string;
@@ -31,7 +31,7 @@ const initialState: SchemaEditorState = {
   activePair: [true, true],
   leftPanelWidth: 200,
   valuePair: ["", ""],
-  xmlList: undefined,
+  flatTreeData: undefined,
   searchPath: "",
   searchFile: "",
   activeNodeId: "",
@@ -69,24 +69,12 @@ const schemaEditor = createSlice({
     ) {
       state.activeNodePaths = payload;
     },
-    loadXmlList(state, { payload }: PayloadAction<dbSchemaSearchQueryResponse>) {
+    loadXmlList(state, { payload }: PayloadAction<DbSchemaSearchFlatQuery | undefined>) {
       state.activeNodeId = initialState.activeNodeId;
       state.activeNodePaths = initialState.activeNodePaths;
       state.pathOpenMap = {};
-      state.xmlList = payload;
+      state.flatTreeData = payload;
       state.valuePair = initialState.valuePair;
-    },
-    setXmlFileTag(
-      state,
-      { payload }: PayloadAction<{ index: number; xmlFile: XmlFile }>
-    ) {
-      const { index, xmlFile } = payload;
-      const newXmlList = [
-        ...state.xmlList.slice(0, index),
-        xmlFile,
-        ...state.xmlList.slice(index + 1),
-      ];
-      state.xmlList = newXmlList;
     },
     toggleDiffMode(state) {
       state.diffMode = !state.diffMode;
@@ -107,22 +95,26 @@ const schemaEditor = createSlice({
     },
     selectXmlNode(state, { payload }: PayloadAction<string>) {
       const id = payload;
-      const rootIndex = extractXmlFileIndex(id);
+      const fileIndex = extractXmlFileIndex(id);
       if (id === state.activeNodeId) {
         return;
       }
+      if (!state.flatTreeData) {
+        return;
+      }
+
       let valuePair;
       let pathList: Array<[XmlTag, XmlTag]> = [];
       if (
-        isNaN(rootIndex) ||
-        rootIndex >= state.xmlList.length ||
-        !state.xmlList[rootIndex]
+        isNaN(fileIndex) ||
+        fileIndex >= state.flatTreeData.dbSchemasFlat.length ||
+        !state.flatTreeData.dbSchemasFlat[fileIndex]
       ) {
         valuePair = ["", ""];
       }
 
-      if (state.xmlList[rootIndex]) {
-        const { xmlData, pathValueMap } = state.xmlList[rootIndex];
+      if (state.flatTreeData.dbSchemasFlat[fileIndex]) {
+        const { nodes } = state.flatTreeData.dbSchemasFlat[fileIndex];
         pathList = getAncestors(id, pathValueMap);
         if (!pathValueMap || !pathValueMap[id]) {
           valuePair = ["", ""];
@@ -163,7 +155,6 @@ export const {
   setActivePair,
   setActiveNodeId,
   setActiveNodePaths,
-  setXmlFileTag,
   toggleDiffMode,
   toggleOpen,
   toggleActiveEditor,

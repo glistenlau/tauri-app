@@ -20,6 +20,20 @@ type ExplainRow {
 	predicateInformation: String
 	children: [ExplainRow!]
 }
+type FlatNode {
+	tagName: String!
+	nameAttr: String
+	values: [NodeValue!]!
+	dbFamily: DbFamily
+	parentIndex: Int
+	childIndexes: [Int!]
+	nestingLevel: Int!
+	fileIndex: Int!
+}
+type FlatSchemaFile {
+	path: String!
+	nodes: [FlatNode!]!
+}
 type NodeValue {
 	start: Int!
 	end: Int!
@@ -27,6 +41,7 @@ type NodeValue {
 }
 type Query {
 	dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
+	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
 }
 type SchemaFile {

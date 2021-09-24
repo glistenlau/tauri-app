@@ -1,13 +1,15 @@
 import { createStyles, makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import clsx from "clsx";
-import React from "react";
+import { Maybe } from "graphql/jsutils/Maybe";
+import React, { useCallback, useState } from "react";
 import { useSelector } from "react-redux";
 import { withSize } from "react-sizeme";
-import { XmlTag } from "../../core/xmlParser";
-import xmlProcessor, { XmlFile } from "../../core/xmlProcessor";
+import { TreeWalker } from "react-vtree";
+import { FixedSizeTree } from "react-vtree/dist/es/FixedSizeTree";
+import { DbSchemaSearchFlatQuery, FlatNode } from "../../generated/graphql";
 import { RootState } from "../../reducers";
-
+import SchemaTreeViewNode from "./SchemaTreeViewNode";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -51,10 +53,45 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
-const SchemaTreeView = ({ className, size }: any): any => {
+interface SchemaTreeViewProps {
+  treeData: DbSchemaSearchFlatQuery;
+  size?: any;
+  className?: String;
+}
+
+export interface NodeData {
+  readonly id: string;
+  readonly isOpenByDefault: boolean;
+  isLeaf: boolean;
+  tagName: string;
+  nameAttr: Maybe<string>;
+  nestingLevel: number;
+}
+
+interface Node {
+  data: NodeData;
+  node: FlatNode;
+}
+
+const getNodeData = (node: FlatNode, index: number): Node => ({
+  data: {
+    id: `file${node.fileIndex}-${index}`,
+    isLeaf: node.childIndexes == null || node.childIndexes.length === 0,
+    isOpenByDefault: true,
+    tagName: node.tagName,
+    nameAttr: node.nameAttr,
+    nestingLevel: node.nestingLevel,
+  },
+  node,
+});
+
+const SchemaTreeView = ({
+  className,
+  size,
+  treeData,
+}: SchemaTreeViewProps): any => {
   const listRef = React.useRef(null);
   const [filterText, setFilterText] = React.useState("");
-  const xmlList = useSelector((state: RootState) => state.schemaEditor.xmlList);
   const activeNodeId = useSelector(
     (state: RootState) => state.schemaEditor.activeNodeId
   );
@@ -62,79 +99,53 @@ const SchemaTreeView = ({ className, size }: any): any => {
     (state: RootState) => state.schemaEditor.pathOpenMap
   );
 
-  const filteredXmlList: Array<XmlFile> = React.useMemo(() => {
+  const filterIds = useMemo(() => {
     if (!filterText || filterText.length === 0) {
-      return xmlList;
+      return null;
     }
-    const searchResult = xmlProcessor.searchXmlTree(xmlList, filterText);
-    return searchResult;
-  }, [filterText, xmlList]);
 
-  const treeWalker = React.useCallback(
-    function* (refresh: boolean) {
-      if (!filteredXmlList || filteredXmlList.length === 0) {
+    return treeData.dbSchemasFlat.map((fileRes) => {
+      const filter = new Set();
+      fileRes.nodes.forEach(node => {
+        if (node.tagName.includes(filterText) || (node.nameAttr || "").includes(filterText)) {
+          node
+        }
+      })
+    });
+
+  }, []);
+
+
+  const treeWalker: TreeWalker<NodeData, Node> = useCallback(
+    function* (): Generator<Node | undefined, any, Node> {
+      if (!treeData || treeData.dbSchemasFlat.length === 0) {
         return;
       }
-      const stack = [];
 
-      // Remember all the necessary data of the first node in the stack.
+      for (let i = 0; i < treeData.dbSchemasFlat.length; i++) {
+        yield getNodeData(treeData.dbSchemasFlat[i].nodes[0], 0);
+      }
 
-      stack.push({
-        nestingLevel: 0,
-        node: filteredXmlList.map((xmlFile: XmlFile) => xmlFile.rootNode),
-      });
-
-      // Walk through the tree until we have no nodes available.
-      while (stack.length !== 0) {
-        let {
-          node,
-          nestingLevel,
-        }: { node: XmlTag | XmlTag[]; nestingLevel: number } = stack.pop();
-
-        if (Array.isArray(node)) {
-          for (let i: number = node.length - 1; i > 0; i--) {
-            stack.push({ node: node[i], nestingLevel });
-          }
-          node = node[0];
-        }
-
-        if (!node) {
+      while (true) {
+        const parent = yield;
+        if (!parent) {
           continue;
         }
 
-        const { id, children, defaultOpen, tagColor, tagName }: any = node;
-        const attrName = node.attr.name;
+        if (!parent.node.childIndexes) {
+          continue;
+        }
 
-        const isOpened = yield refresh
-          ? {
-              isLeaf: !children || children.length === 0,
-              isOpenByDefault:
-                filterText && defaultOpen ? true : pathOpenMap[id],
-              tagName:
-                tagName && (nestingLevel === 0 ? tagName : `<${tagName}>`),
-              tagColor,
-              nestingLevel,
-              id,
-              attrName,
-            }
-          : id;
-
-        if (isOpened) {
-          stack.push({ nestingLevel: nestingLevel + 1, node: children });
+        for (let childIndex of parent.node.childIndexes) {
+          yield getNodeData(
+            treeData.dbSchemasFlat[parent.node.fileIndex].nodes[childIndex],
+            childIndex
+          );
         }
       }
     },
-    [filteredXmlList, filterText, pathOpenMap]
+    [treeData]
   );
-
-  React.useEffect(() => {
-    if (listRef.current) {
-      listRef.current.recomputeTree({
-        refreshNodes: true,
-        useDefaultOpenness: true,
-      });
-    }
-  }, [treeWalker]);
 
   const handleSearchTextChange = React.useCallback((e) => {
     setFilterText(e.target.value.toLowerCase());
@@ -160,7 +171,7 @@ const SchemaTreeView = ({ className, size }: any): any => {
         variant="outlined"
         onChange={handleSearchTextChange}
       />
-      {/* <FixedSizeTree
+      <FixedSizeTree
         ref={listRef}
         itemSize={24}
         treeWalker={treeWalker}
@@ -168,7 +179,7 @@ const SchemaTreeView = ({ className, size }: any): any => {
         itemData={itemData}
       >
         {SchemaTreeViewNode}
-      </FixedSizeTree> */}
+      </FixedSizeTree>
     </div>
   );
 };

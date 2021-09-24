@@ -40,11 +40,66 @@ impl Node {
     }
 }
 
-#[derive(SimpleObject, Serialize, Deserialize, Debug)]
+#[derive(Clone, SimpleObject, Serialize, Deserialize, Debug)]
 pub struct NodeValue {
     start: i32,
     end: i32,
     db_family: Option<DbFamily>,
+}
+
+#[derive(SimpleObject, Deserialize, Serialize, Debug)]
+pub struct FlatNode {
+    id: String,
+    tag_name: String,
+    name_attr: Option<String>,
+    values: Vec<NodeValue>,
+    db_family: Option<DbFamily>,
+    parent_index: Option<usize>,
+    child_indexes: Option<Vec<usize>>,
+    nesting_level: usize,
+    file_index: usize,
+}
+
+impl From<&TreeNode> for FlatNode {
+    fn from(tree_node: &TreeNode) -> Self {
+        FlatNode{
+            id: String::new(),
+            tag_name: tree_node.tag_name.to_string(),
+            name_attr: tree_node.name_attr.to_owned(),
+            values: tree_node.values.to_owned(),
+            db_family: tree_node.db_family.to_owned(),
+            parent_index: Option::None,
+            child_indexes: Option::None,
+            nesting_level: 0,
+            file_index: 0,
+        }
+    }
+}
+
+impl FlatNode {
+    pub fn update_parent_index(&mut self, parent_index: Option<usize>) {
+        self.parent_index = parent_index;
+    }
+
+    pub fn add_child_index(&mut self, child_index: usize) {
+        if self.child_indexes.is_none() {
+            self.child_indexes = Some(Vec::new());
+        }
+
+        self.child_indexes.as_mut().unwrap().push(child_index);
+    }
+
+    pub fn update_nesting_level(&mut self, nesting_level: usize) {
+        self.nesting_level = nesting_level;
+    }
+
+    pub fn update_file_index(&mut self, file_index: usize) {
+        self.file_index = file_index;
+    }
+
+    pub fn set_id(&mut self, id: String) {
+        self.id = id;
+    }
 }
 
 #[derive(SimpleObject, Deserialize, Serialize, Debug)]
@@ -74,12 +129,20 @@ impl TreeNode {
             db_family,
         }
     }
+
+    pub fn get_children(&self) -> &Vec<TreeNode> {
+        &self.children
+    }
+
+    pub fn update_tag_name(&mut self, tag_name: String) {
+        self.tag_name = tag_name;
+    } 
 }
 
 impl From<&XmlTag> for Node {
     fn from(tag: &XmlTag) -> Self {
         let name_attr = tag.attrs().get("name").map(|name| name.to_string());
-        let tag_name = tag.tag_name().to_string();
+        let tag_name = format!("<{}>", tag.tag_name().to_string());
         let (start, end) = tag.range();
         let children: Vec<Rc<Node>> = tag
             .children()
@@ -164,8 +227,8 @@ fn tree_node_sort_fn(a: &TreeNode, b: &TreeNode) -> Ordering {
     a.tag_name.cmp(&b.tag_name)
 }
 
-fn insert_nodes_to_name_to_nodes_map<'a>(
-    nodes: &'a [Rc<Node>],
+fn insert_nodes_to_name_to_nodes_map(
+    nodes: &[Rc<Node>],
     name_to_nodes_map: &mut HashMap<String, Vec<Rc<Node>>>,
 ) {
     for child in nodes {
