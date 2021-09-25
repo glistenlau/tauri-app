@@ -1,6 +1,6 @@
 use std::fs;
 
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql::{EmptyMutation, Schema};
 use mylib::graphql::{Query, Subscription};
 
 pub fn main() {

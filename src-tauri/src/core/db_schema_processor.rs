@@ -3,7 +3,7 @@ use super::xml_parser::XmlTag;
 use async_graphql::*;
 
 use serde::{Deserialize, Serialize};
-use std::{cell::RefCell, cmp::Ordering, collections::HashMap, rc::Rc, todo};
+use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 #[derive(Enum, Clone, Copy, Eq, PartialEq, Deserialize, Serialize, Debug)]
 enum DbFamily {
     Oracle,
@@ -62,7 +62,7 @@ pub struct FlatNode {
 
 impl From<&TreeNode> for FlatNode {
     fn from(tree_node: &TreeNode) -> Self {
-        FlatNode{
+        FlatNode {
             id: String::new(),
             tag_name: tree_node.tag_name.to_string(),
             name_attr: tree_node.name_attr.to_owned(),
@@ -136,7 +136,7 @@ impl TreeNode {
 
     pub fn update_tag_name(&mut self, tag_name: String) {
         self.tag_name = tag_name;
-    } 
+    }
 }
 
 impl From<&XmlTag> for Node {

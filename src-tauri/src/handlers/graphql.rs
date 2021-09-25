@@ -31,7 +31,11 @@ pub fn handle_command(
     state: tauri::State<AppState>,
 ) -> Result<ResponseBody> {
     match action {
-        Action::Query => Ok(ResponseBody {server_port: state.server_port}),
-        Action::ServerPort => Ok(ResponseBody {server_port: state.server_port}),
+        Action::Query => Ok(ResponseBody {
+            server_port: state.server_port,
+        }),
+        Action::ServerPort => Ok(ResponseBody {
+            server_port: state.server_port,
+        }),
     }
 }

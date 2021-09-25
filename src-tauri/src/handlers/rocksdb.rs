@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::proxies::rocksdb::{get_conn, get_proxy, RocksDataStore};
+use crate::proxies::rocksdb::{get_conn, RocksDataStore};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -67,8 +67,8 @@ fn execte_put(key: String, val: Option<String>) -> Result<()> {
 }
 
 fn execute_delete(key: String) -> Result<()> {
-    let conn_lock = get_conn();    
-    
+    let conn_lock = get_conn();
+
     match RocksDataStore::delete(key.as_str(), &conn_lock) {
         Ok(()) => Ok(()),
         Err(e) => Err(anyhow!("RocksDB delete error: {}", e)),

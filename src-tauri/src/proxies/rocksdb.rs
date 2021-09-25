@@ -1,7 +1,10 @@
-use std::{fs::File, path::{Path, PathBuf}, sync::{Arc, Mutex, MutexGuard}};
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex, MutexGuard},
+};
 
 use anyhow::{anyhow, Result};
-use juniper_graphql_ws::DataPayload;
+
 use lazy_static::lazy_static;
 use rocksdb::{Options, WriteBatch, DB};
 
@@ -39,7 +42,7 @@ impl RocksDataStore {
         if self.conn.is_none() {
             log::info!("No existing rocksdb connection, try to create a new one.");
             let path = Self::get_path();
-        
+
             match DB::list_cf(&Options::default(), &path) {
                 Ok(cf_list) => {
                     self.conn = match DB::open_cf(&Options::default(), &path, cf_list) {
@@ -56,7 +59,7 @@ impl RocksDataStore {
                 }
             }
         }
-        
+
         Ok(Arc::clone(&self.conn.as_ref().unwrap()))
         // self.new_conn().map(|db| Arc::new(Mutex::new(db)))
     }

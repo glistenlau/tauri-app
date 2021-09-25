@@ -7,13 +7,13 @@ use async_graphql::*;
 
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
-use std::{any, borrow::Cow, fs::{File, OpenOptions}, io::Read, sync::{Arc, Mutex}};
+use std::{fs::File, io::Read};
 
 use super::fs::search_files;
-use crate::proxies::rocksdb::{get_proxy, RocksDataStore, get_conn};
+use crate::proxies::rocksdb::{get_conn, RocksDataStore};
 
-use anyhow::Result;
 use crate::core::db_schema_processor::FlatNode;
+use anyhow::Result;
 use std::time::Instant;
 
 #[derive(SimpleObject, Serialize, Deserialize, Debug)]
@@ -31,11 +31,25 @@ pub struct FlatSchemaFile {
 fn flat_tree_node(root: &TreeNode, file_index: usize) -> Vec<FlatNode> {
     let mut res: Vec<FlatNode> = vec![];
 
-    flat_parent_tree_node(root, Option::None, 0, file_index, &file_index.to_string(), &mut res);
+    flat_parent_tree_node(
+        root,
+        Option::None,
+        0,
+        file_index,
+        &file_index.to_string(),
+        &mut res,
+    );
     res
 }
 
-fn flat_parent_tree_node(parent: &TreeNode, grand_parent_index: Option<usize>, nesting_level: usize, file_index: usize, grand_parent_id: &str, results: &mut Vec<FlatNode>) {
+fn flat_parent_tree_node(
+    parent: &TreeNode,
+    grand_parent_index: Option<usize>,
+    nesting_level: usize,
+    file_index: usize,
+    grand_parent_id: &str,
+    results: &mut Vec<FlatNode>,
+) {
     let mut flat_node = FlatNode::from(parent);
     flat_node.update_parent_index(grand_parent_index);
     flat_node.update_nesting_level(nesting_level);
@@ -48,32 +62,44 @@ fn flat_parent_tree_node(parent: &TreeNode, grand_parent_index: Option<usize>, n
     for child in parent.get_children() {
         let child_index = results.len();
         results[parent_index].add_child_index(child_index);
-        flat_parent_tree_node(child, Some(parent_index), nesting_level + 1, file_index, &parent_id, results);
+        flat_parent_tree_node(
+            child,
+            Some(parent_index),
+            nesting_level + 1,
+            file_index,
+            &parent_id,
+            results,
+        );
     }
 
     results[parent_index].set_id(parent_id);
 }
 
-pub fn search_db_schema_flat(search_folder: &str, file_pattern: &str, rocksdb: Arc<Mutex<RocksDataStore>>) -> Result<Vec<FlatSchemaFile>> {
+pub fn search_db_schema_flat(
+    search_folder: &str,
+    file_pattern: &str,
+) -> Result<Vec<FlatSchemaFile>> {
     let now = Instant::now();
-    let tree_res = search_db_schema(search_folder, file_pattern, rocksdb);
+    let tree_res = search_db_schema(search_folder, file_pattern);
 
     let checkpoint = now.elapsed();
     log::debug!("search db schema takes: {:?}", checkpoint);
     let flat_res = tree_res.map(|schema_files| {
-        schema_files.iter().enumerate().map(|(file_index, schema_file)|{
-            FlatSchemaFile {
+        schema_files
+            .iter()
+            .enumerate()
+            .map(|(file_index, schema_file)| FlatSchemaFile {
                 path: schema_file.path.to_owned(),
                 nodes: flat_tree_node(&schema_file.root, file_index),
-            }
-        }).collect()
+            })
+            .collect()
     });
     log::debug!("flatten db schema takes: {:?}", now.elapsed() - checkpoint);
 
     flat_res
 }
 
-pub fn search_db_schema(search_folder: &str, file_pattern: &str, rocksdb: Arc<Mutex<RocksDataStore>>) -> Result<Vec<SchemaFile>> {
+pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<SchemaFile>> {
     let filepaths = search_files(&format!("{}/{}", search_folder, file_pattern))?;
     let mut res: Vec<SchemaFile> = vec![];
 
@@ -99,8 +125,6 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str, rocksdb: Arc<Mu
             }
         };
 
-        // let conn = get_proxy().lock().unwrap().get_conn()?;
-        // let mut conn_lock = conn.lock().unwrap();
         let mut conn_lock = get_conn();
 
         let mut root_tree_node = process_xml_tag(&xml_root_tag);

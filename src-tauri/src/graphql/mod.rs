@@ -1,11 +1,18 @@
-use std::{sync::{Arc, Mutex}, time::Duration};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use async_graphql::*;
-use futures::{Stream};
+use futures::Stream;
 use tokio_stream::StreamExt;
 
-use crate::proxies::{db_explain_tree::{parse_db_explain, ExplainRow}, db_schema::{search_db_schema, SchemaFile}, rocksdb::RocksDataStore};
-use crate::proxies::db_schema::{FlatSchemaFile, search_db_schema_flat};
+use crate::proxies::db_schema::{search_db_schema_flat, FlatSchemaFile};
+use crate::proxies::{
+    db_explain_tree::{parse_db_explain, ExplainRow},
+    db_schema::{search_db_schema, SchemaFile},
+    rocksdb::RocksDataStore,
+};
 
 pub struct Query;
 
@@ -13,14 +20,13 @@ pub struct Query;
 impl Query {
     async fn db_schemas(
         &self,
-        ctx: &Context<'_>,
+        _ctx: &Context<'_>,
         search_folder: String,
         search_pattern: String,
     ) -> Result<Vec<SchemaFile>> {
-        let rocksdb_conn = ctx.data::<Arc<Mutex<RocksDataStore>>>().unwrap().clone();
-        let search_results = search_db_schema(&search_folder, &search_pattern, rocksdb_conn).map_err(|err| {
+        let search_results = search_db_schema(&search_folder, &search_pattern).map_err(|err| {
             log::error!("db schema error: {:?}", err);
-            return FieldError::from(err)
+            return FieldError::from(err);
         });
         search_results
     }
@@ -31,11 +37,12 @@ impl Query {
         search_folder: String,
         search_pattern: String,
     ) -> Result<Vec<FlatSchemaFile>> {
-        let rocksdb_conn = ctx.data::<Arc<Mutex<RocksDataStore>>>().unwrap().clone();
-        let search_results = search_db_schema_flat(&search_folder, &search_pattern, rocksdb_conn).map_err(|err| {
-            log::error!("db schema error: {:?}", err);
-            return FieldError::from(err)
-        });
+        let _rocksdb_conn = ctx.data::<Arc<Mutex<RocksDataStore>>>().unwrap().clone();
+        let search_results =
+            search_db_schema_flat(&search_folder, &search_pattern).map_err(|err| {
+                log::error!("db schema error: {:?}", err);
+                return FieldError::from(err);
+            });
         search_results
     }
 

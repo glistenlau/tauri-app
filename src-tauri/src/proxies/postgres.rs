@@ -1,7 +1,4 @@
-use std::{
-    borrow::BorrowMut,
-    sync::{Arc, Mutex, MutexGuard},
-};
+use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 use futures::future;

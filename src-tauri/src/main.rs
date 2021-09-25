@@ -7,24 +7,18 @@ use std::net::SocketAddr;
 use std::{net::TcpListener, thread};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql::{EmptyMutation, Schema};
 use async_graphql_warp::{graphql_subscription, Response};
 use mylib::graphql::Query;
 use tauri::Submenu;
 use tauri::{Menu, MenuItem};
-use tokio::runtime::Runtime;
-
-
 
 use std::convert::Infallible;
 
-use warp::{http::Response as HttpResponse, Filter, Reply};
+use warp::{http::Response as HttpResponse, Filter};
 
 use mylib::graphql::Subscription;
 use mylib::state::AppState;
-use mylib::proxies::rocksdb::RocksDataStore;
-use std::sync::{Arc, Mutex};
-use warp::http::HeaderValue;
 
 static APP_NAME: &str = "AP Database Dev Tool";
 
@@ -87,10 +81,8 @@ fn get_menu() -> Menu {
 }
 
 #[tokio::main]
-async fn run_graphql_server(port: u16, rocksdb_proxy: Arc<Mutex<RocksDataStore>>) {
-    let schema = Schema::build(Query, EmptyMutation, Subscription)
-        .data(rocksdb_proxy)
-        .finish();
+async fn run_graphql_server(port: u16) {
+    let schema = Schema::build(Query, EmptyMutation, Subscription).finish();
 
     let graphql_post =
         warp::path("graphql").and(async_graphql_warp::graphql(schema.clone()).and_then(
@@ -98,7 +90,7 @@ async fn run_graphql_server(port: u16, rocksdb_proxy: Arc<Mutex<RocksDataStore>>
                 Schema<Query, EmptyMutation, Subscription>,
                 async_graphql::Request,
             )| async move {
-                let mut rsp = Response::from(schema.execute(request).await);
+                let rsp = Response::from(schema.execute(request).await);
                 Ok::<_, Infallible>(rsp)
             },
         ));
@@ -134,8 +126,7 @@ fn main() {
     tauri::Builder::default()
         .menu(get_menu())
         .setup(move |_app| {
-            let rocksdb_proxy = mylib::proxies::rocksdb::get_proxy();
-            thread::spawn(move || run_graphql_server(port, Arc::clone(&rocksdb_proxy)));
+            thread::spawn(move || run_graphql_server(port));
             Ok(())
         })
         .manage(AppState { server_port: port })
