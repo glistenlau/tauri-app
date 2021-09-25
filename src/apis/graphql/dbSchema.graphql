@@ -32,6 +32,7 @@ query dbSchemaSearchFlat($searchFolder: String!, $searchPattern: String!) {
   dbSchemasFlat(searchFolder: $searchFolder, searchPattern: $searchPattern) {
     path,
     nodes {
+      id,
       tagName,
       nameAttr,
       values {

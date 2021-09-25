@@ -14,21 +14,15 @@ use tauri::Submenu;
 use tauri::{Menu, MenuItem};
 use tokio::runtime::Runtime;
 
-mod core;
-mod entity;
-mod graphql;
-mod handlers;
-mod proxies;
-mod state;
-mod utilities;
+
 
 use std::convert::Infallible;
 
 use warp::{http::Response as HttpResponse, Filter, Reply};
 
-use crate::graphql::Subscription;
-use crate::state::AppState;
-use proxies::rocksdb::RocksDataStore;
+use mylib::graphql::Subscription;
+use mylib::state::AppState;
+use mylib::proxies::rocksdb::RocksDataStore;
 use std::sync::{Arc, Mutex};
 use warp::http::HeaderValue;
 
@@ -130,7 +124,7 @@ async fn run_graphql_server(port: u16, rocksdb_proxy: Arc<Mutex<RocksDataStore>>
 }
 
 fn main() {
-    match core::log::setup_logger() {
+    match mylib::core::log::setup_logger() {
         Ok(()) => log::info!("logger setup successfully."),
         Err(e) => log::error!("logger setup failed: {}", e),
     }
@@ -140,13 +134,13 @@ fn main() {
     tauri::Builder::default()
         .menu(get_menu())
         .setup(move |_app| {
-            let rocksdb_proxy = crate::proxies::rocksdb::get_proxy();
+            let rocksdb_proxy = mylib::proxies::rocksdb::get_proxy();
             thread::spawn(move || run_graphql_server(port, Arc::clone(&rocksdb_proxy)));
             Ok(())
         })
         .manage(AppState { server_port: port })
         // This is where you pass in your commands
-        .invoke_handler(tauri::generate_handler![handlers::invoke_handler])
+        .invoke_handler(tauri::generate_handler![mylib::handlers::invoke_handler])
         .run(tauri::generate_context!())
         .expect("failed to run app");
 }

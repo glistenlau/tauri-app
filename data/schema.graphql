@@ -21,6 +21,7 @@ type ExplainRow {
 	children: [ExplainRow!]
 }
 type FlatNode {
+	id: String!
 	tagName: String!
 	nameAttr: String
 	values: [NodeValue!]!

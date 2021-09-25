@@ -2,7 +2,7 @@ import { createStyles, makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import clsx from "clsx";
 import { Maybe } from "graphql/jsutils/Maybe";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { withSize } from "react-sizeme";
 import { TreeWalker } from "react-vtree";
@@ -75,7 +75,7 @@ interface Node {
 
 const getNodeData = (node: FlatNode, index: number): Node => ({
   data: {
-    id: `file${node.fileIndex}-${index}`,
+    id: node.id,
     isLeaf: node.childIndexes == null || node.childIndexes.length === 0,
     isOpenByDefault: true,
     tagName: node.tagName,
@@ -106,15 +106,20 @@ const SchemaTreeView = ({
 
     return treeData.dbSchemasFlat.map((fileRes) => {
       const filter = new Set();
-      fileRes.nodes.forEach(node => {
-        if (node.tagName.includes(filterText) || (node.nameAttr || "").includes(filterText)) {
-          node
+      fileRes.nodes.forEach((node) => {
+        if (
+          node.tagName.toLowerCase().includes(filterText) ||
+          (node.nameAttr || "").toLowerCase().includes(filterText)
+        ) {
+          node.id
+            .split("-")
+            .slice(1)
+            .forEach((is) => filter.add(parseInt(is)));
         }
-      })
+      });
+      return filter;
     });
-
-  }, []);
-
+  }, [filterText, treeData.dbSchemasFlat]);
 
   const treeWalker: TreeWalker<NodeData, Node> = useCallback(
     function* (): Generator<Node | undefined, any, Node> {
@@ -123,6 +128,9 @@ const SchemaTreeView = ({
       }
 
       for (let i = 0; i < treeData.dbSchemasFlat.length; i++) {
+        if (filterIds != null && !filterIds[i].has(0)) {
+          continue;
+        }
         yield getNodeData(treeData.dbSchemasFlat[i].nodes[0], 0);
       }
 
@@ -137,6 +145,12 @@ const SchemaTreeView = ({
         }
 
         for (let childIndex of parent.node.childIndexes) {
+          if (
+            filterIds != null &&
+            !filterIds[parent.node.fileIndex].has(childIndex)
+          ) {
+            continue;
+          }
           yield getNodeData(
             treeData.dbSchemasFlat[parent.node.fileIndex].nodes[childIndex],
             childIndex
@@ -144,7 +158,7 @@ const SchemaTreeView = ({
         }
       }
     },
-    [treeData]
+    [filterIds, treeData]
   );
 
   const handleSearchTextChange = React.useCallback((e) => {

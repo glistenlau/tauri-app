@@ -7,15 +7,10 @@ use async_graphql::*;
 
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
-use std::{
-    any,
-    borrow::Cow,
-    fs::{File, OpenOptions},
-    io::Read,
-};
+use std::{any, borrow::Cow, fs::{File, OpenOptions}, io::Read, sync::{Arc, Mutex}};
 
 use super::fs::search_files;
-use super::rocksdb::{get_proxy, RocksDataStore};
+use crate::proxies::rocksdb::{get_proxy, RocksDataStore, get_conn};
 
 use anyhow::Result;
 use crate::core::db_schema_processor::FlatNode;
@@ -59,9 +54,9 @@ fn flat_parent_tree_node(parent: &TreeNode, grand_parent_index: Option<usize>, n
     results[parent_index].set_id(parent_id);
 }
 
-pub fn search_db_schema_flat(search_folder: &str, file_pattern: &str) -> Result<Vec<FlatSchemaFile>> {
+pub fn search_db_schema_flat(search_folder: &str, file_pattern: &str, rocksdb: Arc<Mutex<RocksDataStore>>) -> Result<Vec<FlatSchemaFile>> {
     let now = Instant::now();
-    let tree_res = search_db_schema(search_folder, file_pattern);
+    let tree_res = search_db_schema(search_folder, file_pattern, rocksdb);
 
     let checkpoint = now.elapsed();
     log::debug!("search db schema takes: {:?}", checkpoint);
@@ -78,7 +73,7 @@ pub fn search_db_schema_flat(search_folder: &str, file_pattern: &str) -> Result<
     flat_res
 }
 
-pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<SchemaFile>> {
+pub fn search_db_schema(search_folder: &str, file_pattern: &str, rocksdb: Arc<Mutex<RocksDataStore>>) -> Result<Vec<SchemaFile>> {
     let filepaths = search_files(&format!("{}/{}", search_folder, file_pattern))?;
     let mut res: Vec<SchemaFile> = vec![];
 
@@ -104,8 +99,9 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<S
             }
         };
 
-        let conn = get_proxy().lock().unwrap().get_conn()?;
-        let mut conn_lock = conn.lock().unwrap();
+        // let conn = get_proxy().lock().unwrap().get_conn()?;
+        // let mut conn_lock = conn.lock().unwrap();
+        let mut conn_lock = get_conn();
 
         let mut root_tree_node = process_xml_tag(&xml_root_tag);
         root_tree_node.update_tag_name(path.file_name().unwrap().to_str().unwrap().to_string());

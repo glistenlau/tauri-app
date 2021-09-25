@@ -41,6 +41,7 @@ export type ExplainRow = {
 
 export type FlatNode = {
   __typename?: 'FlatNode';
+  id: Scalars['String'];
   tagName: Scalars['String'];
   nameAttr?: Maybe<Scalars['String']>;
   values: Array<NodeValue>;
@@ -190,7 +191,7 @@ export type DbSchemaSearchFlatQuery = (
     & Pick<FlatSchemaFile, 'path'>
     & { nodes: Array<(
       { __typename?: 'FlatNode' }
-      & Pick<FlatNode, 'tagName' | 'nameAttr' | 'parentIndex' | 'childIndexes' | 'nestingLevel' | 'fileIndex'>
+      & Pick<FlatNode, 'id' | 'tagName' | 'nameAttr' | 'parentIndex' | 'childIndexes' | 'nestingLevel' | 'fileIndex'>
       & { values: Array<(
         { __typename?: 'NodeValue' }
         & Pick<NodeValue, 'start' | 'end' | 'dbFamily'>
@@ -332,6 +333,7 @@ export const DbSchemaSearchFlatDocument = gql`
   dbSchemasFlat(searchFolder: $searchFolder, searchPattern: $searchPattern) {
     path
     nodes {
+      id
       tagName
       nameAttr
       values {

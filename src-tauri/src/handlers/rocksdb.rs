@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::proxies::rocksdb::{get_proxy, RocksDataStore};
+use crate::proxies::rocksdb::{get_conn, get_proxy, RocksDataStore};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -43,8 +43,7 @@ pub fn handle_command(action: Action, payload: Payload) -> Result<Response> {
 }
 
 fn execute_get(key: String) -> Result<Option<String>> {
-    let conn = get_proxy().lock().unwrap().get_conn()?;
-    let conn_lock = conn.lock().unwrap();
+    let conn_lock = get_conn();
 
     match RocksDataStore::get(key.as_str(), &conn_lock) {
         Ok(Some(str_vals)) => Ok(Some(String::from_utf8(str_vals)?)),
@@ -58,8 +57,7 @@ fn execte_put(key: String, val: Option<String>) -> Result<()> {
         return Err(anyhow!("RocksDB put miss value."));
     }
 
-    let conn = get_proxy().lock().unwrap().get_conn()?;
-    let conn_lock = conn.lock().unwrap();
+    let conn_lock = get_conn();
     let res = match RocksDataStore::put(key.as_str(), val.unwrap().as_str(), &conn_lock) {
         Ok(()) => Ok(()),
         Err(e) => Err(anyhow!("RocksDB put error: {}", e)),
@@ -69,8 +67,8 @@ fn execte_put(key: String, val: Option<String>) -> Result<()> {
 }
 
 fn execute_delete(key: String) -> Result<()> {
-    let conn = get_proxy().lock().unwrap().get_conn()?;
-    let conn_lock = conn.lock().unwrap();
+    let conn_lock = get_conn();    
+    
     match RocksDataStore::delete(key.as_str(), &conn_lock) {
         Ok(()) => Ok(()),
         Err(e) => Err(anyhow!("RocksDB delete error: {}", e)),
