@@ -28,6 +28,12 @@ pub struct FlatSchemaFile {
     nodes: Vec<FlatNode>,
 }
 
+#[derive(InputObject, Serialize, Deserialize, Debug)]
+pub struct Range {
+    pub start: usize,
+    pub end: usize,
+}
+
 fn flat_tree_node(root: &TreeNode, file_index: usize) -> Vec<FlatNode> {
     let mut res: Vec<FlatNode> = vec![];
 
@@ -141,7 +147,7 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<S
             vec![
                 (path_str.to_string(), file_str),
                 (
-                    format!("SchemaFile#{}", &path_str),
+                    get_schema_file_store_key(&path_str),
                     to_string(&schema_file)?,
                 ),
             ],
@@ -152,6 +158,10 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<S
     res.sort_by(|a, b| a.path.cmp(&b.path));
 
     Ok(res)
+}
+
+pub fn get_schema_file_store_key(file_path: &str) -> String {
+    format!("SchemaFile#{}", file_path)
 }
 
 #[cfg(test)]

@@ -45,11 +45,7 @@ pub fn handle_command(action: Action, payload: Payload) -> Result<Response> {
 fn execute_get(key: String) -> Result<Option<String>> {
     let conn_lock = get_conn();
 
-    match RocksDataStore::get(key.as_str(), &conn_lock) {
-        Ok(Some(str_vals)) => Ok(Some(String::from_utf8(str_vals)?)),
-        Ok(None) => Ok(None),
-        Err(e) => Err(anyhow!("RocksDB get error: {}", e)),
-    }
+    RocksDataStore::get(key.as_str(), &conn_lock, None)
 }
 
 fn execte_put(key: String, val: Option<String>) -> Result<()> {

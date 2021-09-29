@@ -68,6 +68,7 @@ export type NodeValue = {
 export type Query = {
   __typename?: 'Query';
   dbSchemas: Array<SchemaFile>;
+  dbSchemaFileContent: Array<Scalars['String']>;
   dbSchemasFlat: Array<FlatSchemaFile>;
   dbExplain: Array<ExplainRow>;
 };
@@ -76,6 +77,12 @@ export type Query = {
 export type QueryDbSchemasArgs = {
   searchFolder: Scalars['String'];
   searchPattern: Scalars['String'];
+};
+
+
+export type QueryDbSchemaFileContentArgs = {
+  filePath: Scalars['String'];
+  ranges: Array<Range>;
 };
 
 
@@ -88,6 +95,11 @@ export type QueryDbSchemasFlatArgs = {
 export type QueryDbExplainArgs = {
   text: Scalars['String'];
   targetId?: Maybe<Scalars['Int']>;
+};
+
+export type Range = {
+  start: Scalars['Int'];
+  end: Scalars['Int'];
 };
 
 export type SchemaFile = {
@@ -198,6 +210,17 @@ export type DbSchemaSearchFlatQuery = (
       )> }
     )> }
   )> }
+);
+
+export type DbSchemaFileContetQueryVariables = Exact<{
+  filePath: Scalars['String'];
+  ranges: Array<Range> | Range;
+}>;
+
+
+export type DbSchemaFileContetQuery = (
+  { __typename?: 'Query' }
+  & Pick<Query, 'dbSchemaFileContent'>
 );
 
 export type SubSubscriptionVariables = Exact<{ [key: string]: never; }>;
@@ -378,6 +401,40 @@ export function useDbSchemaSearchFlatLazyQuery(baseOptions?: Apollo.LazyQueryHoo
 export type DbSchemaSearchFlatQueryHookResult = ReturnType<typeof useDbSchemaSearchFlatQuery>;
 export type DbSchemaSearchFlatLazyQueryHookResult = ReturnType<typeof useDbSchemaSearchFlatLazyQuery>;
 export type DbSchemaSearchFlatQueryResult = Apollo.QueryResult<DbSchemaSearchFlatQuery, DbSchemaSearchFlatQueryVariables>;
+export const DbSchemaFileContetDocument = gql`
+    query dbSchemaFileContet($filePath: String!, $ranges: [Range!]!) {
+  dbSchemaFileContent(filePath: $filePath, ranges: $ranges)
+}
+    `;
+
+/**
+ * __useDbSchemaFileContetQuery__
+ *
+ * To run a query within a React component, call `useDbSchemaFileContetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDbSchemaFileContetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDbSchemaFileContetQuery({
+ *   variables: {
+ *      filePath: // value for 'filePath'
+ *      ranges: // value for 'ranges'
+ *   },
+ * });
+ */
+export function useDbSchemaFileContetQuery(baseOptions: Apollo.QueryHookOptions<DbSchemaFileContetQuery, DbSchemaFileContetQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DbSchemaFileContetQuery, DbSchemaFileContetQueryVariables>(DbSchemaFileContetDocument, options);
+      }
+export function useDbSchemaFileContetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DbSchemaFileContetQuery, DbSchemaFileContetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DbSchemaFileContetQuery, DbSchemaFileContetQueryVariables>(DbSchemaFileContetDocument, options);
+        }
+export type DbSchemaFileContetQueryHookResult = ReturnType<typeof useDbSchemaFileContetQuery>;
+export type DbSchemaFileContetLazyQueryHookResult = ReturnType<typeof useDbSchemaFileContetLazyQuery>;
+export type DbSchemaFileContetQueryResult = Apollo.QueryResult<DbSchemaFileContetQuery, DbSchemaFileContetQueryVariables>;
 export const SubDocument = gql`
     subscription sub {
   integers(step: 2)

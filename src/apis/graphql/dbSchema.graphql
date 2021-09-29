@@ -47,3 +47,7 @@ query dbSchemaSearchFlat($searchFolder: String!, $searchPattern: String!) {
     }
   }
 }
+
+query dbSchemaFileContet($filePath: String!, $ranges: [Range!]!) {
+	dbSchemaFileContent (filePath: $filePath, ranges: $ranges)
+}

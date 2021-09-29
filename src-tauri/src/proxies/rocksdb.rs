@@ -74,8 +74,22 @@ impl RocksDataStore {
         db.put(key.as_bytes(), val.as_bytes())
     }
 
-    pub fn get(key: &str, db: &DB) -> Result<Option<Vec<u8>>, rocksdb::Error> {
-        db.get(key.as_bytes())
+    pub fn get(key: &str, db: &DB, cf: Option<&str>) -> Result<Option<String>> {
+        log::debug!("try to get value for key: {} with cf: {:?}", key, cf);
+        let res_opt = match cf {
+            Some(cf_str) => {
+                let cf_handle = db.cf_handle(cf_str).unwrap();
+                db.get_cf(cf_handle,key.as_bytes())
+            },
+            None => db.get(key.as_bytes()),
+        };
+
+        match res_opt {
+            Ok(Some(str_vals)) => Ok(Some(String::from_utf8(str_vals)?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(anyhow!("RocksDB get error: {}", e)),
+        }
+    
     }
 
     pub fn delete(key: &str, db: &DB) -> Result<(), rocksdb::Error> {
@@ -91,6 +105,7 @@ impl RocksDataStore {
         let mut write_batch = WriteBatch::default();
         let cf_handle = db.cf_handle(cf).unwrap();
         for (key, val) in key_vals {
+            log::debug!("write batch key: {}, value:{}", &key, &val[0..100]);
             write_batch.put_cf(cf_handle, key, val);
         }
 

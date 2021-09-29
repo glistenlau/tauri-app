@@ -1,13 +1,18 @@
 import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
-import React, { useCallback } from "react";
+import React, { createContext, useCallback, useMemo, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
 import { extractXmlFileIndex } from "../../core/xmlProcessor";
-import { useDbSchemaSearchFlatLazyQuery } from "../../generated/graphql";
+import {
+  FlatNode,
+  Range,
+  useDbSchemaFileContetQuery,
+  useDbSchemaSearchFlatLazyQuery
+} from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import {
   changeLeftPanelWidth,
@@ -45,6 +50,13 @@ interface SchemaEditorViewProps {
   active: boolean;
 }
 
+interface SchemaEditorContextType {
+  onSelectNode: (id: string) => void,
+}
+export const SchemaEditorContext = createContext<SchemaEditorContextType>({
+  onSelectNode: (id) => {},
+});
+
 const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -53,7 +65,6 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     leftPanelWidth,
     searchPath,
     searchFile,
-    valuePair,
     diffMode,
     xmlList,
     activePair,
@@ -62,7 +73,6 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
       leftPanelWidth: state.schemaEditor.leftPanelWidth,
       searchPath: state.schemaEditor.searchPath,
       searchFile: state.schemaEditor.searchFile,
-      valuePair: state.schemaEditor.valuePair,
       diffMode: state.schemaEditor.diffMode,
       activeNodeId: state.schemaEditor.activeNodeId,
       xmlList: state.schemaEditor.xmlList,
@@ -71,10 +81,48 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     shallowEqual
   );
 
+  const [selectedNode, setSelectedNode] = useState<FlatNode | undefined>();
+  const [selectedFilePath, setSelectedFilePath] = useState<string | undefined>();
+
+  const contentRanges = useMemo<Range[]>(() => {
+    if (!selectedNode) {
+      return [];
+    }
+
+    return selectedNode.values.map((val) => ({start: val.start, end: val.end}));
+  }, [selectedNode]);
+
+  const {data: contentData} = useDbSchemaFileContetQuery({
+    variables: {filePath: selectedFilePath || "", ranges: contentRanges},
+  });
+
+  const valuePair = useMemo(() => {
+    console.log(contentData);
+    if (!contentData || contentData.dbSchemaFileContent.length === 0) {
+      return ["", ""];
+    }
+    const oracleContent = contentData.dbSchemaFileContent[0];
+    const pgContent = contentData.dbSchemaFileContent.length > 1 ? contentData.dbSchemaFileContent[1] : "";
+
+    return [oracleContent, pgContent];
+  }, [contentData]);
+
   const [
     searchDbSchema,
     { called, loading, data, error },
   ] = useDbSchemaSearchFlatLazyQuery();
+
+  const onNodeSelect = useCallback((id: string) => {
+    if (!data || !id) {
+      return;
+    }
+
+    const fileIndex = parseInt(id.split('-')[0]);
+    const selectedNode = data.dbSchemasFlat[fileIndex].nodes.find((node) => node.id === id);
+    setSelectedNode(selectedNode);
+    setSelectedFilePath(data.dbSchemasFlat[fileIndex].path);
+  }, [data]);
+
 
   const handleClickSearch = useCallback(() => {
     searchDbSchema({
@@ -138,54 +186,54 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     [dispatch]
   );
 
-
   return (
     <Container active={active}>
-      <Resizable
-        className={classes.leftContainer}
-        onResizeStop={handleLeftPanelResize}
-        size={{
-          height: "100%",
-          width: leftPanelWidth,
-        }}
-        minWidth={200}
-        maxWidth="40vw"
-        enable={{
-          top: false,
-          right: true,
-          bottom: false,
-          left: false,
-          topRight: false,
-          bottomRight: false,
-          bottomLeft: false,
-          topLeft: false,
-        }}
-      >
-        <SearchBar
-          searchFolderLabel="SearchFolder"
-          searchFileLabel="Schema XML"
-          filePathValue={searchPath}
-          fileNameValue={searchFile}
-          onFilePathChange={handleSearchPathChange}
-          onFileNameChange={handleSearchFileChange}
-          onSearch={handleClickSearch}
-          isLoading={loading}
-        />
-        <Divider style={{ marginTop: 10 }} />
-        {data && <SchemaTreeView treeData={data}/>}
-      </Resizable>
-      <Divider orientation="vertical" flexItem />
-      <div className={classes.rightContainer}>
-        <SchemaTreeViewToolBar />
-        <Divider />
-        <SplitEditor
-          baseValues={valuePair}
-          onBlur={handleBlur}
-          diff={diffMode}
-          mode="xml"
-          activePair={activePair}
-        />
-      </div>
+      <SchemaEditorContext.Provider value={{onSelectNode: onNodeSelect}}>
+        <Resizable
+          className={classes.leftContainer}
+          onResizeStop={handleLeftPanelResize}
+          size={{
+            height: "100%",
+            width: leftPanelWidth,
+          }}
+          minWidth={200}
+          maxWidth="40vw"
+          enable={{
+            top: false,
+            right: true,
+            bottom: false,
+            left: false,
+            topRight: false,
+            bottomRight: false,
+            bottomLeft: false,
+            topLeft: false,
+          }}
+        >
+          <SearchBar
+            searchFolderLabel="SearchFolder"
+            searchFileLabel="Schema XML"
+            filePathValue={searchPath}
+            fileNameValue={searchFile}
+            onFilePathChange={handleSearchPathChange}
+            onFileNameChange={handleSearchFileChange}
+            onSearch={handleClickSearch}
+            isLoading={loading}
+          />
+          <Divider style={{ marginTop: 10 }} />
+          {data && <SchemaTreeView treeData={data} />}
+        </Resizable>
+        <Divider orientation="vertical" flexItem />
+        <div className={classes.rightContainer}>
+          <SchemaTreeViewToolBar />
+          <Divider />
+          <SplitEditor
+            valuePair={valuePair as [string, string]}
+            diff={diffMode}
+            mode="xml"
+            activePair={activePair}
+          />
+        </div>
+      </SchemaEditorContext.Provider>
     </Container>
   );
 });

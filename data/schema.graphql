@@ -42,8 +42,13 @@ type NodeValue {
 }
 type Query {
 	dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
+	dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
 	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
+}
+input Range {
+	start: Int!
+	end: Int!
 }
 type SchemaFile {
 	path: String!

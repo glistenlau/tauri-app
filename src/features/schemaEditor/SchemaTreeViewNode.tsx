@@ -1,11 +1,11 @@
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import React, { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useCallback, useContext, useMemo } from "react";
+import { useDispatch } from "react-redux";
 import SVGIcon from "../../components/SVGIcon";
 import { extractXmlFileIndex } from "../../core/xmlProcessor";
-import { RootState } from "../../reducers";
 import { getHashColor } from "../../util";
-import { selectXmlNode, toggleOpen } from "./schemaEditorSlice";
+import { toggleOpen } from "./schemaEditorSlice";
+import { SchemaEditorContext } from "./SchemaEditorView";
 import { NodeData } from "./SchemaTreeView";
 import SchemaTreeViewNodeLabel from "./SchemaTreeViewNodeLabel";
 
@@ -29,11 +29,11 @@ const useStyles = makeStyles((theme) =>
 );
 
 interface SchemaTreeViewNodeProps {
-  data: NodeData,
-  isOpen: boolean,
-  style: any,
-  setOpen: (open: boolean) => {},
-  treeData?: any,
+  data: NodeData;
+  isOpen: boolean;
+  style: any;
+  setOpen: (open: boolean) => {};
+  treeData?: any;
 }
 
 const SchemaTreeViewNode = React.memo(
@@ -46,15 +46,13 @@ const SchemaTreeViewNode = React.memo(
   }: SchemaTreeViewNodeProps) => {
     const classes = useStyles();
     const dispatch = useDispatch();
+    const { onSelectNode } = useContext(SchemaEditorContext);
 
     const rootIndex = React.useMemo(() => extractXmlFileIndex(id), [id]);
 
-    const tagColor = useMemo(() => getHashColor(tagName)[800], [tagName])
+    const tagColor = useMemo(() => getHashColor(tagName)[800], [tagName]);
 
-    const handleClickLabel = React.useCallback(
-      () => dispatch(selectXmlNode(id)),
-      [dispatch, id]
-    );
+    const onClickLabel = useCallback(() => onSelectNode(id), [id, onSelectNode]);
 
     const handleToggle = React.useCallback(() => {
       if (isLeaf) {
@@ -112,7 +110,7 @@ const SchemaTreeViewNode = React.memo(
         </div>
         <SchemaTreeViewNodeLabel
           highlight={activeNodeId === id}
-          onClick={handleClickLabel}
+          onClick={onClickLabel}
           tagName={tagName}
           attrName={nameAttr}
           filterText={filterText}
