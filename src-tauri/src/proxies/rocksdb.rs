@@ -79,8 +79,8 @@ impl RocksDataStore {
         let res_opt = match cf {
             Some(cf_str) => {
                 let cf_handle = db.cf_handle(cf_str).unwrap();
-                db.get_cf(cf_handle,key.as_bytes())
-            },
+                db.get_cf(cf_handle, key.as_bytes())
+            }
             None => db.get(key.as_bytes()),
         };
 
@@ -89,7 +89,6 @@ impl RocksDataStore {
             Ok(None) => Ok(None),
             Err(e) => Err(anyhow!("RocksDB get error: {}", e)),
         }
-    
     }
 
     pub fn delete(key: &str, db: &DB) -> Result<(), rocksdb::Error> {

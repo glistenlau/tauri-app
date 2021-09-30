@@ -1,22 +1,17 @@
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::time::Duration;
 
 use async_graphql::*;
 use futures::Stream;
 use tokio_stream::StreamExt;
-use anyhow::{anyhow};
 
-use crate::proxies::db_schema::{FlatSchemaFile, Range, search_db_schema_flat};
+use crate::proxies::db_schema::{search_db_schema_flat, FlatSchemaFile, Range};
 use crate::proxies::{
     db_explain_tree::{parse_db_explain, ExplainRow},
-    db_schema::{get_schema_file_store_key, search_db_schema, SchemaFile},
+    db_schema::{search_db_schema, SchemaFile},
     rocksdb::RocksDataStore,
 };
 
 pub struct Query;
-
 
 #[Object]
 impl Query {
@@ -33,17 +28,25 @@ impl Query {
         search_results
     }
 
-    async fn db_schema_file_content(&self, ctx: &Context<'_>, file_path: String, ranges: Vec<Range>) -> Result<Vec<String>> {
+    async fn db_schema_file_content(
+        &self,
+        _ctx: &Context<'_>,
+        file_path: String,
+        ranges: Vec<Range>,
+    ) -> Result<Vec<String>> {
         let db = crate::proxies::rocksdb::get_conn();
         let file_content = RocksDataStore::get(&file_path, &db, Some("db_schema"))?;
 
         if let Some(content) = file_content {
-            Ok(ranges.iter().map(move |Range{start, end}| {
-                if *start >= content.len() || *end >= content.len() {
-                    return "".to_owned();
-                }
-                content[*start..*end + 1].to_owned()
-            }).collect())
+            Ok(ranges
+                .iter()
+                .map(move |Range { start, end }| {
+                    if *start >= content.len() || *end >= content.len() {
+                        return "".to_owned();
+                    }
+                    content[*start..*end + 1].to_owned()
+                })
+                .collect())
         } else {
             Err(FieldError::new("the schema file content doesn't exist."))
         }
@@ -51,7 +54,7 @@ impl Query {
 
     async fn db_schemas_flat(
         &self,
-        ctx: &Context<'_>,
+        _ctx: &Context<'_>,
         search_folder: String,
         search_pattern: String,
     ) -> Result<Vec<FlatSchemaFile>> {

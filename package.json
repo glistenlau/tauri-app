@@ -55,7 +55,7 @@
     "generate-schema": "pushd src-tauri && cargo run --bin generate_schema && popd",
     "generate": "graphql-codegen",
     "dev": "yarn generate-schema && yarn generate && tauri dev",
-    "pretty": "prettier --write \"./src/**/*.{js,jsx,ts,tsx,json}\""
+    "pretty": "pushd src-tauri && cargo fix --broken-code --allow-dirty && cargo fmt && popd && prettier --write \"./src/**/*.{js,jsx,ts,tsx,json}\""
   },
   "eslintConfig": {
     "extends": "react-app"
