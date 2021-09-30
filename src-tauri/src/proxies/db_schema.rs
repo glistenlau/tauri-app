@@ -166,14 +166,16 @@ pub fn get_schema_file_store_key(file_path: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
+
     use super::*;
 
     #[test]
     fn test_search_db_schema() {
-        let planning_path = env!("PLANNING_PATH");
+        let planning_path = env::var("PLANNING_PATH").unwrap();
         assert!(planning_path.len() > 0, "Should have planning path.");
 
-        match search_db_schema(planning_path, "/src/db/*.xml") {
+        match search_db_schema(&planning_path, "/src/db/*.xml") {
             Ok(res) => {
                 print!("res: {:?}", res)
             }
@@ -185,10 +187,10 @@ mod tests {
 
     #[test]
     fn test_search_db_schema_flat() {
-        let planning_path = env!("PLANNING_PATH");
+        let planning_path = env::var("PLANNING_PATH").unwrap();
         assert!(planning_path.len() > 0, "Should have planning path.");
 
-        match search_db_schema_flat(planning_path, "/src/db/*.xml") {
+        match search_db_schema_flat(&planning_path, "/src/db/*.xml") {
             Ok(res) => {
                 print!("res: {:?}", res)
             }

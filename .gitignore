@@ -12,6 +12,8 @@
 # production
 /build
 
+/**/generated/*
+
 # misc
 .DS_Store
 .env.local
@@ -24,8 +26,6 @@ yarn-debug.log*
 yarn-error.log*
 
 .eslintcache
-
-/.vscode
 
 .idea
 

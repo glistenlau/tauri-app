@@ -82,7 +82,7 @@ fn get_menu() -> Menu {
 
 #[tokio::main]
 async fn run_graphql_server(port: u16) {
-    let schema = Schema::build(Query, EmptyMutation, Subscription).finish();
+    let schema = Schema::build(Query::default(), EmptyMutation, Subscription).finish();
 
     let graphql_post =
         warp::path("graphql").and(async_graphql_warp::graphql(schema.clone()).and_then(

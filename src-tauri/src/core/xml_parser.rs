@@ -296,7 +296,7 @@ pub fn parse_xml(text: &str) -> Result<XmlTag> {
 mod tests {
     use regex::{escape, Regex};
 
-    use std::{fs::File, io::Read};
+    use std::{env, fs::File, io::Read};
 
     use glob::glob;
 
@@ -348,7 +348,7 @@ mod tests {
     }
     #[test]
     fn test_xml_parser() {
-        let planning_path = env!("PLANNING_PATH");
+        let planning_path = env::var("PLANNING_PATH").unwrap();
         assert!(planning_path.len() > 0, "Should have planning path.");
 
         for entry in glob(&format!("{}/src/db/**/*.xml", planning_path)).unwrap() {

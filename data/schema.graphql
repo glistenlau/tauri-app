@@ -45,6 +45,7 @@ type Query {
 	dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
 	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
+	formatSql(sqlStmts: [String!]!): [String!]!
 }
 input Range {
 	start: Int!
