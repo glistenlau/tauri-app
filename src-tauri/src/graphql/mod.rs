@@ -1,25 +1,19 @@
+mod db_schema;
 mod sql_explain;
 mod sql_formatter;
-mod db_schema;
 
-use std::time::Duration;
 use async_graphql::*;
 use futures::Stream;
+use std::time::Duration;
 use tokio_stream::StreamExt;
 
-use crate::proxies::db_schema::{search_db_schema_flat, FlatSchemaFile, Range};
-use crate::proxies::{
-    db_explain_tree::{parse_db_explain, ExplainRow},
-    db_schema::{search_db_schema, SchemaFile},
-    rocksdb::RocksDataStore,
-};
-use sql_formatter::SqlFormatterQuery;
 use db_schema::DbSchemaQuery;
+use sql_formatter::SqlFormatterQuery;
 
 use self::sql_explain::SqlExplainQuery;
 
 #[derive(MergedObject, Default)]
-pub struct Query(DbSchemaQuery, SqlExplainQuery,SqlFormatterQuery);
+pub struct Query(DbSchemaQuery, SqlExplainQuery, SqlFormatterQuery);
 
 pub struct Subscription;
 

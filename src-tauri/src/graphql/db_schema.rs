@@ -1,4 +1,7 @@
-use crate::{proxies::{db_schema::{FlatSchemaFile, Range, SchemaFile, search_db_schema, search_db_schema_flat}, rocksdb::RocksDataStore}};
+use crate::proxies::{
+    db_schema::{search_db_schema, search_db_schema_flat, FlatSchemaFile, Range, SchemaFile},
+    rocksdb::RocksDataStore,
+};
 use async_graphql::*;
 
 #[derive(Default)]

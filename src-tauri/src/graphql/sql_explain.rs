@@ -1,4 +1,4 @@
-use crate::{core::formatter, proxies::db_explain_tree::{ExplainRow, parse_db_explain}};
+use crate::proxies::db_explain_tree::{parse_db_explain, ExplainRow};
 use async_graphql::*;
 
 #[derive(Default)]
