@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import { withSize } from "react-sizeme";
 import { TreeWalker } from "react-vtree";
 import { FixedSizeTree } from "react-vtree/dist/es/FixedSizeTree";
-import { DbSchemaSearchFlatQuery, FlatNode } from "../../generated/graphql";
+import { DbFamily, DbSchemaSearchFlatQuery, FlatNode } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import SchemaTreeViewNode from "./SchemaTreeViewNode";
 
@@ -62,6 +62,7 @@ interface SchemaTreeViewProps {
 export interface NodeData {
   readonly id: string;
   readonly isOpenByDefault: boolean;
+  dbFamily?: DbFamily;
   isLeaf: boolean;
   tagName: string;
   nameAttr: Maybe<string>;
@@ -81,6 +82,7 @@ const getNodeData = (node: FlatNode, index: number): Node => ({
     tagName: node.tagName,
     nameAttr: node.nameAttr,
     nestingLevel: node.nestingLevel,
+    dbFamily: node.dbFamily || undefined,
   },
   node,
 });

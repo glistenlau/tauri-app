@@ -38,7 +38,7 @@ interface SchemaTreeViewNodeProps {
 
 const SchemaTreeViewNode = React.memo(
   ({
-    data: { isLeaf, nameAttr, tagName, id, nestingLevel },
+    data: { isLeaf, nameAttr, tagName, id, nestingLevel, dbFamily },
     treeData: { filterText, activeNodeId },
     isOpen,
     setOpen,
@@ -115,6 +115,7 @@ const SchemaTreeViewNode = React.memo(
           attrName={nameAttr}
           filterText={filterText}
           tagColor={tagColor}
+          dbFamily={dbFamily}
         />
       </div>
     );

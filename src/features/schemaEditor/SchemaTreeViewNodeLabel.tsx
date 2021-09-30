@@ -4,26 +4,27 @@ import React from "react";
 import MatchText from "../../components/MatchText";
 import SVGIcon from "../../components/SVGIcon";
 import Tooltip from "../../components/Tooltip";
+import { DbFamily } from "../../generated/graphql";
 
 interface SchemaTreeViewNodeLabelProps {
   onClick?: any;
-  statusPair?: [boolean, boolean];
   tagName?: string;
   attrName: Maybe<string>;
   highlight?: boolean;
   filterText?: string;
   tagColor?: string;
+  dbFamily?: DbFamily;
 }
 
 const SchemaTreeViewNodeLabel = React.memo(
   ({
     highlight,
     onClick,
-    statusPair,
     tagName,
     attrName,
     filterText,
     tagColor,
+    dbFamily,
   }: SchemaTreeViewNodeLabelProps) => {
     const [hover, setHover] = React.useState(false);
 
@@ -100,7 +101,7 @@ const SchemaTreeViewNodeLabel = React.memo(
               </Typography>
             )}
           </span>
-          {statusPair && statusPair[0] && (
+          {dbFamily && (dbFamily === DbFamily.Both || dbFamily === DbFamily.Oracle) && (
             <SVGIcon
               style={{ flexShrink: 0, marginRight: 3 }}
               name="database"
@@ -108,7 +109,7 @@ const SchemaTreeViewNodeLabel = React.memo(
               height={20}
             />
           )}
-          {statusPair && statusPair[1] && (
+          {dbFamily && (dbFamily === DbFamily.Both || dbFamily === DbFamily.Postgres) && (
             <SVGIcon
               style={{ flexShrink: 0, marginRight: 3 }}
               name="postgres"

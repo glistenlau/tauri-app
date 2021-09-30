@@ -203,7 +203,7 @@ export type DbSchemaSearchFlatQuery = (
     & Pick<FlatSchemaFile, 'path'>
     & { nodes: Array<(
       { __typename?: 'FlatNode' }
-      & Pick<FlatNode, 'id' | 'tagName' | 'nameAttr' | 'parentIndex' | 'childIndexes' | 'nestingLevel' | 'fileIndex'>
+      & Pick<FlatNode, 'id' | 'tagName' | 'nameAttr' | 'dbFamily' | 'parentIndex' | 'childIndexes' | 'nestingLevel' | 'fileIndex'>
       & { values: Array<(
         { __typename?: 'NodeValue' }
         & Pick<NodeValue, 'start' | 'end' | 'dbFamily'>
@@ -364,6 +364,7 @@ export const DbSchemaSearchFlatDocument = gql`
         end
         dbFamily
       }
+      dbFamily
       parentIndex
       childIndexes
       nestingLevel

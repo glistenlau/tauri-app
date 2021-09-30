@@ -40,6 +40,7 @@ query dbSchemaSearchFlat($searchFolder: String!, $searchPattern: String!) {
         end,
         dbFamily
       }
+      dbFamily,
       parentIndex,
       childIndexes,
       nestingLevel,

@@ -6,8 +6,8 @@ import styled from "styled-components";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
-import { extractXmlFileIndex } from "../../core/xmlProcessor";
 import {
+  DbFamily,
   FlatNode,
   Range,
   useDbSchemaFileContetQuery,
@@ -18,9 +18,6 @@ import {
   changeLeftPanelWidth,
   changeSearchFile,
   changeSearchPath,
-  changeValuePair,
-  saveTagValue,
-  searchXmlFiles
 } from "./schemaEditorSlice";
 import SchemaTreeView from "./SchemaTreeView";
 import SchemaTreeViewToolBar from "./SchemaTreeViewToolBar";
@@ -61,12 +58,10 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
-    activeNodeId,
     leftPanelWidth,
     searchPath,
     searchFile,
     diffMode,
-    xmlList,
     activePair,
   } = useSelector(
     (state: RootState) => ({
@@ -75,7 +70,6 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
       searchFile: state.schemaEditor.searchFile,
       diffMode: state.schemaEditor.diffMode,
       activeNodeId: state.schemaEditor.activeNodeId,
-      xmlList: state.schemaEditor.xmlList,
       activePair: state.schemaEditor.activePair,
     }),
     shallowEqual
@@ -89,7 +83,9 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
       return [];
     }
 
-    return selectedNode.values.map((val) => ({start: val.start, end: val.end}));
+    const {values} = selectedNode;
+
+    return values.map((val) => ({start: val.start, end: val.end}));
   }, [selectedNode]);
 
   const {data: contentData} = useDbSchemaFileContetQuery({
@@ -97,15 +93,23 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
   });
 
   const valuePair = useMemo(() => {
-    console.log(contentData);
-    if (!contentData || contentData.dbSchemaFileContent.length === 0) {
+    if (!selectedNode || !contentData || contentData.dbSchemaFileContent.length === 0) {
       return ["", ""];
     }
-    const oracleContent = contentData.dbSchemaFileContent[0];
-    const pgContent = contentData.dbSchemaFileContent.length > 1 ? contentData.dbSchemaFileContent[1] : "";
+    const {values} = selectedNode;
 
-    return [oracleContent, pgContent];
-  }, [contentData]);
+    const res = ["", ""];
+
+    values.forEach((val, index) => {
+      if (val.dbFamily === DbFamily.Postgres) {
+        res[1] = contentData.dbSchemaFileContent[index];
+      } else {
+        res[0] = contentData.dbSchemaFileContent[index];
+      }
+    })
+
+    return res;
+  }, [contentData, selectedNode]);
 
   const [
     searchDbSchema,
@@ -141,30 +145,6 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     [dispatch, leftPanelWidth]
   );
 
-  const handleBlur = React.useCallback(
-    (newValuePair: [string, string]) => {
-      const [newValOne, newValTwo] = newValuePair;
-      const [oldValOne, oldValTwo] = valuePair;
-      if (newValOne === oldValOne && newValTwo === oldValTwo) {
-        return;
-      }
-      dispatch(changeValuePair(newValuePair));
-
-      const xmlFileIndex = extractXmlFileIndex(activeNodeId);
-      if (isNaN(xmlFileIndex) || xmlFileIndex >= xmlList.length) {
-        return;
-      }
-
-      const newXmlFile =
-        newValOne !== oldValOne
-          ? saveTagValue(activeNodeId, newValOne, 0, xmlList[xmlFileIndex])
-          : saveTagValue(activeNodeId, newValTwo, 1, xmlList[xmlFileIndex]);
-
-      dispatch(setXmlFileTag({ xmlFile: newXmlFile, index: xmlFileIndex }));
-    },
-    [activeNodeId, dispatch, valuePair, xmlList]
-  );
-
   const handleSearchPathChange = React.useCallback(
     (searchPath: string) => {
       dispatch(changeSearchPath(searchPath));
@@ -175,13 +155,6 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
   const handleSearchFileChange = React.useCallback(
     (searchFile: string) => {
       dispatch(changeSearchFile(searchFile));
-    },
-    [dispatch]
-  );
-
-  const handleSearch = React.useCallback(
-    async (filePath: string, fileName: string) => {
-      await dispatch(searchXmlFiles(filePath, fileName));
     },
     [dispatch]
   );
