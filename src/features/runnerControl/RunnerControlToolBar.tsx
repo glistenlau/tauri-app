@@ -10,7 +10,7 @@ import styled from "styled-components";
 import OracleClient from "../../apis/oracle";
 import QueryRunner, {
   ParameterGenerateStrategy,
-  Query
+  Query,
 } from "../../apis/queryRunner";
 import { DBType } from "../../apis/sqlCommon";
 import { GlobalContext } from "../../App";
@@ -125,12 +125,12 @@ const RunnerControlToolBar = React.memo((props: RunnerControlToolBarProps) => {
         };
 
         const runnerQuery = {
-          "GREENCO": [originalQuery, shadowQuery],
+          GREENCO: [originalQuery, shadowQuery],
         };
 
         const runnerResult = await QueryRunner.scanQueries(runnerQuery);
         console.log("runner result: ", runnerResult);
-        if (runnerResult['GREENCO'].diffResults) {
+        if (runnerResult["GREENCO"].diffResults) {
           console.log("has diff.", tableNames[i]);
         }
       }

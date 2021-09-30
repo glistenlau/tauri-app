@@ -32,7 +32,6 @@ const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
     (rootState: RootState) => rootState.propsEditor.activePair
   );
 
-
   const propValidateResult = useMemo(() => {
     if (!propsValidateMap || !selectedClassName || !selectedPropName) {
       return;
@@ -42,25 +41,33 @@ const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
     return selectedProps[selectedPropName];
   }, [propsValidateMap, selectedClassName, selectedPropName]);
 
-  const handleClickDiff = useCallback((e, checked) => {
-    dispatch(setDiffMode(checked));
-  }, [dispatch])
+  const handleClickDiff = useCallback(
+    (e, checked) => {
+      dispatch(setDiffMode(checked));
+    },
+    [dispatch]
+  );
 
-  const handleActivePairChange = useCallback((activePair: [boolean, boolean]) => {
-    dispatch(setActivePair(activePair));
-  }, [dispatch])
+  const handleActivePairChange = useCallback(
+    (activePair: [boolean, boolean]) => {
+      dispatch(setActivePair(activePair));
+    },
+    [dispatch]
+  );
 
   return (
     <EditorToolBar
       activePair={activePair}
       diff={diffMode}
       onActivePairChange={handleActivePairChange}
-      onClickCopy={() => { }}
+      onClickCopy={() => {}}
       onClickFormat={onClickFormat}
       onClickDiff={handleClickDiff}
       onClickRun={onClickRun}
       onClickSave={onClickSave}
-      showEditorIcons={selectedClassName.length > 0 && selectedPropName.length > 0}
+      showEditorIcons={
+        selectedClassName.length > 0 && selectedPropName.length > 0
+      }
       validateResult={propValidateResult}
     />
   );

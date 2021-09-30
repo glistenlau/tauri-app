@@ -3,7 +3,6 @@ import React from "react";
 import { connect } from "react-redux";
 import { processedNotification } from "../actions";
 
-
 interface NotificationProps {
   messages: {
     key: string;

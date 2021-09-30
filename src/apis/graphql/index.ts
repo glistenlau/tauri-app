@@ -4,13 +4,13 @@ import {
   HttpLink,
   InMemoryCache,
   Observable,
-  split
+  split,
 } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { print } from "graphql";
 import { requestAsync } from "..";
-import { Response } from '../';
+import { Response } from "../";
 
 enum Action {
   ServerPort = "serverPort",
@@ -23,8 +23,15 @@ interface ResponseBody {
 interface Payload {}
 
 class Graphql {
-  sendRequest = async (action: Action, payload: Payload): Promise<ResponseBody> => {
-    const rsp = (await requestAsync("graphQL", action, payload)) as Response<ResponseBody>;
+  sendRequest = async (
+    action: Action,
+    payload: Payload
+  ): Promise<ResponseBody> => {
+    const rsp = (await requestAsync(
+      "graphQL",
+      action,
+      payload
+    )) as Response<ResponseBody>;
     if (rsp.success) {
       return rsp.result;
     } else {

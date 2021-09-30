@@ -6,7 +6,7 @@ import EditorSettingsPanel from "../features/editorSettings/EditorSetttinsPanel"
 import {
   isOracleSettings,
   OracleSettings,
-  PostgreSettings
+  PostgreSettings,
 } from "../features/settings/settingsSlice";
 import DBSettings from "./DBSettings";
 import SVGIcon from "./SVGIcon";
@@ -77,10 +77,7 @@ const Settings = ({
         />
         <Typography>
           running at{" "}
-          <Link
-            href={`http://127.0.0.1:${serverPort}/`}
-            target="_blank"
-          >
+          <Link href={`http://127.0.0.1:${serverPort}/`} target="_blank">
             127.0.0.1:{serverPort}
           </Link>
         </Typography>

@@ -10,23 +10,22 @@ import {
   loadOracleProperties,
   loadPostgresProperties,
   writeOracleProp,
-  writePgProp
+  writePgProp,
 } from "../core/propertiesLoader";
 import QueryRunner from "../core/queryRunner";
 import {
-  changeCurrentParametersPair, changeDiffRowCount, changePanelExpand,
+  changeCurrentParametersPair,
+  changeDiffRowCount,
+  changePanelExpand,
   changeProcessedCount,
-
   changeProcessedRowCount,
-
   changeResultPair,
-
-  changeTimeElapsedPair, changeTotalCount
+  changeTimeElapsedPair,
+  changeTotalCount,
 } from "../features/runnerResult/runnerResultSlice";
 import { changeUncommitCount } from "../features/transactionControl/transactionControlSlice";
 import { PropsObj } from "../reducers/editor";
 import { addTimeElapsed, updateArrayElement } from "../util";
-
 
 export enum ActionType {
   LOAD_PROPS_FILES = "LOAD_PROPS_FILES",
@@ -265,90 +264,92 @@ const getParamGenerator = (params: Array<Parameter>, cartesian: boolean) => {
     : makeMaxGenerator(paramVals);
 };
 
-export const scanRunQuery = (
-  statements: Array<string>,
-  parameters: Array<Array<Parameter>>,
-  schema: string,
-  cartesian: boolean,
-  sortResults?: boolean
-) => async (dispatch: Function) => {
-  try {
-    const countPair = countParamsPair(parameters, cartesian);
-    const oraParamGen = getParamGenerator(parameters[0], cartesian);
-    const pgParamGen = getParamGenerator(parameters[1], cartesian);
+export const scanRunQuery =
+  (
+    statements: Array<string>,
+    parameters: Array<Array<Parameter>>,
+    schema: string,
+    cartesian: boolean,
+    sortResults?: boolean
+  ) =>
+  async (dispatch: Function) => {
+    try {
+      const countPair = countParamsPair(parameters, cartesian);
+      const oraParamGen = getParamGenerator(parameters[0], cartesian);
+      const pgParamGen = getParamGenerator(parameters[1], cartesian);
 
-    let oraParam = oraParamGen.next();
-    let pgParam = pgParamGen.next();
-    let processedResult: DiffResultViewType;
-    let rowCount = 0;
-    let runCount = 0;
-    let oracleElapsed: [number, number] = [0, 0];
-    let postgresElapsed: [number, number] = [0, 0];
+      let oraParam = oraParamGen.next();
+      let pgParam = pgParamGen.next();
+      let processedResult: DiffResultViewType;
+      let rowCount = 0;
+      let runCount = 0;
+      let oracleElapsed: [number, number] = [0, 0];
+      let postgresElapsed: [number, number] = [0, 0];
 
-    const totalRun = Math.min(...countPair) || 1;
-    dispatch(changeProcessedCount(0));
-    dispatch(changeTotalCount(totalRun));
-    dispatch(changeProcessedRowCount(0));
-    dispatch(changeDiffRowCount(0));
-    dispatch(changeIsRunning(true));
+      const totalRun = Math.min(...countPair) || 1;
+      dispatch(changeProcessedCount(0));
+      dispatch(changeTotalCount(totalRun));
+      dispatch(changeProcessedRowCount(0));
+      dispatch(changeDiffRowCount(0));
+      dispatch(changeIsRunning(true));
 
-    while (!oraParam.done && !pgParam.done) {
-      const query = {
-        oracle: {
-          statement: statements[0],
-          parameters: oraParam.value,
-        },
-        postgres: {
-          statement: statements[1],
-          parameters: pgParam.value,
-        },
-      };
+      while (!oraParam.done && !pgParam.done) {
+        const query = {
+          oracle: {
+            statement: statements[0],
+            parameters: oraParam.value,
+          },
+          postgres: {
+            statement: statements[1],
+            parameters: pgParam.value,
+          },
+        };
 
-      dispatch(changeCurrentParametersPair([oraParam.value, pgParam.value]));
+        dispatch(changeCurrentParametersPair([oraParam.value, pgParam.value]));
 
-      const result = await QueryRunner.runQuery(query, schema);
+        const result = await QueryRunner.runQuery(query, schema);
 
-      processedResult = diffAndMapToView(result[0], result[1], sortResults);
+        processedResult = diffAndMapToView(result[0], result[1], sortResults);
 
-      if (result[0].elapsed) {
-        oracleElapsed = addTimeElapsed(oracleElapsed, result[0].elapsed);
+        if (result[0].elapsed) {
+          oracleElapsed = addTimeElapsed(oracleElapsed, result[0].elapsed);
+        }
+        if (result[1].elapsed) {
+          postgresElapsed = addTimeElapsed(postgresElapsed, result[1].elapsed);
+        }
+
+        rowCount += processedResult.rowCount;
+        runCount++;
+
+        dispatch(changeTimeElapsedPair([oracleElapsed, postgresElapsed]));
+        dispatch(changeProcessedRowCount(rowCount));
+        dispatch(changeProcessedCount(runCount));
+        dispatch(changeResultPair(processedResult.viewValues));
+
+        if (!result[0].success || !result[1].success) {
+          dispatch(changeUncommitCount(0));
+        } else {
+          dispatch(changeUncommitCount(runCount));
+        }
+
+        if (
+          processedResult.diffCount > 0 ||
+          !result[0].success ||
+          !result[1].success
+        ) {
+          dispatch(changeDiffRowCount(processedResult.diffCount));
+          break;
+        }
+
+        oraParam = oraParamGen.next();
+        pgParam = pgParamGen.next();
       }
-      if (result[1].elapsed) {
-        postgresElapsed = addTimeElapsed(postgresElapsed, result[1].elapsed);
-      }
-
-      rowCount += processedResult.rowCount;
-      runCount++;
-
-      dispatch(changeTimeElapsedPair([oracleElapsed, postgresElapsed]));
-      dispatch(changeProcessedRowCount(rowCount));
-      dispatch(changeProcessedCount(runCount));
-      dispatch(changeResultPair(processedResult.viewValues));
-
-      if (!result[0].success || !result[1].success) {
-        dispatch(changeUncommitCount(0));
-      } else {
-        dispatch(changeUncommitCount(runCount));
-      }
-
-      if (
-        processedResult.diffCount > 0 ||
-        !result[0].success ||
-        !result[1].success
-      ) {
-        dispatch(changeDiffRowCount(processedResult.diffCount));
-        break;
-      }
-
-      oraParam = oraParamGen.next();
-      pgParam = pgParamGen.next();
+      dispatch(changePanelExpand(true));
+    } catch (e) {
+    } finally {
+      dispatch(changeIsRunning(false));
     }
-    dispatch(changePanelExpand(true));
-  } catch (e) {
-  } finally {
-    dispatch(changeIsRunning(false));
-  }
-};
+  };
 
 const validateProps = async (oraProps: any, pgProps: any) => {
   const validateResult: any = {};
@@ -391,84 +392,85 @@ const validateProps = async (oraProps: any, pgProps: any) => {
   return validateResult;
 };
 
-export const searchProps = (filePath: string, className: string) => async (
-  dispatch: Function
-) => {
-  try {
-    let start = process.hrtime();
-    const oracleProperties = await loadOracleProperties(filePath, className);
-    const oracleEnd = process.hrtime(start);
-    start = process.hrtime();
-    const postgresProperties = await loadPostgresProperties(
-      filePath,
-      className
-    );
-    const postgresEnd = process.hrtime(start);
-
-    const validateResults = await validateProps(
-      oracleProperties,
-      postgresProperties
-    );
-
-    dispatch(
-      loadPropsFiles(oracleProperties, postgresProperties, validateResults)
-    );
-  } catch (e) {
-    dispatch(showNotification(e.message, "error"));
-  }
-};
-
-export const saveProp = (
-  classPath: string,
-  propKey: string,
-  values: Array<string>,
-  saveTarget: number
-) => async (dispatch: Function) => {
-  const ret: any = {};
-  if (saveTarget === 0 || saveTarget === 2) {
+export const searchProps =
+  (filePath: string, className: string) => async (dispatch: Function) => {
     try {
-      await writePgProp(classPath, propKey, values[1]);
-      dispatch(
-        showNotification(
-          `Saved ${propKey} to the Postgres properties file.`,
-          "success"
-        )
+      let start = process.hrtime();
+      const oracleProperties = await loadOracleProperties(filePath, className);
+      const oracleEnd = process.hrtime(start);
+      start = process.hrtime();
+      const postgresProperties = await loadPostgresProperties(
+        filePath,
+        className
       );
-      ret.postgres = { success: true };
-    } catch (e) {
-      dispatch(
-        showNotification(
-          `Failed to Save ${propKey} to the Postgres properties file.`,
-          "error"
-        )
-      );
-      ret.postgres = { success: false, error: e };
-    }
-  }
+      const postgresEnd = process.hrtime(start);
 
-  if (saveTarget === 1 || saveTarget === 2) {
-    try {
-      await writeOracleProp(classPath, propKey, values[0]);
-      dispatch(
-        showNotification(
-          `Saved ${propKey} to the Oracle properties file.`,
-          "success"
-        )
+      const validateResults = await validateProps(
+        oracleProperties,
+        postgresProperties
       );
-      ret.oracle = { success: true };
-    } catch (e) {
-      dispatch(
-        showNotification(
-          `Failed to Save ${propKey} the to Oracle properties file.`,
-          "error"
-        )
-      );
-      ret.oracle = { success: false, error: e };
-    }
-  }
 
-  return ret;
-};
+      dispatch(
+        loadPropsFiles(oracleProperties, postgresProperties, validateResults)
+      );
+    } catch (e) {
+      dispatch(showNotification(e.message, "error"));
+    }
+  };
+
+export const saveProp =
+  (
+    classPath: string,
+    propKey: string,
+    values: Array<string>,
+    saveTarget: number
+  ) =>
+  async (dispatch: Function) => {
+    const ret: any = {};
+    if (saveTarget === 0 || saveTarget === 2) {
+      try {
+        await writePgProp(classPath, propKey, values[1]);
+        dispatch(
+          showNotification(
+            `Saved ${propKey} to the Postgres properties file.`,
+            "success"
+          )
+        );
+        ret.postgres = { success: true };
+      } catch (e) {
+        dispatch(
+          showNotification(
+            `Failed to Save ${propKey} to the Postgres properties file.`,
+            "error"
+          )
+        );
+        ret.postgres = { success: false, error: e };
+      }
+    }
+
+    if (saveTarget === 1 || saveTarget === 2) {
+      try {
+        await writeOracleProp(classPath, propKey, values[0]);
+        dispatch(
+          showNotification(
+            `Saved ${propKey} to the Oracle properties file.`,
+            "success"
+          )
+        );
+        ret.oracle = { success: true };
+      } catch (e) {
+        dispatch(
+          showNotification(
+            `Failed to Save ${propKey} the to Oracle properties file.`,
+            "error"
+          )
+        );
+        ret.oracle = { success: false, error: e };
+      }
+    }
+
+    return ret;
+  };
 
 export const evaluateParameters = async (
   parameters: Array<Array<Parameter>>,
@@ -503,85 +505,85 @@ export const evaluateParameters = async (
   return [newOraParams, newPgParams];
 };
 
-export const evaluateParameter = (
-  parameters: Array<Array<Parameter>>,
-  index: number,
-  schema: string,
-  mode: number
-) => async (dispatch: Function) => {
+export const evaluateParameter =
+  (
+    parameters: Array<Array<Parameter>>,
+    index: number,
+    schema: string,
+    mode: number
+  ) =>
+  async (dispatch: Function) => {
+    let oraParams = parameters[0];
+    let pgParams = parameters[1];
+    if (oraParams && index < oraParams.length && (mode === 0 || mode === 2)) {
+      const param = oraParams[index];
+      const oralceRet = await evaluateOracle(param.raw, schema);
+      const updatedParam = Object.assign({}, param, {
+        evaluated: oralceRet,
+      });
+      oraParams = updateArrayElement(oraParams, index, updatedParam);
+    }
 
-  let oraParams = parameters[0];
-  let pgParams = parameters[1];
-  if (oraParams && index < oraParams.length && (mode === 0 || mode === 2)) {
-    const param = oraParams[index];
-    const oralceRet = await evaluateOracle(param.raw, schema);
-    const updatedParam = Object.assign({}, param, {
-      evaluated: oralceRet,
-    });
-    oraParams = updateArrayElement(oraParams, index, updatedParam);
-  }
+    if (pgParams && index < pgParams.length && (mode === 1 || mode === 2)) {
+      const param = pgParams[index];
+      const pgRet = await evaluatePostgres(param.raw, schema);
+      const updatedParam = Object.assign({}, param, {
+        evaluated: pgRet,
+      });
+      pgParams = updateArrayElement(pgParams, index, updatedParam);
+    }
+    dispatch(changeParameters([oraParams, pgParams]));
+  };
 
-  if (pgParams && index < pgParams.length && (mode === 1 || mode === 2)) {
-    const param = pgParams[index];
-    const pgRet = await evaluatePostgres(param.raw, schema);
-    const updatedParam = Object.assign({}, param, {
-      evaluated: pgRet,
-    });
-    pgParams = updateArrayElement(pgParams, index, updatedParam);
-  }
-  dispatch(changeParameters([oraParams, pgParams]));
-};
-
-export const validateParameters = (
-  parameters: Array<Array<Parameter>>,
-  schema: string
-) => async (dispatch: Function) => {
-  const evaledParams = await evaluateParameters(parameters, schema);
-  dispatch(changeParameters(evaledParams));
-  const oraParamValid = evaledParams[0].reduce(
-    (prev, p) =>
-      prev && Array.isArray(p.evaluated.value) && p.evaluated.value.length,
-    true
-  );
-  const pgParamValid = evaledParams[1].reduce(
-    (prev, p) =>
-      prev && Array.isArray(p.evaluated.value) && p.evaluated.value.length,
-    true
-  );
-
-  return [oraParamValid, pgParamValid];
-};
-
-export const connectToOracle = (config: any, schema?: string) => async (
-  dispatch: Function
-) => {
-  try {
-    oracleClient.setConfig(config);
-    await oracleClient.connectDatabase();
-    dispatch(showNotification("Successfully connected to Oracle.", "success"));
-  } catch (e) {
-    dispatch(showNotification("Failed to connect to Oracle.", "error"));
-  } finally {
-    dispatch(changeIsRunning(false));
-    dispatch(changeUncommitCount(0));
-  }
-};
-
-export const connectToPostgres = (config: any, schema?: string) => async (
-  dispatch: Function
-) => {
-  try {
-    postgresClient.setConfig(config);
-    await postgresClient.connectDatabase();
-    dispatch(
-      showNotification("Successfully connected to Postgres.", "success")
+export const validateParameters =
+  (parameters: Array<Array<Parameter>>, schema: string) =>
+  async (dispatch: Function) => {
+    const evaledParams = await evaluateParameters(parameters, schema);
+    dispatch(changeParameters(evaledParams));
+    const oraParamValid = evaledParams[0].reduce(
+      (prev, p) =>
+        prev && Array.isArray(p.evaluated.value) && p.evaluated.value.length,
+      true
     );
-  } catch (e) {
-    dispatch(showNotification("Failed to connect to Postgres.", "error"));
-  } finally {
-    dispatch(changeIsRunning(false));
-    dispatch(changeUncommitCount(0));
-  }
-};
+    const pgParamValid = evaledParams[1].reduce(
+      (prev, p) =>
+        prev && Array.isArray(p.evaluated.value) && p.evaluated.value.length,
+      true
+    );
+
+    return [oraParamValid, pgParamValid];
+  };
+
+export const connectToOracle =
+  (config: any, schema?: string) => async (dispatch: Function) => {
+    try {
+      oracleClient.setConfig(config);
+      await oracleClient.connectDatabase();
+      dispatch(
+        showNotification("Successfully connected to Oracle.", "success")
+      );
+    } catch (e) {
+      dispatch(showNotification("Failed to connect to Oracle.", "error"));
+    } finally {
+      dispatch(changeIsRunning(false));
+      dispatch(changeUncommitCount(0));
+    }
+  };
+
+export const connectToPostgres =
+  (config: any, schema?: string) => async (dispatch: Function) => {
+    try {
+      postgresClient.setConfig(config);
+      await postgresClient.connectDatabase();
+      dispatch(
+        showNotification("Successfully connected to Postgres.", "success")
+      );
+    } catch (e) {
+      dispatch(showNotification("Failed to connect to Postgres.", "error"));
+    } finally {
+      dispatch(changeIsRunning(false));
+      dispatch(changeUncommitCount(0));
+    }
+  };
 
 export const initApp = createAction("initApp");

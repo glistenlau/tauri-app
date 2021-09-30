@@ -50,8 +50,7 @@ export async function searchFile(searchPath: string, target: string) {
     //     results.push(filePath);
     //   }
     // }
-  } catch (e) {
-  }
+  } catch (e) {}
 
   return results;
 }

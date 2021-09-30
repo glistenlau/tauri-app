@@ -28,9 +28,7 @@ const transactionControl = createSlice({
   },
 });
 
-export const {
-  changeTransactionMode,
-  changeUncommitCount,
-} = transactionControl.actions;
+export const { changeTransactionMode, changeUncommitCount } =
+  transactionControl.actions;
 
 export default transactionControl.reducer;

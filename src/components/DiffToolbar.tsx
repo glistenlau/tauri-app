@@ -3,7 +3,7 @@ import {
   ButtonGroup,
   FormControlLabel,
   Switch,
-  Tooltip
+  Tooltip,
 } from "@material-ui/core";
 import React, { useCallback } from "react";
 import styled from "styled-components";
@@ -14,7 +14,10 @@ interface DiffToolBarProps {
   diffMode: boolean;
   className?: string;
   onActivePairChange: (activePair: [boolean, boolean]) => void;
-  onToogleDiff: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void;
+  onToogleDiff: (
+    event: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean
+  ) => void;
 }
 
 const Container = styled.div`
@@ -28,22 +31,28 @@ const ButtonGroupContainer = styled(ButtonGroup)`
   margin-right: 10px;
 `;
 
-const DiffToolBar: React.FC<DiffToolBarProps> = ({ activePair, className, diffMode, onActivePairChange, onToogleDiff }) => {
+const DiffToolBar: React.FC<DiffToolBarProps> = ({
+  activePair,
+  className,
+  diffMode,
+  onActivePairChange,
+  onToogleDiff,
+}) => {
   const handleActiveChange = useCallback(
     (valueOne: boolean, valueTwo: boolean) => {
       const newActivePair: [boolean, boolean] = [valueOne, valueTwo];
       onActivePairChange(newActivePair);
     },
-    [onActivePairChange],
-  )
+    [onActivePairChange]
+  );
 
   const handleClickLeft = useCallback(() => {
     handleActiveChange(!activePair[0], activePair[1]);
-  }, [activePair, handleActiveChange])
+  }, [activePair, handleActiveChange]);
 
   const handleClickRight = useCallback(() => {
     handleActiveChange(activePair[0], !activePair[1]);
-  }, [activePair, handleActiveChange])
+  }, [activePair, handleActiveChange]);
 
   const controlRenderer = React.useMemo(
     () => (
@@ -54,40 +63,41 @@ const DiffToolBar: React.FC<DiffToolBarProps> = ({ activePair, className, diffMo
 
   return (
     <Container className={className}>
-      {!diffMode && <ButtonGroupContainer size="small">
-        <Tooltip
-          title={activePair[0] ? "Hide left editor" : "Show left editor"}
-        >
-          <Button
-            variant={activePair[0] ? "contained" : "outlined"}
-            onClick={handleClickLeft}
-            style={{
-              backgroundColor: activePair[0] ? "#d12e26" : undefined,
-            }}
+      {!diffMode && (
+        <ButtonGroupContainer size="small">
+          <Tooltip
+            title={activePair[0] ? "Hide left editor" : "Show left editor"}
           >
-            <SVGIcon
-              name="database"
-              fill={activePair[0] ? "white" : "#d12e26"}
-              width={20}
-              height={20}
-            />
-          </Button>
-        </Tooltip>
-        <Tooltip
-          title={activePair[1] ? "Hide right editor" : "Show right editor"}
-        >
-          <Button
-            variant={activePair[1] ? "contained" : "outlined"}
-            onClick={handleClickRight}
-            style={{
-              backgroundColor: activePair[1] ? "#81c784" : undefined,
-            }}
+            <Button
+              variant={activePair[0] ? "contained" : "outlined"}
+              onClick={handleClickLeft}
+              style={{
+                backgroundColor: activePair[0] ? "#d12e26" : undefined,
+              }}
+            >
+              <SVGIcon
+                name="database"
+                fill={activePair[0] ? "white" : "#d12e26"}
+                width={20}
+                height={20}
+              />
+            </Button>
+          </Tooltip>
+          <Tooltip
+            title={activePair[1] ? "Hide right editor" : "Show right editor"}
           >
-            <SVGIcon name="postgres" width={20} height={20} />
-          </Button>
-        </Tooltip>
-      </ButtonGroupContainer>
-      }
+            <Button
+              variant={activePair[1] ? "contained" : "outlined"}
+              onClick={handleClickRight}
+              style={{
+                backgroundColor: activePair[1] ? "#81c784" : undefined,
+              }}
+            >
+              <SVGIcon name="postgres" width={20} height={20} />
+            </Button>
+          </Tooltip>
+        </ButtonGroupContainer>
+      )}
       <FormControlLabel control={controlRenderer} label="Diff" />
     </Container>
   );

@@ -5,7 +5,7 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Select
+  Select,
 } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import React, { useCallback, useMemo, useState } from "react";
@@ -64,9 +64,9 @@ export interface SchemaDropdownProps {
 const MenuProps = {
   PaperProps: {
     style: {
-      maxHeight: 500
-    }
-  }
+      maxHeight: 500,
+    },
+  },
 };
 
 const REFRESH_VALUE = "__refresh__";
@@ -79,12 +79,13 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
     onClickRefresh,
     onClickSchema,
     selectedSchemas,
-    schemas
+    schemas,
   }) => {
     const [refreshingSchema, setRefreshingSchema] = useState(false);
-    const hasError = useMemo(() => selectedSchemas.length === 0, [
-      selectedSchemas.length
-    ]);
+    const hasError = useMemo(
+      () => selectedSchemas.length === 0,
+      [selectedSchemas.length]
+    );
 
     const schemaMap = useMemo(() => {
       if (!schemas) {
@@ -97,7 +98,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
         schemaMap.set(lowwerSchema, {
           value: lowwerSchema,
           showOracleIcon: true,
-          showPostgresIcon: false
+          showPostgresIcon: false,
         });
       });
 
@@ -108,7 +109,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
           mappedSchema = {
             value: lowwerSchema,
             showOracleIcon: false,
-            showPostgresIcon: true
+            showPostgresIcon: true,
           };
           schemaMap.set(lowwerSchema, mappedSchema);
         } else {
@@ -193,7 +194,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
                 onClick={(e) => {
                   onClickSchema(selectedSchema);
                 }}
-                size='small'
+                size="small"
                 key={selectedSchema}
                 label={
                   <LabelWithDbIcons
@@ -225,7 +226,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
           <Select
             autoWidth
             multiple
-            label='Schemas'
+            label="Schemas"
             value={selectedSchemas}
             onChange={handleChange}
             renderValue={renderValue}

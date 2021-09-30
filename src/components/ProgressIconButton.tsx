@@ -25,15 +25,8 @@ interface ProcessIconButtonProps {
 }
 
 const ProcessIconButton: React.FC<ProcessIconButtonProps> = (props) => {
-  const {
-    onClick,
-    children,
-    loading,
-    title,
-    disabled,
-    color,
-    ...others
-  } = props;
+  const { onClick, children, loading, title, disabled, color, ...others } =
+    props;
   const [isLoading, setLoading] = React.useState(false);
   const classes = useStyles();
   const effectiveTitle = React.useMemo(() => (title ? title : ""), [title]);

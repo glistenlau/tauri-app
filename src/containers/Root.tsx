@@ -16,7 +16,6 @@ import { RootState } from "../reducers";
 import Navigator from "./Navigator";
 import Notification from "./Notification";
 
-
 const RootContainer = styled.div`
   height: calc(100vh - 2px);
   width: 100vw;
@@ -32,8 +31,6 @@ const RightContainer = styled.div`
   width: 80%;
   flex: 1;
 `;
-
-
 
 class Root extends React.Component<any, any> {
   constructor(props: any) {
@@ -58,7 +55,7 @@ class Root extends React.Component<any, any> {
           <RunnerResultPanel active={activeView === 0 || activeView === 1} />
           <SchemaEditorView active={activeView === 2} />
           <SettingsPanel active={activeView === 3} />
-          <DBExplainView active={activeView === 4}/>
+          <DBExplainView active={activeView === 4} />
         </RightContainer>
         <QueryScanModal />
         <Notification />

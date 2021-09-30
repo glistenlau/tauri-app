@@ -1,4 +1,4 @@
-import { Typography } from '@material-ui/core';
+import { Typography } from "@material-ui/core";
 import React from "react";
 import styled from "styled-components";
 import SVGIcon from "./SVGIcon";
@@ -33,18 +33,10 @@ const LabelWithDbIcons: React.FC<LabelWithDdIconProps> = React.memo(
     return (
       <Container className={className}>
         {showOracleIcon === true && (
-          <LeftSVGIcon
-            name="database"
-            width={20}
-            height={20}
-          />
+          <LeftSVGIcon name="database" width={20} height={20} />
         )}
         {showPostgresIcon === true && (
-          <LeftSVGIcon
-            name="postgres"
-            width={20}
-            height={20}
-          />
+          <LeftSVGIcon name="postgres" width={20} height={20} />
         )}
 
         <TextContainer>{children}</TextContainer>

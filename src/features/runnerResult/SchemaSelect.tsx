@@ -44,7 +44,7 @@ const SchemaSelect: React.FC<SchemaSelectProps> = ({ isRunning }) => {
           }
           return [
             Math.max(pre[0], cur.progress.finished),
-            Math.max(pre[1], cur.progress.total)
+            Math.max(pre[1], cur.progress.total),
           ];
         },
         [0, 0]
@@ -65,7 +65,7 @@ const SchemaSelect: React.FC<SchemaSelectProps> = ({ isRunning }) => {
       } else {
         return [
           Math.max(fromResults[0], fromProgress[0]),
-          Math.max(fromResults[1], fromProgress[1])
+          Math.max(fromResults[1], fromProgress[1]),
         ];
       }
     },
@@ -103,15 +103,15 @@ const SchemaSelect: React.FC<SchemaSelectProps> = ({ isRunning }) => {
 
   const IconRenderer = useCallback((isRunning, hasError, progress, hasDiff) => {
     if (isRunning) {
-      return <CircularProgress size={20} variant='static' value={progress} />;
+      return <CircularProgress size={20} variant="static" value={progress} />;
     }
     if (hasError) {
-      return <ErrorIcon style={{ color: red[500] }} fontSize='small' />;
+      return <ErrorIcon style={{ color: red[500] }} fontSize="small" />;
     }
     if (progress === 100 && !hasDiff) {
-      return <CheckCircleIcon style={{ color: green[500] }} fontSize='small' />;
+      return <CheckCircleIcon style={{ color: green[500] }} fontSize="small" />;
     }
-    return <WarningIcon fontSize='small' style={{ color: orange[500] }} />;
+    return <WarningIcon fontSize="small" style={{ color: orange[500] }} />;
   }, []);
 
   const schemaMenuItems = useMemo(() => {
@@ -148,7 +148,7 @@ const SchemaSelect: React.FC<SchemaSelectProps> = ({ isRunning }) => {
     schemaHasError,
     schemaProgress,
     schemaResults,
-    schemas
+    schemas,
   ]);
 
   const handleChange = useCallback(
@@ -163,8 +163,8 @@ const SchemaSelect: React.FC<SchemaSelectProps> = ({ isRunning }) => {
       autoWidth
       value={selectedSchema}
       onChange={handleChange}
-      variant='outlined'
-      margin='dense'
+      variant="outlined"
+      margin="dense"
     >
       {schemaMenuItems}
     </Select>

@@ -4,38 +4,28 @@ import util from "util";
 import EventEmitter from "events";
 
 class OracleClient extends EventEmitter {
+  setConfig = (config: any) => {};
 
-  setConfig = (config: any) => {
-  };
+  alterCurrentSchema = async (conn: any, schema: string) => {};
 
-  alterCurrentSchema = async (conn: any, schema: string) => {
-  };
+  getPoolStatus = () => {};
 
-  getPoolStatus = () => {
-  };
+  connectDatabase = async () => {};
 
-  connectDatabase = async () => {
-  };
+  getConnection = async (schema: any) => {};
 
-  getConnection = async (schema:any) => {
-  };
+  closeConnection = async (conn: any) => {};
 
-  closeConnection = async (conn: any) => {
-  };
-
-  closePool = async () => {
-  };
+  closePool = async () => {};
 
   execute = async (
     statement: string,
     parameters: any,
     conn: any,
     option?: any
-  ): Promise<any> => {
-  };
+  ): Promise<any> => {};
 
-  query = async (statement: string, parameters: Array<any>) => {
-  };
+  query = async (statement: string, parameters: Array<any>) => {};
 }
 
 const instance = new OracleClient();

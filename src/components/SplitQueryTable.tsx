@@ -50,9 +50,10 @@ const SplitQueryTable = React.memo((props: SplitQueryTableProps) => {
   }, [diff, resultActivePair, width]);
 
   const queryData = useMemo(() => mapToView(value), [value]);
-  const queryLen = useMemo(() => queryData.viewValues.length, [
-    queryData.viewValues.length,
-  ]);
+  const queryLen = useMemo(
+    () => queryData.viewValues.length,
+    [queryData.viewValues.length]
+  );
   const needDivider = useMemo(() => {
     let hasDataRendered = false;
     return resultActivePair.map((ra) => {

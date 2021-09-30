@@ -8,7 +8,7 @@ import {
   Parameter,
   setActiveSchema,
   setParametersPair,
-  setSelectedSchemas
+  setSelectedSchemas,
 } from "./queryScanSlice";
 
 export interface SchemaSelectProps {
@@ -70,7 +70,7 @@ const SchemaSelect = React.memo((props: SchemaSelectProps) => {
         params.map((param) => ({
           row: param.row,
           col: param.col,
-          raw: param.raw
+          raw: param.raw,
         }))
       );
       dispatch(setParametersPair(newParamsPair as [Parameter[], Parameter[]]));

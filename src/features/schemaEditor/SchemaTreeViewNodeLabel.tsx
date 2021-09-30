@@ -101,22 +101,24 @@ const SchemaTreeViewNodeLabel = React.memo(
               </Typography>
             )}
           </span>
-          {dbFamily && (dbFamily === DbFamily.Both || dbFamily === DbFamily.Oracle) && (
-            <SVGIcon
-              style={{ flexShrink: 0, marginRight: 3 }}
-              name="database"
-              width={20}
-              height={20}
-            />
-          )}
-          {dbFamily && (dbFamily === DbFamily.Both || dbFamily === DbFamily.Postgres) && (
-            <SVGIcon
-              style={{ flexShrink: 0, marginRight: 3 }}
-              name="postgres"
-              width={20}
-              height={20}
-            />
-          )}
+          {dbFamily &&
+            (dbFamily === DbFamily.Both || dbFamily === DbFamily.Oracle) && (
+              <SVGIcon
+                style={{ flexShrink: 0, marginRight: 3 }}
+                name="database"
+                width={20}
+                height={20}
+              />
+            )}
+          {dbFamily &&
+            (dbFamily === DbFamily.Both || dbFamily === DbFamily.Postgres) && (
+              <SVGIcon
+                style={{ flexShrink: 0, marginRight: 3 }}
+                name="postgres"
+                width={20}
+                height={20}
+              />
+            )}
         </div>
       </Tooltip>
     );

@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from "@tauri-apps/api/tauri";
 interface Elapsed {
   secs: number;
   nanos: number;
@@ -21,13 +21,13 @@ export const requestAsync = async (
     handler: {
       name: handlerName,
       action,
-      payload
-    }
+      payload,
+    },
   };
 
   const res = JSON.parse(await invoke("invoke_handler", args));
 
-  console.log('request async result: ', res);
+  console.log("request async result: ", res);
 
   return res;
 };

@@ -4,12 +4,12 @@ import Duration from "./duration";
 import { DBType, SQLResult } from "./sqlCommon";
 
 enum Action {
-  ScanQueries = "scanQueries"
+  ScanQueries = "scanQueries",
 }
 
 export enum ParameterGenerateStrategy {
   Normal = "normal",
-  Cartesian = "cartesian"
+  Cartesian = "cartesian",
 }
 
 export interface ScanProcess {
@@ -64,7 +64,7 @@ class QueryRunner {
   ) => {
     const payload: any = {
       schemaQueries,
-      diffResults
+      diffResults,
     };
 
     const rsp = await requestAsync("queryRunner", action, payload);
@@ -96,7 +96,7 @@ class QueryRunner {
         where default_tablespace not in ('SYSTEM','SYSAUX')
       )
       order by owner`,
-      mode: ParameterGenerateStrategy.Normal
+      mode: ParameterGenerateStrategy.Normal,
     };
     const postgresQuery: Query = {
       dbType: DBType.Postgres,
@@ -106,7 +106,7 @@ class QueryRunner {
       where schema_owner != 'postgres'
       order by schema_name
       `,
-      mode: ParameterGenerateStrategy.Normal
+      mode: ParameterGenerateStrategy.Normal,
     };
 
     const result = await this.scanQueries(
@@ -136,7 +136,7 @@ class QueryRunner {
       INNER JOIN v$mystat m ON s.SID = m.SID
       WHERE ROWNUM = 1
       `,
-      mode: ParameterGenerateStrategy.Normal
+      mode: ParameterGenerateStrategy.Normal,
     };
     const postgresQuery: Query = {
       dbType: DBType.Postgres,
@@ -147,7 +147,7 @@ class QueryRunner {
       and locktype = 'transactionid'
       and mode = 'ExclusiveLock'
       `,
-      mode: ParameterGenerateStrategy.Normal
+      mode: ParameterGenerateStrategy.Normal,
     };
 
     const result = await this.scanQueries(

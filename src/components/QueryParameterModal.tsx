@@ -4,7 +4,7 @@ import {
   Divider,
   FormControlLabel,
   IconButton,
-  Switch
+  Switch,
 } from "@material-ui/core";
 import { green, purple, red } from "@material-ui/core/colors";
 import Dialog from "@material-ui/core/Dialog/Dialog";
@@ -18,7 +18,7 @@ import React, { useCallback } from "react";
 import styled from "styled-components";
 import {
   Parameter,
-  ParameterValue
+  ParameterValue,
 } from "../features/queryScan/queryScanSlice";
 import SchemaSelect from "../features/queryScan/SchemaSelect";
 import { updateArrayElement } from "../util";
@@ -48,14 +48,14 @@ const useStyles = makeStyles((theme: any) =>
     modal: {
       display: "flex",
       justifyContent: "center",
-      alignItems: "center"
+      alignItems: "center",
     },
     headerContainer: {
       backgroundColor: theme.palette.background.default,
       display: "flex",
       flexDirection: "row",
       justifyContent: "center",
-      alignItems: "center"
+      alignItems: "center",
     },
     container: {
       backgroundColor: theme.palette.background.default,
@@ -63,28 +63,28 @@ const useStyles = makeStyles((theme: any) =>
       flexDirection: "column",
       height: "90vh",
       width: "90vw",
-      padding: 5
+      padding: 5,
     },
     tabContainer: {
       flex: 1,
-      backgroundColor: "#fafafa"
+      backgroundColor: "#fafafa",
     },
     toolbarContainer: {
       backgroundColor: theme.palette.background.default,
       display: "flex",
       flexDirection: "row",
       alignItems: "center",
-      height: 48
+      height: 48,
     },
     button: {
-      marginRight: 10
+      marginRight: 10,
     },
     paramNavButton: {
       marginLeft: "auto",
       display: "flex",
       flexDirection: "row",
-      alignItems: "center"
-    }
+      alignItems: "center",
+    },
   })
 );
 
@@ -123,7 +123,7 @@ const QueryParameterModal = React.memo(
       onClose,
       onCartesianChange,
       onSyncChange,
-      onParametersPairChange
+      onParametersPairChange,
     } = props;
     const classes = useStyles();
     const [curTab, setCurTab] = React.useState(0);
@@ -177,7 +177,11 @@ const QueryParameterModal = React.memo(
         if (!paramUpdate) {
           return;
         }
-        if (!parameters || !parameters[curTab] || !parameters[curTab][curParam]) {
+        if (
+          !parameters ||
+          !parameters[curTab] ||
+          !parameters[curTab][curParam]
+        ) {
           return;
         }
 
@@ -195,7 +199,7 @@ const QueryParameterModal = React.memo(
               Object.assign(
                 {
                   row: params[curParam].row,
-                  col: params[curParam].col
+                  col: params[curParam].col,
                 },
                 paramUpdate
               )
@@ -209,7 +213,7 @@ const QueryParameterModal = React.memo(
             Object.assign(
               {
                 row: parameters[curTab][curParam].row,
-                col: parameters[curTab][curParam].col
+                col: parameters[curTab][curParam].col,
               },
               paramUpdate
             )
@@ -260,7 +264,7 @@ const QueryParameterModal = React.memo(
           tabParam.map((param) =>
             Object.assign({}, param, {
               raw: rawVal,
-              evaluated: {}
+              evaluated: {},
             })
           )
         );
@@ -290,7 +294,7 @@ const QueryParameterModal = React.memo(
     }, []);
 
     return (
-      <Dialog fullWidth maxWidth='xl' open={open}>
+      <Dialog fullWidth maxWidth="xl" open={open}>
         <ContentContainer>
           <SchemaSelect />
           <div className={classes.headerContainer}>
@@ -298,8 +302,8 @@ const QueryParameterModal = React.memo(
               className={classes.tabContainer}
               value={curTab}
               onChange={handleChangeTab}
-              indicatorColor='primary'
-              textColor='primary'
+              indicatorColor="primary"
+              textColor="primary"
             >
               <Tab label={tabLabel("Oracle")} />
               <Tab label={tabLabel("Postgres")} />
@@ -317,9 +321,9 @@ const QueryParameterModal = React.memo(
               <FormControlLabel
                 style={{ marginLeft: 20 }}
                 control={
-                  <Switch checked={sync} onChange={onSyncChange} value='sync' />
+                  <Switch checked={sync} onChange={onSyncChange} value="sync" />
                 }
-                label='Sync'
+                label="Sync"
               />
             )}
 
@@ -329,24 +333,24 @@ const QueryParameterModal = React.memo(
                 <Switch
                   checked={cartesian}
                   onChange={onCartesianChange}
-                  value='cartesian'
+                  value="cartesian"
                 />
               }
-              label='Cartesian'
+              label="Cartesian"
             />
 
             {parameter.length > 0 && (
               <div className={classes.paramNavButton}>
                 <ProcessIconButton
-                  title='Copy to all parameters'
+                  title="Copy to all parameters"
                   onClick={handleCopyParameter}
                 >
-                  <SVGIcon name='fileCopyFill' fill={purple[500]} />
+                  <SVGIcon name="fileCopyFill" fill={purple[500]} />
                 </ProcessIconButton>
 
-                <Tooltip title='Previous parameter'>
+                <Tooltip title="Previous parameter">
                   <IconButton onClick={handleClickPrev}>
-                    <NavigateBeforeIcon color='action' />
+                    <NavigateBeforeIcon color="action" />
                   </IconButton>
                 </Tooltip>
                 <Typography style={{ width: 60, textAlign: "center" }}>
@@ -354,9 +358,9 @@ const QueryParameterModal = React.memo(
                     parameter.length
                   }`}
                 </Typography>
-                <Tooltip title='Next parameter'>
+                <Tooltip title="Next parameter">
                   <IconButton onClick={handleClickNext}>
-                    <NavigateNextIcon color='action' />
+                    <NavigateNextIcon color="action" />
                   </IconButton>
                 </Tooltip>
               </div>
@@ -374,12 +378,14 @@ const QueryParameterModal = React.memo(
 
           <DialogActions>
             {errorMsg != null && errorMsg.length > 0 && (
-              <ErrorTypography color="error" align="left">{errorMsg}</ErrorTypography>
+              <ErrorTypography color="error" align="left">
+                {errorMsg}
+              </ErrorTypography>
             )}
-            <Button autoFocus onClick={onClose} color='primary'>
+            <Button autoFocus onClick={onClose} color="primary">
               Cancel
             </Button>
-            <Button disabled={total <= 0} onClick={onClickScan} color='primary'>
+            <Button disabled={total <= 0} onClick={onClickScan} color="primary">
               Scan
             </Button>
           </DialogActions>

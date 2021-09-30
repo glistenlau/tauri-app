@@ -58,7 +58,7 @@ class JavaProps {
     };
 
     return await this.sendRequest(Action.SAVE_PROP, payload);
-   }
+  };
 }
 
 export default new JavaProps();

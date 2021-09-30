@@ -8,7 +8,6 @@ import { RootState } from "../../reducers";
 import { changeSettings } from "./editorSettingsSlice";
 import MenuItem from "@material-ui/core/MenuItem";
 
-
 const useStyles = makeStyles((theme) =>
   createStyles({
     container: {

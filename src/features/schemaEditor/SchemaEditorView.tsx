@@ -11,7 +11,7 @@ import {
   FlatNode,
   Range,
   useDbSchemaFileContetQuery,
-  useDbSchemaSearchFlatLazyQuery
+  useDbSchemaSearchFlatLazyQuery,
 } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import {
@@ -48,7 +48,7 @@ interface SchemaEditorViewProps {
 }
 
 interface SchemaEditorContextType {
-  onSelectNode: (id: string) => void,
+  onSelectNode: (id: string) => void;
 }
 export const SchemaEditorContext = createContext<SchemaEditorContextType>({
   onSelectNode: (id) => {},
@@ -57,46 +57,47 @@ export const SchemaEditorContext = createContext<SchemaEditorContextType>({
 const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const {
-    leftPanelWidth,
-    searchPath,
-    searchFile,
-    diffMode,
-    activePair,
-  } = useSelector(
-    (state: RootState) => ({
-      leftPanelWidth: state.schemaEditor.leftPanelWidth,
-      searchPath: state.schemaEditor.searchPath,
-      searchFile: state.schemaEditor.searchFile,
-      diffMode: state.schemaEditor.diffMode,
-      activeNodeId: state.schemaEditor.activeNodeId,
-      activePair: state.schemaEditor.activePair,
-    }),
-    shallowEqual
-  );
+  const { leftPanelWidth, searchPath, searchFile, diffMode, activePair } =
+    useSelector(
+      (state: RootState) => ({
+        leftPanelWidth: state.schemaEditor.leftPanelWidth,
+        searchPath: state.schemaEditor.searchPath,
+        searchFile: state.schemaEditor.searchFile,
+        diffMode: state.schemaEditor.diffMode,
+        activeNodeId: state.schemaEditor.activeNodeId,
+        activePair: state.schemaEditor.activePair,
+      }),
+      shallowEqual
+    );
 
   const [selectedNode, setSelectedNode] = useState<FlatNode | undefined>();
-  const [selectedFilePath, setSelectedFilePath] = useState<string | undefined>();
+  const [selectedFilePath, setSelectedFilePath] = useState<
+    string | undefined
+  >();
 
   const contentRanges = useMemo<Range[]>(() => {
     if (!selectedNode) {
       return [];
     }
 
-    const {values} = selectedNode;
+    const { values } = selectedNode;
 
-    return values.map((val) => ({start: val.start, end: val.end}));
+    return values.map((val) => ({ start: val.start, end: val.end }));
   }, [selectedNode]);
 
-  const {data: contentData} = useDbSchemaFileContetQuery({
-    variables: {filePath: selectedFilePath || "", ranges: contentRanges},
+  const { data: contentData } = useDbSchemaFileContetQuery({
+    variables: { filePath: selectedFilePath || "", ranges: contentRanges },
   });
 
   const valuePair = useMemo(() => {
-    if (!selectedNode || !contentData || contentData.dbSchemaFileContent.length === 0) {
+    if (
+      !selectedNode ||
+      !contentData ||
+      contentData.dbSchemaFileContent.length === 0
+    ) {
       return ["", ""];
     }
-    const {values} = selectedNode;
+    const { values } = selectedNode;
 
     const res = ["", ""];
 
@@ -106,27 +107,29 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
       } else {
         res[0] = contentData.dbSchemaFileContent[index];
       }
-    })
+    });
 
     return res;
   }, [contentData, selectedNode]);
 
-  const [
-    searchDbSchema,
-    { called, loading, data, error },
-  ] = useDbSchemaSearchFlatLazyQuery();
+  const [searchDbSchema, { called, loading, data, error }] =
+    useDbSchemaSearchFlatLazyQuery();
 
-  const onNodeSelect = useCallback((id: string) => {
-    if (!data || !id) {
-      return;
-    }
+  const onNodeSelect = useCallback(
+    (id: string) => {
+      if (!data || !id) {
+        return;
+      }
 
-    const fileIndex = parseInt(id.split('-')[0]);
-    const selectedNode = data.dbSchemasFlat[fileIndex].nodes.find((node) => node.id === id);
-    setSelectedNode(selectedNode);
-    setSelectedFilePath(data.dbSchemasFlat[fileIndex].path);
-  }, [data]);
-
+      const fileIndex = parseInt(id.split("-")[0]);
+      const selectedNode = data.dbSchemasFlat[fileIndex].nodes.find(
+        (node) => node.id === id
+      );
+      setSelectedNode(selectedNode);
+      setSelectedFilePath(data.dbSchemasFlat[fileIndex].path);
+    },
+    [data]
+  );
 
   const handleClickSearch = useCallback(() => {
     searchDbSchema({
@@ -161,7 +164,7 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
 
   return (
     <Container active={active}>
-      <SchemaEditorContext.Provider value={{onSelectNode: onNodeSelect}}>
+      <SchemaEditorContext.Provider value={{ onSelectNode: onNodeSelect }}>
         <Resizable
           className={classes.leftContainer}
           onResizeStop={handleLeftPanelResize}

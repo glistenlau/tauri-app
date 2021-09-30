@@ -56,7 +56,7 @@ export default class JavaProperties {
     let proccessed = false;
 
     if (fs.existsSync(this.filePath)) {
-      const rl:any = null;
+      const rl: any = null;
       let prevKey = "";
 
       for await (const line of rl) {

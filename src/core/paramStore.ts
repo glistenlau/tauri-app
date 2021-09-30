@@ -108,7 +108,7 @@ const mapStmtKeyPair = (stmt: string, index: number) => {
 export const getParamsPair = async ({
   propPath,
   propName,
-  stmts
+  stmts,
 }: GetParamArgument): Promise<GetParamReturn | null> => {
   const ret: GetParamReturn = {};
   const paramCountPair = stmts.map((stmt) => stmt.split("?").length - 1) as [
@@ -149,7 +149,7 @@ export const saveParamsPair = async ({
   propPath,
   propName,
   stmts,
-  paramsPair
+  paramsPair,
 }: SaveParamArgument) => {
   if (
     paramsPair == null ||
@@ -216,7 +216,7 @@ const addParamsPairToStored = (
 
     storedParamsList.push({
       timestamp: now,
-      value: rawParams
+      value: rawParams,
     });
 
     if (storedParamsList.length > MAX_SIZE) {

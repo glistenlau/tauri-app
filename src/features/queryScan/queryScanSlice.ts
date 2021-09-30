@@ -4,7 +4,7 @@ import queryRunner, {
   ProgressMessage,
   Query,
   ScanResult,
-  ScanSchemaResult
+  ScanSchemaResult,
 } from "../../apis/queryRunner";
 import { DBType } from "../../apis/sqlCommon";
 import { evaluateRawParamsPair } from "../../core/parameterEvaluator";
@@ -12,7 +12,7 @@ import {
   GetParamReturn,
   getParamsPair,
   saveParamsPair,
-  StoredParams
+  StoredParams,
 } from "../../core/paramStore";
 import { RootState } from "../../reducers";
 import { getParameterMarkerPosition } from "../../util";
@@ -20,7 +20,7 @@ import {
   setSchemaResults,
   startNewResults,
   updateProgress,
-  updateSchemaResult
+  updateSchemaResult,
 } from "../runnerResult/runnerResultSlice";
 import { changeUncommitCount } from "../transactionControl/transactionControlSlice";
 
@@ -80,7 +80,6 @@ export const loadQueryScan = createAsyncThunk<
   } = getState();
 
   let storedParamsPair: GetParamReturn | null;
-
 
   try {
     if (activeView === 0) {

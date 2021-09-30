@@ -3,7 +3,7 @@ import { requestAsync } from ".";
 enum Action {
   GET = "get",
   PUT = "put",
-  DELETE = "delete"
+  DELETE = "delete",
 }
 
 interface Response {
@@ -13,16 +13,14 @@ interface Response {
 
 class DataStore {
   sendRequest = async (
-    
     action: Action,
-  
-     key: string,
-  
-     val?: string
-  
+
+    key: string,
+
+    val?: string
   ): Promise<string | undefined> => {
     const payload: any = {
-      key
+      key,
     };
 
     if (val) {

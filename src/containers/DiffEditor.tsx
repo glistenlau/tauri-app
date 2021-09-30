@@ -355,12 +355,8 @@ class DiffEditor extends React.Component<any, any> {
   };
 
   handleSaveDialogClose = async (confirmVal?: number) => {
-    const {
-      dispatch,
-      values,
-      selectedClassPath,
-      selectedPropName,
-    } = this.props;
+    const { dispatch, values, selectedClassPath, selectedPropName } =
+      this.props;
 
     if (confirmVal === undefined) {
       this.setState({
@@ -419,12 +415,8 @@ class DiffEditor extends React.Component<any, any> {
       values,
     } = this.props;
 
-    const {
-      diffCode,
-      copyDialogOpen,
-      saveDialogError,
-      saveDialogOpen,
-    } = this.state;
+    const { diffCode, copyDialogOpen, saveDialogError, saveDialogOpen } =
+      this.state;
 
     const propsValidateReults =
       (validateResults && validateResults[selectedClassPath]) || null;

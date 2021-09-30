@@ -3,7 +3,7 @@ import {
   ProgressMessage,
   ScanProcess,
   ScanResult,
-  ScanSchemaResult
+  ScanSchemaResult,
 } from "../../apis/queryRunner";
 import { DiffResultType } from "../../core/dbResultDiff";
 
@@ -40,10 +40,10 @@ export const initialState: RunnerResultState = {
   totalCount: 0,
   timeElapsedPair: [
     [0, 0],
-    [0, 0]
+    [0, 0],
   ],
   resultPair: [null, null],
-  resultActivePair: [true, true]
+  resultActivePair: [true, true],
 };
 
 const runnerResult = createSlice({
@@ -93,7 +93,7 @@ const runnerResult = createSlice({
         (schema) =>
           (progressMap[schema] = [
             { total: 0, pending: 0, finished: 0, parameters: null },
-            { total: 0, pending: 0, finished: 0, parameters: null }
+            { total: 0, pending: 0, finished: 0, parameters: null },
           ])
       );
       state.schemaProgress = progressMap;
@@ -110,28 +110,33 @@ const runnerResult = createSlice({
         total: payload.total,
         pending: payload.pending,
         finished: payload.finished,
-        parameters: payload.parameters
+        parameters: payload.parameters,
       };
       const newProgressPair = [...oldProgress];
       newProgressPair[payload.index] = newProgress;
       state.schemaProgress = Object.assign({}, state.schemaProgress, {
-        [payload.schema]: newProgressPair
+        [payload.schema]: newProgressPair,
       });
     },
-    setSchemaResults(state, {payload}: PayloadAction<ScanResult>) {
+    setSchemaResults(state, { payload }: PayloadAction<ScanResult>) {
       state.schemaResults = payload;
     },
-    updateSchemaResult(state, {payload}: PayloadAction<[string, ScanSchemaResult]>) {
+    updateSchemaResult(
+      state,
+      { payload }: PayloadAction<[string, ScanSchemaResult]>
+    ) {
       const [schema, schemaResult] = payload;
-      state.schemaResults = Object.assign({}, state.schemaResults, {[schema]: schemaResult});
+      state.schemaResults = Object.assign({}, state.schemaResults, {
+        [schema]: schemaResult,
+      });
     },
-    setSelectedSchema(state, {payload}: PayloadAction<string>) {
+    setSelectedSchema(state, { payload }: PayloadAction<string>) {
       state.selectedSchema = payload;
     },
-    setResultActivePair(state, {payload}: PayloadAction<[boolean, boolean]>) {
+    setResultActivePair(state, { payload }: PayloadAction<[boolean, boolean]>) {
       state.resultActivePair = payload;
-    }
-  }
+    },
+  },
 });
 
 export const {
@@ -149,7 +154,7 @@ export const {
   setSchemaResults,
   startNewResults,
   updateProgress,
-  updateSchemaResult
+  updateSchemaResult,
 } = runnerResult.actions;
 
 export default runnerResult.reducer;

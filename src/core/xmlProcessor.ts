@@ -357,10 +357,9 @@ export const aggregateSameNamePair = (node1: XmlTag, node2: XmlTag) => {
     aggregateNodeFunc(node, index, childTagValMap, noNameTagIndexMap, 1);
   });
 
-  const aggregatedChildren = Object.values(
-    childTagValMap
-  ).map((childPair: [XmlTag, XmlTag]) =>
-    aggregateSameNamePair(childPair[0], childPair[1])
+  const aggregatedChildren = Object.values(childTagValMap).map(
+    (childPair: [XmlTag, XmlTag]) =>
+      aggregateSameNamePair(childPair[0], childPair[1])
   );
   copyNode.children = aggregatedChildren;
 
@@ -425,7 +424,8 @@ export const extractXmlFileIndex = (path: string) => {
     return NaN;
   }
   const endIndex = path.indexOf("-");
-  const indexStr = endIndex !== -1 ? path.substring('file'.length, endIndex) : path;
+  const indexStr =
+    endIndex !== -1 ? path.substring("file".length, endIndex) : path;
   return parseInt(indexStr, 10);
 };
 

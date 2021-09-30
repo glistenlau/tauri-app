@@ -41,12 +41,12 @@ enum Action {
   SetConfig = "setConfig",
   SetAutocomit = "setAutocommit",
   Commit = "commit",
-  Rollback = "rollback"
+  Rollback = "rollback",
 }
 
 export enum DBType {
-  Oracle = 'oracle',
-  Postgres = 'postgres',
+  Oracle = "oracle",
+  Postgres = "postgres",
 }
 
 interface Payload<C> {
@@ -66,7 +66,7 @@ class SqlCommon<C> {
 
   sendRequest = async (action: Action, payload?: Payload<C>) => {
     const args: any = {
-      action
+      action,
     };
 
     if (payload) {
@@ -84,7 +84,7 @@ class SqlCommon<C> {
     const payload = {
       statement,
       schema,
-      parameters
+      parameters,
     };
 
     return await this.sendRequest(Action.ExecuteStatement, payload);
@@ -92,7 +92,7 @@ class SqlCommon<C> {
 
   setConfig = async (config: C) => {
     const payload = {
-      config
+      config,
     };
 
     const res = await this.sendRequest(Action.SetConfig, payload);

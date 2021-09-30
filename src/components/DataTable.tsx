@@ -6,7 +6,7 @@ import React, {
   ForwardRefRenderFunction,
   useCallback,
   useEffect,
-  useRef
+  useRef,
 } from "react";
 import { VariableSizeGrid } from "react-window";
 import "./data_table.css";
@@ -28,30 +28,30 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     height: "100%",
     flexDirection: "column",
-    width: "40%"
+    width: "40%",
   },
   numCell: {
-    backgroundColor: theme.palette.background.default
+    backgroundColor: theme.palette.background.default,
   },
   errorCell: {
-    background: "rgba(238, 205, 205, .5)"
+    background: "rgba(238, 205, 205, .5)",
   },
   normalRow: {},
   errorRow: {
-    background: "rgba(255,134, 124, .3)"
+    background: "rgba(255,134, 124, .3)",
   },
   rangeContainer: {
     flex: 1,
-    textAlign: "end"
+    textAlign: "end",
   },
   footContainer: {
     padding: 10,
     backgroundColor: theme.palette.background.default,
     display: "flex",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   container: {
-    flex: 1
+    flex: 1,
   },
   cell: {
     display: "flex",
@@ -60,25 +60,25 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: 10,
     paddingRight: 10,
     borderBottom: "1px solid #eee",
-    borderRight: "1px solid #eee"
+    borderRight: "1px solid #eee",
   },
   cellText: {
     whiteSpace: "pre",
-    width: "fit-content"
+    width: "fit-content",
   },
   dataCell: {
-    backgroundColor: "white"
+    backgroundColor: "white",
   },
   gutterCell: {
-    backgroundColor: "#f8f8f8"
+    backgroundColor: "#f8f8f8",
   },
   columnCell: {
     borderBottom: "1px solid #c8c8c8",
-    borderRight: "1px solid #c8c8c8"
+    borderRight: "1px solid #c8c8c8",
   },
   bodyContainer: {
-    backgroundColor: theme.palette.background.paper
-  }
+    backgroundColor: theme.palette.background.paper,
+  },
 }));
 
 interface QueryTablePropsType {
@@ -106,7 +106,7 @@ const Cell = React.memo(
         <Typography
           className={clsx(classes.cellText)}
           color={cellHasError ? "error" : undefined}
-          variant='body2'
+          variant="body2"
         >
           {`${cell}`}
         </Typography>
@@ -157,9 +157,9 @@ const HeaderCell = React.memo(
             style={{
               width: "fit-content",
               position: "sticky",
-              left: dataColumns[0].width + 10
+              left: dataColumns[0].width + 10,
             }}
-            variant='subtitle2'
+            variant="subtitle2"
           >
             {cellData.name}
           </Typography>
@@ -185,7 +185,7 @@ const StickyHeaderRow = React.memo(({ iconName, style, dataColumns }: any) => {
             left: index === 0 ? 0 : undefined,
             top: index === 0 ? 0 : undefined,
             height: 35,
-            backgroundColor: "#f8f8f8"
+            backgroundColor: "#f8f8f8",
           }}
         />
       ))}
@@ -201,7 +201,7 @@ const StickyColumnCell = React.memo(({ className, cellData, style }: any) => {
       className={clsx(classes.cell, classes.columnCell, className)}
       style={style}
     >
-      <Typography variant='subtitle2'>{`${cellData}`}</Typography>
+      <Typography variant="subtitle2">{`${cellData}`}</Typography>
     </div>
   );
 });
@@ -225,7 +225,7 @@ const StickyColumn: ForwardRefRenderFunction<
   const classes = useStyles();
   const [renderRange, setRenderRange] = React.useState([
     0,
-    Math.min(dataRows.length - 1, Math.ceil(height / 35) + overscanRowCount)
+    Math.min(dataRows.length - 1, Math.ceil(height / 35) + overscanRowCount),
   ]);
   const [scrollPos, setScrollPos] = React.useState(0);
 
@@ -234,7 +234,7 @@ const StickyColumn: ForwardRefRenderFunction<
     () => ({
       onScroll: ({ scrollTop }: any) => {
         setScrollPos(scrollTop);
-      }
+      },
     }),
     []
   );
@@ -273,7 +273,7 @@ const StickyColumn: ForwardRefRenderFunction<
             width: dataColumns[0].width,
             position: "absolute",
             left: 0,
-            top: 35 * (renderRange[0] + index)
+            top: 35 * (renderRange[0] + index),
           }}
         />
       ))}
@@ -283,14 +283,8 @@ const StickyColumn: ForwardRefRenderFunction<
 
 const StickyColumnWithRef = forwardRef(StickyColumn);
 const DataTable = React.memo((props: QueryTablePropsType) => {
-  const {
-    dataColumns,
-    dataRows,
-    height,
-    width,
-    iconName,
-    onItemsRendered
-  } = props;
+  const { dataColumns, dataRows, height, width, iconName, onItemsRendered } =
+    props;
   const stickyColumnRef = useRef<StickyColumnHandle>(null);
   const gridRef = useRef<VariableSizeGrid>(null);
 
@@ -309,9 +303,9 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
   const innerElementType = React.useMemo(
     () =>
       forwardRef(({ children, ...rest }, ref: any) => (
-        <div key='innerElement' className='container' ref={ref} {...rest}>
+        <div key="innerElement" className="container" ref={ref} {...rest}>
           <StickyHeaderRow
-            key='stickyHeader'
+            key="stickyHeader"
             iconName={iconName}
             dataColumns={dataColumns}
             style={{
@@ -320,14 +314,14 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
               width: totalColumnsWidth,
               height: 35,
               backgroundColor: "f8f8f8",
-              overflow: 'hidden',
+              overflow: "hidden",
             }}
           />
           <div>
             <StickyColumnContext.Consumer>
               {({ displayHeight }: any) => (
                 <StickyColumnWithRef
-                  key='stickyColumn'
+                  key="stickyColumn"
                   ref={stickyColumnRef}
                   dataRows={dataRows}
                   dataColumns={dataColumns}
@@ -340,7 +334,7 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
                     position: "flex",
                     flexDirection: "column",
                     height: dataRows.length * 35,
-                    zIndex: 1
+                    zIndex: 1,
                   }}
                 />
               )}
@@ -364,12 +358,11 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
     }
   }, [dataRows]);
 
-
   return (
     <StickyColumnContext.Provider value={{ displayHeight: height }}>
       <VariableSizeGrid
         ref={gridRef}
-        className='gridContainer'
+        className="gridContainer"
         onScroll={onScroll}
         innerElementType={innerElementType}
         columnCount={dataColumns.length}
@@ -382,7 +375,7 @@ const DataTable = React.memo((props: QueryTablePropsType) => {
         onItemsRendered={handleItemsRendered}
         itemData={{
           dataRows,
-          dataColumns
+          dataColumns,
         }}
       >
         {ItemWrapper}

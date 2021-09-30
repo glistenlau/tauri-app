@@ -12,7 +12,7 @@ import {
   OracleSettings,
   PostgreSettings,
   setOracleConfig,
-  setPostgresConfig
+  setPostgresConfig,
 } from "./settingsSlice";
 
 const Container = styled(TabContent)`
@@ -36,11 +36,11 @@ const SettingsPanel = React.memo(({ active }: any) => {
       try {
         await api.setConfig(config);
         snackBar.enqueueSnackbar(`Successfully connected to the ${dbName}.`, {
-          variant: "success"
+          variant: "success",
         });
       } catch (e) {
         snackBar.enqueueSnackbar(`Failed to connect to ${dbName}: ${e}`, {
-          variant: "error"
+          variant: "error",
         });
       }
     },

@@ -13,14 +13,14 @@ const styles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "row",
     height: "80%",
-    width: "100%"
+    width: "100%",
   },
   tableContainer: {
     flex: 1,
     display: "flex",
     flexDirection: "row",
     height: "100%",
-    width: "40%"
+    width: "40%",
   },
   content: {
     flex: 1,
@@ -29,14 +29,14 @@ const styles = makeStyles((theme) => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    width: "40%"
+    width: "40%",
   },
   hide: {
-    height: 0
+    height: 0,
   },
   process: {
     width: "50%",
-    marginTop: 10
+    marginTop: 10,
   },
   ellipsis: {
     textOverflow: "ellipsis",
@@ -44,8 +44,8 @@ const styles = makeStyles((theme) => ({
     flex: 1,
     overflow: "hidden",
     whiteSpace: "nowrap",
-    textAlign: "center"
-  }
+    textAlign: "center",
+  },
 }));
 
 interface SplitRunningPanelProps {
@@ -70,7 +70,7 @@ const SplitRunningPanel = (props: SplitRunningPanelProps) => {
                   alignItems: "center",
                   justifyContent: "center",
                   padding: 10,
-                  width: "100%"
+                  width: "100%",
                 }}
               >
                 <Typography className={classes.ellipsis}>
@@ -89,7 +89,7 @@ const SplitRunningPanel = (props: SplitRunningPanelProps) => {
               {progress.total > 0 && (
                 <LinearProgress
                   className={classes.process}
-                  variant='buffer'
+                  variant="buffer"
                   value={(progress.finished / progress.total) * 100}
                   valueBuffer={
                     (100 * (progress.finished + progress.pending)) /
@@ -99,7 +99,7 @@ const SplitRunningPanel = (props: SplitRunningPanelProps) => {
                 />
               )}
             </div>
-            <Divider orientation='vertical' flexItem />
+            <Divider orientation="vertical" flexItem />
           </div>
         ))}
     </div>

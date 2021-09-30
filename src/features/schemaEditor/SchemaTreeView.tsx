@@ -7,7 +7,11 @@ import { useSelector } from "react-redux";
 import { withSize } from "react-sizeme";
 import { TreeWalker } from "react-vtree";
 import { FixedSizeTree } from "react-vtree/dist/es/FixedSizeTree";
-import { DbFamily, DbSchemaSearchFlatQuery, FlatNode } from "../../generated/graphql";
+import {
+  DbFamily,
+  DbSchemaSearchFlatQuery,
+  FlatNode,
+} from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import SchemaTreeViewNode from "./SchemaTreeViewNode";
 

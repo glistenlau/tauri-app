@@ -4,12 +4,12 @@ import { editor } from "monaco-editor";
 import React, {
   forwardRef,
   ForwardRefRenderFunction,
-  useCallback
+  useCallback,
 } from "react";
 import { SizeMe, SizeMeProps } from "react-sizeme";
 import {
   getEffectiveValueFromEditor,
-  getValueFromEditor
+  getValueFromEditor,
 } from "../util/monaco";
 import DiffEditor from "./DiffEditor";
 import Editor from "./Editor";

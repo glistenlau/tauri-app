@@ -123,8 +123,7 @@ class QueryRunner {
     if (!oracleRet.success || !postgresRet.success) {
       try {
         await DatabaseConsole.rollback();
-      } catch (e) {
-      }
+      } catch (e) {}
     }
 
     return [oracleRet, postgresRet];
@@ -134,7 +133,7 @@ class QueryRunner {
     query: QueryType,
     executeFunc: Function
   ): Promise<ResultType> => {
-    const { parameters, schema, statement } = query;    
+    const { parameters, schema, statement } = query;
     let st = statement.replace(/COMPANY_/gi, `${schema}.`);
     const params = parameters || [];
 

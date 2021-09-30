@@ -2,17 +2,13 @@ import { createStyles, withStyles } from "@material-ui/styles";
 import React from "react";
 import { connect } from "react-redux";
 import {
-  changeParameters, closeParameterModal,
-
-
-
-  evaluateParameter, scanRunQuery,
-
-
+  changeParameters,
+  closeParameterModal,
+  evaluateParameter,
+  scanRunQuery,
   toggleCartesian,
   toggleSync,
-
-  validateParameters
+  validateParameters,
 } from "../actions";
 import QueryParameterModal from "../components/QueryParameterModal";
 import { RootState } from "../reducers";
@@ -91,13 +87,8 @@ class QueryRunner extends React.Component<any, any> {
   };
 
   runQuery = async () => {
-    const {
-      dispatch,
-      statements,
-      parameters,
-      cartesian,
-      runnerControl,
-    } = this.props;
+    const { dispatch, statements, parameters, cartesian, runnerControl } =
+      this.props;
     await dispatch(
       scanRunQuery(
         statements,
@@ -145,13 +136,8 @@ class QueryRunner extends React.Component<any, any> {
   };
 
   render() {
-    const {
-      openParameterModal,
-      statements,
-      parameters,
-      cartesian,
-      sync,
-    } = this.props;
+    const { openParameterModal, statements, parameters, cartesian, sync } =
+      this.props;
     return (
       <QueryParameterModal
         cartesian={cartesian}

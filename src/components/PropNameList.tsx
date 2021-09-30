@@ -143,12 +143,8 @@ const PropName = React.memo(
 );
 
 const PropNameList = (props: PropNameListProps) => {
-  const {
-    propNameList,
-    selectedProp,
-    onListItemClick,
-    validateResults,
-  } = props;
+  const { propNameList, selectedProp, onListItemClick, validateResults } =
+    props;
 
   const [searchText, setSearchText] = React.useState("");
   const classes = useStyles();

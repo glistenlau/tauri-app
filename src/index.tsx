@@ -16,12 +16,11 @@ import rootReducer from "./reducers";
 const middleware = [thunk, logger].filter(Boolean);
 const store = configureStore({
   reducer: rootReducer,
-  middleware: middleware
+  middleware: middleware,
 });
 
 export const persistor = persistStore(store);
-const root = document.getElementById('root');
-
+const root = document.getElementById("root");
 
 ReactDOM.render(
   <Provider store={store}>

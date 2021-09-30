@@ -49,12 +49,9 @@ const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
     [dispatch, snackbar]
   );
 
-  const handleValuePairChange = useCallback(
-    (valuePair: [string, string]) => {
-      setValuePair(valuePair);
-    },
-    []
-  );
+  const handleValuePairChange = useCallback((valuePair: [string, string]) => {
+    setValuePair(valuePair);
+  }, []);
 
   const handleEditorBlur = useCallback(() => {
     dispatch(changeConsleValuePair(valuePair));

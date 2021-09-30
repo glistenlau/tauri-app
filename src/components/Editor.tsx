@@ -9,14 +9,13 @@ import React, {
   ForwardRefRenderFunction,
   useCallback,
   useImperativeHandle,
-
-  useState
+  useState,
 } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";
 import {
   getEffectiveValueFromEditor,
-  getValueFromEditor
+  getValueFromEditor,
 } from "../util/monaco";
 
 export const themeList: string[] = [];
@@ -69,10 +68,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
     }
 
     oldDecorations.current =
-    instance?.deltaDecorations(
-        oldDecorations.current,
-        decorations
-      ) || [];
+      instance?.deltaDecorations(oldDecorations.current, decorations) || [];
   }, [decorations, instance]);
 
   const handleEditorDidMount: EditorDidMount = useCallback(
@@ -90,7 +86,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
   useImperativeHandle(
     ref,
     () => ({
-      editor: instance, 
+      editor: instance,
       getEffectiveValue: () => getEffectiveValueFromEditor(instance),
       getValue: () => getValueFromEditor(instance),
     }),

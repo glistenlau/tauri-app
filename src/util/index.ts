@@ -13,7 +13,7 @@ import {
   pink,
   purple,
   red,
-  teal
+  teal,
 } from "@material-ui/core/colors";
 import crypto from "crypto";
 import glob from "glob";

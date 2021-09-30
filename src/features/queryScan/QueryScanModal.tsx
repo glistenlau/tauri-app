@@ -3,7 +3,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState
+  useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { GlobalContext } from "../../App";
@@ -15,7 +15,7 @@ import {
   Parameter,
   setOpenModal,
   setParametersPair,
-  startQueryScan
+  startQueryScan,
 } from "./queryScanSlice";
 
 const QueryScanModal: React.FC = () => {

@@ -1,11 +1,20 @@
-import React, { forwardRef, ForwardRefRenderFunction, memo, useCallback, useEffect, useState } from "react";
+import React, {
+  forwardRef,
+  ForwardRefRenderFunction,
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
 import { RootState } from "../../reducers";
 import { updateParamValuePair } from "./propsEditorSlice";
 
-
-const SplitEditorView: ForwardRefRenderFunction<SplitEditorHandle, {}> = ({ }, ref) => {
+const SplitEditorView: ForwardRefRenderFunction<SplitEditorHandle, {}> = (
+  {},
+  ref
+) => {
   const dispatch = useDispatch();
   const [valuePair, setValuePair] = useState(["", ""] as [string, string]);
   const propsMap = useSelector(
@@ -35,14 +44,11 @@ const SplitEditorView: ForwardRefRenderFunction<SplitEditorHandle, {}> = ({ }, r
     }
 
     setValuePair(propNameMap[selectedPropName]);
-  }, [propsMap, selectedClassName, selectedPropName])
+  }, [propsMap, selectedClassName, selectedPropName]);
 
-  const handleChange = useCallback(
-    (valuePair: [string, string]) => {
-      setValuePair(valuePair);
-    },
-    []
-  );
+  const handleChange = useCallback((valuePair: [string, string]) => {
+    setValuePair(valuePair);
+  }, []);
 
   const handleBlur = useCallback(() => {
     dispatch(updateParamValuePair(valuePair));

@@ -6,7 +6,9 @@ import DiffToolBar from "../../components/DiffToolbar";
 import PathBreadcrumbs from "../../components/PathBreadcrumbs";
 import { RootState } from "../../reducers";
 import {
-  selectXmlNode, setActivePair, toggleDiffMode
+  selectXmlNode,
+  setActivePair,
+  toggleDiffMode,
 } from "./schemaEditorSlice";
 
 const useStyles = makeStyles((theme) =>
@@ -36,7 +38,6 @@ const useStyles = makeStyles((theme) =>
     },
   })
 );
-
 
 const SchemaTreeViewToolBar = React.memo(() => {
   const classes = useStyles();
@@ -119,7 +120,7 @@ const SchemaTreeViewToolBar = React.memo(() => {
     (activePair: [boolean, boolean]) => {
       dispatch(setActivePair(activePair));
     },
-    [dispatch],
+    [dispatch]
   );
 
   return (

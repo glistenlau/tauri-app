@@ -1,6 +1,8 @@
 import { editor } from "monaco-editor";
 
-export const getEffectiveValueFromEditor = (monaco?: editor.IStandaloneCodeEditor | editor.ICodeEditor) => {
+export const getEffectiveValueFromEditor = (
+  monaco?: editor.IStandaloneCodeEditor | editor.ICodeEditor
+) => {
   if (!monaco) {
     return "";
   }
@@ -23,7 +25,9 @@ export const getEffectiveValueFromEditor = (monaco?: editor.IStandaloneCodeEdito
   return value;
 };
 
-export const getValueFromEditor = (monaco?: editor.IStandaloneCodeEditor | editor.ICodeEditor) => {
+export const getValueFromEditor = (
+  monaco?: editor.IStandaloneCodeEditor | editor.ICodeEditor
+) => {
   if (!monaco) {
     return "";
   }

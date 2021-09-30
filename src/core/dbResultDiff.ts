@@ -37,20 +37,20 @@ export type DiffResultViewType = {
 
 const mapQueryResultToView = (
   rst: ScanSchemaQueryResult | null,
-  diffResults?: {  [rowIndex: number]: number[]  }
+  diffResults?: { [rowIndex: number]: number[] }
 ) => {
   const sqlResult = rst?.results;
   if (sqlResult == null) {
     return {
       success: false,
-      error: "No SQL results."
+      error: "No SQL results.",
     };
   }
   const success = sqlResult.error == null;
   if (!success) {
     return {
       success,
-      error: sqlResult.error
+      error: sqlResult.error,
     };
   }
 
@@ -59,7 +59,7 @@ const mapQueryResultToView = (
     columns?.map((column, index) => ({
       id: `${index}`,
       name: column,
-      width: getTextWidth(column, HEADER_FONT) + EXTRA_WIDTH
+      width: getTextWidth(column, HEADER_FONT) + EXTRA_WIDTH,
     })) || [];
   let rows: string[][] = sqlResult.result?.rows || [];
   let mappedRows = null;
@@ -70,9 +70,9 @@ const mapQueryResultToView = (
         name: "",
         id: "-1",
         sticky: "left",
-        width: getTextWidth(`${rows.length}`, HEADER_FONT) + EXTRA_WIDTH
+        width: getTextWidth(`${rows.length}`, HEADER_FONT) + EXTRA_WIDTH,
       },
-      ...mappedColumns
+      ...mappedColumns,
     ];
   }
 
@@ -95,7 +95,7 @@ const mapQueryResultToView = (
       return {
         data: [rowIndex, ...row],
         containsError: rowDiffs != null,
-        errorArray
+        errorArray,
       };
     });
   }
@@ -106,7 +106,7 @@ const mapQueryResultToView = (
     rows: mappedRows,
     params: rst?.parameters,
     elapsed: rst?.progress.elapsed,
-    rowsAffected: sqlResult.result?.rowCount
+    rowsAffected: sqlResult.result?.rowCount,
   };
 };
 
@@ -116,19 +116,19 @@ export const mapToView = (value?: ScanSchemaResult): DiffResultViewType => {
   let viewValues: [DiffResultType, DiffResultType] = [
     {
       success: false,
-      error: "No SQL results."
+      error: "No SQL results.",
     },
     {
       success: false,
-      error: "No SQL results."
-    }
+      error: "No SQL results.",
+    },
   ];
 
   if (!value) {
     return {
       rowCount,
       diffCount,
-      viewValues
+      viewValues,
     };
   }
 
@@ -138,12 +138,15 @@ export const mapToView = (value?: ScanSchemaResult): DiffResultViewType => {
     mapQueryResultToView(qr, diffResults)
   ) as [DiffResultType, DiffResultType];
 
-  rowCount = Math.max(rowCount, ...viewValues.map(val => val.rows?.length || 0));
+  rowCount = Math.max(
+    rowCount,
+    ...viewValues.map((val) => val.rows?.length || 0)
+  );
 
   return {
     diffCount,
     rowCount,
-    viewValues
+    viewValues,
   };
 };
 
@@ -170,15 +173,15 @@ const generateProcessedResult = (
           id: "-1",
           sticky: "left",
           width:
-            getTextWidth(`${processedRows.length}`, HEADER_FONT) + EXTRA_WIDTH
+            getTextWidth(`${processedRows.length}`, HEADER_FONT) + EXTRA_WIDTH,
         },
         ...originResult.fields.map((f: any, i: number) => ({
           ...f,
           width: headersWidth[i],
-          id: `${i}`
-        }))
+          id: `${i}`,
+        })),
       ],
-      rows: processedRows
+      rows: processedRows,
     };
 
   if (ret && originResult && originResult.error) {
@@ -223,7 +226,7 @@ const buildViewRow = (
 ) => {
   const newRow: any = {
     data: [rowIndex + 1, ...rowData],
-    containsError
+    containsError,
   };
 
   if (containsError) {

@@ -14,48 +14,48 @@ const useStyles = makeStyles((theme) => ({
     height: "100%",
     flexDirection: "column",
     width: "40%",
-    backgroundColor: theme.palette.background.default
+    backgroundColor: theme.palette.background.default,
   },
   normalCell: {},
   errorCell: {
-    background: "rgba(239, 83, 80, .5)"
+    background: "rgba(239, 83, 80, .5)",
   },
   normalRow: {},
   errorRow: {
-    background: "rgba(255,134, 124, .3)"
+    background: "rgba(255,134, 124, .3)",
   },
   container: {
-    flex: 1
+    flex: 1,
   },
   stickyColumn: {
     position: "sticky",
     width: 20,
     left: 0,
 
-    top: "auto"
+    top: "auto",
   },
   rangeContainer: {
     flex: 1,
-    textAlign: "end"
+    textAlign: "end",
   },
   footContainer: {
     padding: 10,
     height: 40,
     backgroundColor: theme.palette.background.default,
     display: "flex",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   ellipsis: {
     textOverflow: "ellipsis",
     width: "100%",
     overflow: "hidden",
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
   },
   ellipsisLeft: {
     textOverflow: "ellipsis",
     overflow: "hidden",
-    whiteSpace: "nowrap"
-  }
+    whiteSpace: "nowrap",
+  },
 }));
 
 interface QueryTablePropsType {
@@ -79,7 +79,7 @@ const QueryTable = React.memo((props: QueryTablePropsType) => {
     const newColumns: Array<any> = data.columns;
     return newColumns.map((c: any, ci: any) => ({
       ...c,
-      accessor: (r: any) => `${r.data[ci]}`
+      accessor: (r: any) => `${r.data[ci]}`,
     }));
   }, [data]);
 
@@ -115,12 +115,12 @@ const QueryTable = React.memo((props: QueryTablePropsType) => {
       <TableContainer className={classes.container}>
         {!data.success && (
           <Typography
-            variant='body2'
+            variant="body2"
             style={{
               whiteSpace: "pre-line",
-              padding: 10
+              padding: 10,
             }}
-            color='error'
+            color="error"
           >
             {data.error.message}
           </Typography>
@@ -129,16 +129,16 @@ const QueryTable = React.memo((props: QueryTablePropsType) => {
           (!data.columns || dataColumns.length === 0) &&
           data.rowsAffected !== undefined && (
             <Typography
-              variant='body2'
+              variant="body2"
               style={{
                 whiteSpace: "pre-line",
-                padding: 10
+                padding: 10,
               }}
             >
               {`Rows affected: ${data.rowsAffected}`}
             </Typography>
           )}
-        {data.success && (data.columns && data.columns.length > 0) && (
+        {data.success && data.columns && data.columns.length > 0 && (
           <DataTable
             dataRows={dataRows}
             dataColumns={dataColumns}
@@ -158,21 +158,21 @@ const QueryTable = React.memo((props: QueryTablePropsType) => {
               display: "flex",
               flex: 1,
               width: "50%",
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
             }}
           >
             <Tooltip title={`Total Time Elapsed: ${timeElapsedStr}`}>
-              <Typography variant='body2'>{timeElapsedStr}</Typography>
+              <Typography variant="body2">{timeElapsedStr}</Typography>
             </Tooltip>
             <Tooltip title={`Parameter: ${parameterStr}`}>
-              <Typography className={classes.ellipsisLeft} variant='body2'>
+              <Typography className={classes.ellipsisLeft} variant="body2">
                 {`, ${parameterStr}`}
               </Typography>
             </Tooltip>
           </div>
 
           <div className={classes.rangeContainer}>
-            <Typography className={classes.ellipsis} variant='body2'>
+            <Typography className={classes.ellipsis} variant="body2">
               {visibleRows.length === 0 ? "0 - 0" : visibleRows} of{" "}
               {dataRows.length}
             </Typography>

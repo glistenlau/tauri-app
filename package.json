@@ -54,7 +54,8 @@
     "bundle": "tauri build",
     "generate-schema": "pushd src-tauri && cargo run --bin generate_schema && popd",
     "generate": "graphql-codegen",
-    "dev": "yarn generate-schema && yarn generate && tauri dev"
+    "dev": "yarn generate-schema && yarn generate && tauri dev",
+    "pretty": "prettier --write \"./src/**/*.{js,jsx,ts,tsx,json}\""
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -81,6 +82,7 @@
     "@types/redux-logger": "^3.0.8",
     "customize-cra": "^1.0.0",
     "graphql": "^15.5.0",
+    "prettier": "^2.4.1",
     "react-app-rewired": "^2.1.8"
   },
   "typings": "src/*.d.ts"

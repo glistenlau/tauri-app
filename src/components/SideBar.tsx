@@ -26,7 +26,13 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
-const SIDE_BAR_ICON_NAMES = ["file", "terminal", "tree", "settings", "priceList"];
+const SIDE_BAR_ICON_NAMES = [
+  "file",
+  "terminal",
+  "tree",
+  "settings",
+  "priceList",
+];
 
 interface SideBarProps {
   activeView: number;

@@ -14,7 +14,7 @@ export enum ErrorCode {
 }
 
 export type PostgresResultType = {
-  result: any; 
+  result: any;
   elapsed: [number, number];
 };
 
@@ -24,51 +24,37 @@ export enum POSTGRES_EVENT {
   QUERY_FINISH = "postgres_query_finish",
 }
 class PostgresClient extends EventEmitter {
-  setConfig = (config: any) => {
-  };
+  setConfig = (config: any) => {};
 
-  setSearchPath = async (conn: any, searchPath: string) => {
-  };
+  setSearchPath = async (conn: any, searchPath: string) => {};
 
-  getPoolStatus = () => {
-  };
+  getPoolStatus = () => {};
 
-  connectDatabase = async () => {
-  };
+  connectDatabase = async () => {};
 
-  getConnection = async (startTransaction = true, schema: any) => {
-  };
+  getConnection = async (startTransaction = true, schema: any) => {};
 
-  rollback = async (client: any) => {
-  };
+  rollback = async (client: any) => {};
 
-  commit = async (client: any) => {
-  };
+  commit = async (client: any) => {};
 
-  beginTrasaction = async (client: any) => {
-  };
+  beginTrasaction = async (client: any) => {};
 
-  closeConnection = async (client: any) => {
-  };
+  closeConnection = async (client: any) => {};
 
-  closePool = async () => {
-  };
+  closePool = async () => {};
 
   execute = async (
     statement: string,
     parameters: Array<any>,
     conn: any
-  ): Promise<any> => {
-  };
+  ): Promise<any> => {};
 
-  query = async (statement: string, parameters: Array<any>) => {
-  };
+  query = async (statement: string, parameters: Array<any>) => {};
 
-  createValidateCast = async (conn: any) => {
-  };
+  createValidateCast = async (conn: any) => {};
 
-  validate = async (statement: string, parameters: Array<any>) => {
-  };
+  validate = async (statement: string, parameters: Array<any>) => {};
 }
 
 const instance = new PostgresClient();

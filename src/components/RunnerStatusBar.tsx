@@ -22,24 +22,24 @@ const styles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    position: "relative"
+    position: "relative",
   },
   button: {
     width: 48,
-    height: 48
+    height: 48,
   },
   runningProcess: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    right: 0
+    right: 0,
   },
   ellipsis: {
     textOverflow: "ellipsis",
     width: "40%",
     overflow: "hidden",
-    whiteSpace: "nowrap"
-  }
+    whiteSpace: "nowrap",
+  },
 }));
 
 interface RunnerStatusBarProps {
@@ -65,7 +65,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
     onActivePairChange,
     runningProgress,
     finishedResults,
-    isRunning
+    isRunning,
   } = props;
 
   const hasError = useMemo(
@@ -107,7 +107,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
         }
         return [
           Math.max(pre[0], cur.progress.finished),
-          Math.max(pre[1], cur.progress.total)
+          Math.max(pre[1], cur.progress.total),
         ];
       },
       [0, 0]
@@ -128,7 +128,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
     } else {
       return [
         Math.max(fromResults[0], fromProgress[0]),
-        Math.max(fromResults[1], fromProgress[1])
+        Math.max(fromResults[1], fromProgress[1]),
       ];
     }
   }, [finishedResults?.queryResults, runningProgress]);
@@ -154,7 +154,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
       <Typography
         className={classes.ellipsis}
         style={{
-          color: isRunningLocal ? green[500] : undefined
+          color: isRunningLocal ? green[500] : undefined,
         }}
       >
         {`${processed} / ${total} ` +
@@ -166,7 +166,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
           style={{
             flex: 1,
             textAlign: "end",
-            color: diffRowCount > 0 ? red[500] : green[500]
+            color: diffRowCount > 0 ? red[500] : green[500],
           }}
         >
           {diffRowCount > 1
@@ -180,7 +180,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
           style={{
             flex: 1,
             textAlign: "end",
-            color: red[500]
+            color: red[500],
           }}
         >
           Error occurred.
@@ -196,7 +196,7 @@ const RunnerStatusBar = React.memo((props: RunnerStatusBarProps) => {
       {isRunningLocal && (
         <LinearProgress
           className={classes.runningProcess}
-          variant='buffer'
+          variant="buffer"
           value={(processed * 100) / total}
           valueBuffer={((processed + 1) * 100) / total}
         />

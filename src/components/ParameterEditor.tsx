@@ -5,7 +5,10 @@ import { createStyles, makeStyles } from "@material-ui/styles";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { withSize } from "react-sizeme";
-import { Parameter, ParameterValue } from "../features/queryScan/queryScanSlice";
+import {
+  Parameter,
+  ParameterValue,
+} from "../features/queryScan/queryScanSlice";
 import Editor, { EditorHandle } from "./Editor";
 import "./SplitEditor.css";
 
@@ -80,18 +83,25 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
     });
   }, [onEditorBlur]);
 
-  const handleEditorClick = useCallback((e: monaco.editor.IEditorMouseEvent) => {
-    e.event.preventDefault();
-    const { position } = e.target;
-    if (!position) {
-      return;
-    }
-    const { column, lineNumber } = position;
-    const index = parameter.findIndex(param => param.row === lineNumber && (param.col === column || param.col + 1 === column));
-    if (index !== -1) {
-      onCurrentParameterChange(index);
-    }
-  }, [onCurrentParameterChange, parameter]);
+  const handleEditorClick = useCallback(
+    (e: monaco.editor.IEditorMouseEvent) => {
+      e.event.preventDefault();
+      const { position } = e.target;
+      if (!position) {
+        return;
+      }
+      const { column, lineNumber } = position;
+      const index = parameter.findIndex(
+        (param) =>
+          param.row === lineNumber &&
+          (param.col === column || param.col + 1 === column)
+      );
+      if (index !== -1) {
+        onCurrentParameterChange(index);
+      }
+    },
+    [onCurrentParameterChange, parameter]
+  );
 
   useEffect(() => {
     const editor = editorRef.current && editorRef.current.editor;
@@ -125,10 +135,7 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
       (p: Parameter, i) => {
         let className = "clickableErrorMarker";
 
-        if (
-          p.evaluated?.success &&
-          p.evaluated?.value?.length > 0
-        ) {
+        if (p.evaluated?.success && p.evaluated?.value?.length > 0) {
           className = "clickableValidMarker";
         }
         if (i === currentParameter) {
@@ -163,21 +170,23 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
 
   const classes = useStyles();
 
-  const width = React.useMemo(() => `${Math.floor(size.width / 2)}px`, [
-    size.width,
-  ]);
-  const height = React.useMemo(() => `${Math.floor(size.height / 2)}px`, [
-    size.height,
-  ]);
+  const width = React.useMemo(
+    () => `${Math.floor(size.width / 2)}px`,
+    [size.width]
+  );
+  const height = React.useMemo(
+    () => `${Math.floor(size.height / 2)}px`,
+    [size.height]
+  );
 
-  const evalVal = React.useMemo(() => parameter[currentParameter]?.evaluated, [
-    parameter,
-    currentParameter
-  ]);
+  const evalVal = React.useMemo(
+    () => parameter[currentParameter]?.evaluated,
+    [parameter, currentParameter]
+  );
 
   const evalValStr = React.useMemo(() => {
     if (!evalVal?.success) {
-      return '';
+      return "";
     }
 
     return JSON.stringify(evalVal.value);
@@ -217,7 +226,7 @@ const ParameterEditor = (props: ParameterEditorPropsType) => {
               {evalValStr}
             </Typography>
           )}
-          {(evalVal && !evalVal.success) && (
+          {evalVal && !evalVal.success && (
             <Typography
               style={{
                 whiteSpace: "pre-line",

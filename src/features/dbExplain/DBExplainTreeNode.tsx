@@ -2,14 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import TreeNode, { TreeNodeProps } from "../../components/TreeNode";
 import { useDbExplainQueryLazyQuery } from "../../generated/graphql";
 import {
-    DBExplainTreeItemData,
-    DBExplainTreeNodeData
+  DBExplainTreeItemData,
+  DBExplainTreeNodeData,
 } from "./DBExplainTreeView";
 
-export const DBExplainTreeNode: React.FC<TreeNodeProps<
-  DBExplainTreeNodeData,
-  DBExplainTreeItemData
->> = (props) => {
+export const DBExplainTreeNode: React.FC<
+  TreeNodeProps<DBExplainTreeNodeData, DBExplainTreeItemData>
+> = (props) => {
   const {
     data: { id, name, operation, aTime },
     treeData: { explainText, onLoadNode, onToggle },

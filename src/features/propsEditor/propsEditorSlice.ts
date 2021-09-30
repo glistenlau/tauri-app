@@ -3,7 +3,7 @@ import { initApp } from "../../actions";
 import JavaPropsApi, {
   FilePropsMap,
   FilePropsValidMap,
-  JavaPropsResponse
+  JavaPropsResponse,
 } from "../../apis/javaProps";
 
 export interface PropName {

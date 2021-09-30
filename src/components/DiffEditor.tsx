@@ -1,8 +1,9 @@
 import { editor } from "monaco-editor";
 import React, { useCallback } from "react";
 import {
-  DiffEditorDidMount, MonacoDiffEditor,
-  MonacoDiffEditorProps
+  DiffEditorDidMount,
+  MonacoDiffEditor,
+  MonacoDiffEditorProps,
 } from "react-monaco-editor";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";

@@ -1,9 +1,10 @@
 import { createStyles, makeStyles } from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
 import React from "react";
-import RunnerControlToolBar, { RunOptions } from "../runnerControl/RunnerControlToolBar";
+import RunnerControlToolBar, {
+  RunOptions,
+} from "../runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../transactionControl/TransactionControlToolBar";
-
 
 interface DatabaseConsoleToolBarProps {
   onClickRun: (options: RunOptions) => void;

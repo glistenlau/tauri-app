@@ -1,6 +1,5 @@
 import { requestAsync } from ".";
 
-
 enum Action {
   Debug = "debug",
   Error = "error",

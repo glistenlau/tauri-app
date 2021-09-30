@@ -13,7 +13,7 @@ import { RootState } from "../../reducers";
 import {
   changePanelExpand,
   changePanelHeight,
-  setResultActivePair
+  setResultActivePair,
 } from "./runnerResultSlice";
 
 const Container = styled.div<{ isActive: boolean }>`
@@ -30,14 +30,14 @@ const styles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.default,
     display: "flex",
     flexDirection: "column",
-    width: "100%"
+    width: "100%",
   },
   tableContainer: {
     flex: 1,
     display: "flex",
     flexDirection: "row",
     height: "100%",
-    width: "40%"
+    width: "40%",
   },
   content: {
     flex: 1,
@@ -46,15 +46,15 @@ const styles = makeStyles((theme) => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    width: "40%"
+    width: "40%",
   },
   hide: {
-    height: 0
+    height: 0,
   },
   process: {
     width: "50%",
-    marginTop: 10
-  }
+    marginTop: 10,
+  },
 }));
 
 interface ResultPanelProps {
@@ -112,20 +112,20 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
     (rootState: RootState) => rootState.runnerResult.resultActivePair
   );
 
-  const currentProgress = useMemo(() => schemaProgress[selectedSchema], [
-    schemaProgress,
-    selectedSchema
-  ]);
+  const currentProgress = useMemo(
+    () => schemaProgress[selectedSchema],
+    [schemaProgress, selectedSchema]
+  );
 
   const currentResults = useMemo(
     () => schemaResults && schemaResults[selectedSchema],
     [schemaResults, selectedSchema]
   );
 
-  const [height, width] = useMemo(() => [size.height || 0, size.width || 0], [
-    size.height,
-    size.width
-  ]);
+  const [height, width] = useMemo(
+    () => [size.height || 0, size.width || 0],
+    [size.height, size.width]
+  );
 
   const dispatch = useDispatch();
   const handlePanelResize = React.useCallback(
@@ -157,10 +157,10 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
         onResizeStop={handlePanelResize}
         size={{
           height: panelExpand ? panelHeight : 48,
-          width: "100%"
+          width: "100%",
         }}
         minHeight={panelExpand ? THRESHOLD : 48}
-        maxHeight='50vh'
+        maxHeight="50vh"
         enable={{
           top: panelExpand,
           right: false,
@@ -169,7 +169,7 @@ const ResultPanel = ({ active, size }: ResultPanelProps) => {
           topRight: false,
           bottomRight: false,
           bottomLeft: false,
-          topLeft: false
+          topLeft: false,
         }}
       >
         <Divider />

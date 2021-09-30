@@ -36,7 +36,7 @@ export const evaluateRawParams = async (
 
   return params.map((p, i) =>
     Object.assign({}, p, {
-      evaluated: paramRets[i]
+      evaluated: paramRets[i],
     })
   );
 };
@@ -78,12 +78,12 @@ const evaluateCommon = async (
     }
     return {
       success: true,
-      value: evaled
+      value: evaled,
     };
   } catch (err) {
     return {
       success: false,
-      errorMessage: err.message
+      errorMessage: err.message,
     };
   }
 };
@@ -163,7 +163,7 @@ export const evaluateRawParamsPair = async (
   const pairPromise = paramsPair.map(async (p, i) => {
     return await evaluateRawParams(p, schema, EVAL_FUNC[i]);
   });
-  return ((await Promise.all(pairPromise))) as [Parameter[], Parameter[]];
+  return (await Promise.all(pairPromise)) as [Parameter[], Parameter[]];
 };
 
 export const evaluateParamPair = async (

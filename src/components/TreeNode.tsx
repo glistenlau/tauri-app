@@ -54,7 +54,7 @@ function TreeNode<D extends TreeNodeData, T>({
     }
     setOpen(!isOpen);
     if (onToggle) {
-        onToggle(!isOpen);
+      onToggle(!isOpen);
     }
   }, [isLeaf, setOpen, isOpen, onToggle]);
 

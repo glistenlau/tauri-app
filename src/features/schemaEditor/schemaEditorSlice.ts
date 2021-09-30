@@ -4,14 +4,13 @@ import { initApp, showNotification } from "../../actions";
 import { XmlTag } from "../../core/xmlParser";
 import xmlProcessor, {
   aggregateSameNamePair,
-  extractXmlFileIndex, FAMILY,
-
-
-  getAncestors, XmlFile
+  extractXmlFileIndex,
+  FAMILY,
+  getAncestors,
+  XmlFile,
 } from "../../core/xmlProcessor";
 import { DbSchemaSearchFlatQuery } from "../../generated/graphql";
 import { AppThunk } from "../../reducers";
-
 
 export interface SchemaEditorState {
   activePair: [boolean, boolean];
@@ -69,7 +68,10 @@ const schemaEditor = createSlice({
     ) {
       state.activeNodePaths = payload;
     },
-    loadXmlList(state, { payload }: PayloadAction<DbSchemaSearchFlatQuery | undefined>) {
+    loadXmlList(
+      state,
+      { payload }: PayloadAction<DbSchemaSearchFlatQuery | undefined>
+    ) {
       state.activeNodeId = initialState.activeNodeId;
       state.activeNodePaths = initialState.activeNodePaths;
       state.pathOpenMap = {};
@@ -90,7 +92,7 @@ const schemaEditor = createSlice({
       newPair[payload] = !newPair[payload];
       state.activePair = [newPair[0], newPair[1]];
     },
-    setActivePair(state, {payload}: PayloadAction<[boolean, boolean]>) {
+    setActivePair(state, { payload }: PayloadAction<[boolean, boolean]>) {
       state.activePair = payload;
     },
     selectXmlNode(state, { payload }: PayloadAction<string>) {
@@ -163,20 +165,19 @@ export const {
 
 export default schemaEditor.reducer;
 
-export const searchXmlFiles = (
-  searchPath: string,
-  searchFile: string
-): AppThunk => async (dispatch) => {
-  try {
-    const resultList = await xmlProcessor.findAndProcessXMLFile(
-      searchPath,
-      searchFile
-    );
-    dispatch(loadXmlList(resultList));
-  } catch (e) {
-    dispatch(showNotification("Search and parse xml failed.", "error"));
-  }
-};
+export const searchXmlFiles =
+  (searchPath: string, searchFile: string): AppThunk =>
+  async (dispatch) => {
+    try {
+      const resultList = await xmlProcessor.findAndProcessXMLFile(
+        searchPath,
+        searchFile
+      );
+      dispatch(loadXmlList(resultList));
+    } catch (e) {
+      dispatch(showNotification("Search and parse xml failed.", "error"));
+    }
+  };
 
 const replaceTargetNode = (node: XmlTag, targetNode: XmlTag) => {
   if (node === null || typeof node !== "object") {

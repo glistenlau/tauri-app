@@ -200,7 +200,11 @@ class DatabaseConsole extends EventEmitter {
     }
   };
 
-  executeOralce = async (statement: string, parameter: any, schema = this.currentSchema) => {
+  executeOralce = async (
+    statement: string,
+    parameter: any,
+    schema = this.currentSchema
+  ) => {
     const curTx = this.transactionMode;
     const conn = await this.getOracleConn(schema);
     try {
@@ -224,7 +228,11 @@ class DatabaseConsole extends EventEmitter {
     }
   };
 
-  executePostgres = async (statement: string, parameter: any, schema = this.currentSchema) => {
+  executePostgres = async (
+    statement: string,
+    parameter: any,
+    schema = this.currentSchema
+  ) => {
     const curTx = this.transactionMode;
     const conn = await this.getPostgresConn(schema);
     try {
@@ -317,7 +325,6 @@ class DatabaseConsole extends EventEmitter {
       this.transactionMode !== TransactionMode.Auto,
       ["anaconda", schema].join(",")
     );
-
 
     return conn;
   };

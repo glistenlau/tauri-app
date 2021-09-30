@@ -52,7 +52,10 @@ const SchemaTreeViewNode = React.memo(
 
     const tagColor = useMemo(() => getHashColor(tagName)[800], [tagName]);
 
-    const onClickLabel = useCallback(() => onSelectNode(id), [id, onSelectNode]);
+    const onClickLabel = useCallback(
+      () => onSelectNode(id),
+      [id, onSelectNode]
+    );
 
     const handleToggle = React.useCallback(() => {
       if (isLeaf) {

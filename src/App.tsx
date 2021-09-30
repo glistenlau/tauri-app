@@ -1,7 +1,4 @@
-import {
-  ApolloClient,
-  ApolloProvider
-} from "@apollo/client";
+import { ApolloClient, ApolloProvider } from "@apollo/client";
 import { Divider } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import React, { createContext, useEffect, useState } from "react";
@@ -57,10 +54,10 @@ const darkTheme = createMuiTheme({
   },
 });
 
-interface GlobalContextType{
-  serverPort?: number,
-  isRunning: boolean,
-  setIsRunning: (value: boolean) => void,
+interface GlobalContextType {
+  serverPort?: number;
+  isRunning: boolean;
+  setIsRunning: (value: boolean) => void;
 }
 
 export const GlobalContext = createContext<GlobalContextType>({
@@ -69,15 +66,12 @@ export const GlobalContext = createContext<GlobalContextType>({
   setIsRunning: (value: boolean) => {},
 });
 
-export interface AppProps {
-}
+export interface AppProps {}
 
 const App = ({}: AppProps) => {
   const [isRunning, setIsRunning] = useState(false);
   const [serverPort, setServerPort] = useState<number>();
-  const [apolloClient, setApolloClient] = useState<
-    ApolloClient<any>
-  >();
+  const [apolloClient, setApolloClient] = useState<ApolloClient<any>>();
 
   useEffect(() => {
     Graphql.getServerPort().then((port) => {
@@ -89,8 +83,7 @@ const App = ({}: AppProps) => {
     if (serverPort) {
       setApolloClient(getClient(serverPort));
     }
-  }, [serverPort])
-
+  }, [serverPort]);
 
   return (
     <MuiThemeProvider theme={lightTheme}>

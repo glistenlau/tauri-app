@@ -32,10 +32,7 @@ const editorSettingsSlice = createSlice({
   },
 });
 
-export const {
-  changeSettings,
-  setTheme,
-  setFontSize,
-} = editorSettingsSlice.actions;
+export const { changeSettings, setTheme, setFontSize } =
+  editorSettingsSlice.actions;
 
 export default editorSettingsSlice.reducer;

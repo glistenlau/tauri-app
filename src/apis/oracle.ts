@@ -7,5 +7,4 @@ export class Oracle extends SqlCommon<OracleSettings> {
   }
 }
 
-
 export default new Oracle();
