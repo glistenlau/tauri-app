@@ -1,3 +1,4 @@
+mod app_state;
 mod db_schema;
 mod sql_explain;
 mod sql_formatter;
@@ -10,10 +11,21 @@ use tokio_stream::StreamExt;
 use db_schema::DbSchemaQuery;
 use sql_formatter::SqlFormatterQuery;
 
-use self::sql_explain::SqlExplainQuery;
+use self::{
+    app_state::{AppStateMutation, AppStateQuery},
+    sql_explain::SqlExplainQuery,
+};
 
 #[derive(MergedObject, Default)]
-pub struct Query(DbSchemaQuery, SqlExplainQuery, SqlFormatterQuery);
+pub struct Query(
+    AppStateQuery,
+    DbSchemaQuery,
+    SqlExplainQuery,
+    SqlFormatterQuery,
+);
+
+#[derive(MergedObject, Default)]
+pub struct Mutation(AppStateMutation);
 
 pub struct Subscription;
 
@@ -39,7 +51,7 @@ mod tests {
     fn test() {
         let runtime = Runtime::new().unwrap();
         runtime.block_on(async {
-            let schema = Schema::new(Query::default(), EmptyMutation, EmptySubscription);
+            let schema = Schema::new(Query::default(), Mutation::default(), EmptySubscription);
             let res = schema
                 .execute("query { human(id: \"testid\") {id name} }")
                 .await;

@@ -1,9 +1,9 @@
 use std::fs;
 
-use async_graphql::{EmptyMutation, Schema};
-use mylib::graphql::{Query, Subscription};
+use async_graphql::Schema;
+use mylib::graphql::{Mutation, Query, Subscription};
 
 pub fn main() {
-    let schema = Schema::new(Query::default(), EmptyMutation, Subscription);
+    let schema = Schema::new(Query::default(), Mutation::default(), Subscription);
     fs::write("../data/schema.graphql", schema.sdl()).unwrap();
 }

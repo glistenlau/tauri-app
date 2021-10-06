@@ -1,0 +1,3 @@
+query formatSql($sqlStmts: [String!]!) {
+  formatSql(sqlStmts: $sqlStmts)
+}

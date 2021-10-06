@@ -6,7 +6,7 @@ use std::{
 use anyhow::{anyhow, Result};
 
 use lazy_static::lazy_static;
-use rocksdb::{Options, WriteBatch, DB};
+use rocksdb::{ColumnFamily, Options, WriteBatch, DB};
 
 use super::dirs::get_data_dir;
 
@@ -91,20 +91,41 @@ impl RocksDataStore {
         }
     }
 
+    pub fn multi_get(cf: Option<&str>, keys: &[&str], db: &DB) -> Result<Vec<Option<String>>> {
+        let mut res_bytes = match cf {
+            Some(cf_str) => match db.cf_handle(cf_str) {
+                Some(cf_handle) => {
+                    let multi_keys: Vec<(&ColumnFamily, &str)> =
+                        keys.iter().map(|&key| (cf_handle, key)).collect();
+                    db.multi_get_cf(multi_keys)?
+                }
+                None => db.multi_get(keys)?,
+            },
+            None => return Err(anyhow!("The column family doesn't exists.")),
+        };
+
+        Ok(res_bytes
+            .drain(..)
+            .map(|res_byte| match String::from_utf8(res_byte) {
+                Ok(str) => Some(str),
+                Err(_) => None,
+            })
+            .collect())
+    }
+
     pub fn delete(key: &str, db: &DB) -> Result<(), rocksdb::Error> {
         db.delete(key.as_bytes())
     }
 
     pub fn write_batch(
-        db: &mut DB,
         cf: &str,
-        key_vals: Vec<(String, String)>,
+        key_vals: &[(&str, &str)],
+        db: &mut DB,
     ) -> Result<(), rocksdb::Error> {
         Self::create_cf_if_not(cf, db)?;
         let mut write_batch = WriteBatch::default();
         let cf_handle = db.cf_handle(cf).unwrap();
         for (key, val) in key_vals {
-            log::debug!("write batch key: {}, value:{}", &key, &val[0..100]);
             write_batch.put_cf(cf_handle, key, val);
         }
 

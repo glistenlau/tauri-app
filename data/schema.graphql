@@ -1,3 +1,6 @@
+enum AppStateKey {
+	SCHEMA_FILE
+}
 enum DbFamily {
 	ORACLE
 	POSTGRES
@@ -35,12 +38,16 @@ type FlatSchemaFile {
 	path: String!
 	nodes: [FlatNode!]!
 }
+type Mutation {
+	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
+}
 type NodeValue {
 	start: Int!
 	end: Int!
 	dbFamily: DbFamily
 }
 type Query {
+	appState(stateKeys: [AppStateKey!]!): [String]!
 	dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
 	dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
 	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
@@ -67,5 +74,6 @@ type TreeNode {
 }
 schema {
 	query: Query
+	mutation: Mutation
 	subscription: Subscription
 }

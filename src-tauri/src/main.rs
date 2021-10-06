@@ -7,9 +7,9 @@ use std::net::SocketAddr;
 use std::{net::TcpListener, thread};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{EmptyMutation, Schema};
+use async_graphql::Schema;
 use async_graphql_warp::{graphql_subscription, Response};
-use mylib::graphql::Query;
+use mylib::graphql::{Mutation, Query};
 use tauri::Submenu;
 use tauri::{Menu, MenuItem};
 
@@ -82,12 +82,12 @@ fn get_menu() -> Menu {
 
 #[tokio::main]
 async fn run_graphql_server(port: u16) {
-    let schema = Schema::build(Query::default(), EmptyMutation, Subscription).finish();
+    let schema = Schema::build(Query::default(), Mutation::default(), Subscription).finish();
 
     let graphql_post =
         warp::path("graphql").and(async_graphql_warp::graphql(schema.clone()).and_then(
             |(schema, request): (
-                Schema<Query, EmptyMutation, Subscription>,
+                Schema<Query, Mutation, Subscription>,
                 async_graphql::Request,
             )| async move {
                 let rsp = Response::from(schema.execute(request).await);

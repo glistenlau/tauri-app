@@ -1,6 +1,8 @@
 import { createStyles, makeStyles } from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
+import CodeIcon from "@material-ui/icons/Code";
 import React from "react";
+import ProcessIconButton from "../../components/ProgressIconButton";
 import RunnerControlToolBar, {
   RunOptions,
 } from "../runnerControl/RunnerControlToolBar";
@@ -8,6 +10,7 @@ import TransactionControlToolBar from "../transactionControl/TransactionControlT
 
 interface DatabaseConsoleToolBarProps {
   onClickRun: (options: RunOptions) => void;
+  onClickFormat: () => any;
 }
 
 const useStyles = makeStyles((theme) =>
@@ -23,7 +26,7 @@ const useStyles = makeStyles((theme) =>
 );
 
 const DatabaseConsoleToolBar = React.memo(
-  ({ onClickRun }: DatabaseConsoleToolBarProps) => {
+  ({ onClickRun, onClickFormat }: DatabaseConsoleToolBarProps) => {
     const classes = useStyles();
 
     return (
@@ -31,6 +34,10 @@ const DatabaseConsoleToolBar = React.memo(
         <RunnerControlToolBar onClickRun={onClickRun} />
         <Divider orientation="vertical" flexItem />
         <TransactionControlToolBar className={classes.transactionContainer} />
+        <Divider orientation="vertical" flexItem />
+        <ProcessIconButton title="Format statement" onClick={onClickFormat}>
+          <CodeIcon color="primary" />
+        </ProcessIconButton>
       </div>
     );
   }

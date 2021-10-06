@@ -1,0 +1,7 @@
+mutation setStateKeyValues($stateKeys: [AppStateKey!]!, $stateVals: [String!]!) {
+  appState(stateKeys: $stateKeys, stateVals: $stateVals)
+}
+
+query getStateKeyValues($stateKeys:[AppStateKey!]!) {
+  appState(stateKeys: $stateKeys)
+}

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
+import { useFormatSqlLazyQuery } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import { changeConsleValuePair } from "./databaseConsoleSlice";
@@ -28,9 +29,22 @@ const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
     (state: RootState) => state.databaseConsole.consoleValuePair
   );
 
+  const [runFormatSql, { data: foramtSqlRes }] = useFormatSqlLazyQuery();
+
+  useEffect(() => {
+    if (!foramtSqlRes) {
+      return;
+    }
+    setValuePair(foramtSqlRes.formatSql as [string, string]);
+  }, [foramtSqlRes]);
+
   useEffect(() => {
     setValuePair(consoleValuePair);
   }, [consoleValuePair]);
+
+  const handleClickFormat = React.useCallback(() => {
+    runFormatSql({ variables: { sqlStmts: valuePair } });
+  }, [runFormatSql, valuePair]);
 
   const handleClickRun = React.useCallback(
     async (sortResults) => {
@@ -59,7 +73,10 @@ const DatabaseConsolePage = ({ active }: DatabaseConsolePageProps) => {
 
   return (
     <Container active={active}>
-      <DatabaseConsoleToolBar onClickRun={handleClickRun} />
+      <DatabaseConsoleToolBar
+        onClickRun={handleClickRun}
+        onClickFormat={handleClickFormat}
+      />
       <Divider />
       <SplitEditor
         ref={splitEditorRef}

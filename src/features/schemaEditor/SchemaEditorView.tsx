@@ -2,11 +2,13 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { createContext, useCallback, useMemo, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { useAppState } from "../../hooks/useAppState";
 import styled from "styled-components";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
 import {
+  AppStateKey,
   DbFamily,
   FlatNode,
   Range,
@@ -84,6 +86,8 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
 
     return values.map((val) => ({ start: val.start, end: val.end }));
   }, [selectedNode]);
+
+  const schemaFileState = useAppState(AppStateKey.SchemaFile);
 
   const { data: contentData } = useDbSchemaFileContetQuery({
     variables: { filePath: selectedFilePath || "", ranges: contentRanges },

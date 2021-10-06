@@ -140,18 +140,14 @@ pub fn search_db_schema(search_folder: &str, file_pattern: &str) -> Result<Vec<S
             root: root_tree_node,
         };
 
+        let schema_file_key = get_schema_file_store_key(&path_str);
+        let schema_file_str = to_string(&schema_file)?;
+
+        let key_vals: Vec<(&str, &str)> =
+            vec![(&path_str, &file_str), (&schema_file_key, &schema_file_str)];
+
         // save the file value and tree into data store
-        RocksDataStore::write_batch(
-            &mut conn_lock,
-            "db_schema",
-            vec![
-                (path_str.to_string(), file_str),
-                (
-                    get_schema_file_store_key(&path_str),
-                    to_string(&schema_file)?,
-                ),
-            ],
-        )?;
+        RocksDataStore::write_batch("db_schema", &key_vals, &mut conn_lock)?;
         res.push(schema_file);
     }
 
