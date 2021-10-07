@@ -27,7 +27,5 @@ export const requestAsync = async (
 
   const res = JSON.parse(await invoke("invoke_handler", args));
 
-  console.log("request async result: ", res);
-
   return res;
 };

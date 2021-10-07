@@ -39,7 +39,7 @@ interface SchemaTreeViewNodeProps {
 const SchemaTreeViewNode = React.memo(
   ({
     data: { isLeaf, nameAttr, tagName, id, nestingLevel, dbFamily },
-    treeData: { filterText, activeNodeId },
+    treeData: { filterText, selectedNodeId, toggleOpen },
     isOpen,
     setOpen,
     style,
@@ -63,9 +63,9 @@ const SchemaTreeViewNode = React.memo(
       }
       setOpen(!isOpen);
       if (!filterText) {
-        dispatch(toggleOpen(id));
+        toggleOpen(id);
       }
-    }, [isLeaf, setOpen, isOpen, filterText, dispatch, id]);
+    }, [isLeaf, setOpen, isOpen, filterText, toggleOpen, id]);
 
     return (
       <div
@@ -112,7 +112,7 @@ const SchemaTreeViewNode = React.memo(
           )}
         </div>
         <SchemaTreeViewNodeLabel
-          highlight={activeNodeId === id}
+          highlight={selectedNodeId === id}
           onClick={onClickLabel}
           tagName={tagName}
           attrName={nameAttr}

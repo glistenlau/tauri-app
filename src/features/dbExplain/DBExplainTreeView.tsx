@@ -100,8 +100,6 @@ const DBExplainTreeView: React.FC<DBExplainTreeViewProps & SizeMeProps> = ({
     [root]
   );
 
-  console.log("root", root);
-
   const onToggle = useCallback((id: number, state: boolean) => {
     if (!state) {
       openSet.current.delete(id);

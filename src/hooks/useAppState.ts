@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AppStateKey,
   useGetStateKeyValuesQuery,
   useSetStateKeyValuesMutation,
 } from "../generated/graphql";
 
-export function useAppState<T>(appStateKey: AppStateKey) {
-  const [state, setState] = useState<T | undefined>();
+export function useAppState<T>(
+  appStateKey: AppStateKey,
+  initialValue?: T
+): [T | undefined, (appState: T) => void] {
+  const [state, setState] = useState<T | undefined>(initialValue);
 
   const { data } = useGetStateKeyValuesQuery({
     variables: { stateKeys: [appStateKey] },

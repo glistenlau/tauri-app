@@ -1,8 +1,7 @@
 import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
-import React, { createContext, useCallback, useMemo, useState } from "react";
+import React, { createContext, useCallback, useEffect, useMemo } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useAppState } from "../../hooks/useAppState";
 import styled from "styled-components";
 import SearchBar from "../../components/SearchBar";
 import SplitEditor from "../../components/SplitEditor";
@@ -11,10 +10,12 @@ import {
   AppStateKey,
   DbFamily,
   FlatNode,
+  FlatSchemaFile,
   Range,
   useDbSchemaFileContetQuery,
   useDbSchemaSearchFlatLazyQuery,
 } from "../../generated/graphql";
+import { useAppState } from "../../hooks/useAppState";
 import { RootState } from "../../reducers";
 import {
   changeLeftPanelWidth,
@@ -72,10 +73,12 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
       shallowEqual
     );
 
-  const [selectedNode, setSelectedNode] = useState<FlatNode | undefined>();
-  const [selectedFilePath, setSelectedFilePath] = useState<
+  const [selectedNode, setSelectedNode] = useAppState<FlatNode | undefined>(
+    AppStateKey.SchemaEditorSelectedNode
+  );
+  const [selectedFilePath, setSelectedFilePath] = useAppState<
     string | undefined
-  >();
+  >(AppStateKey.SchemaEditorSelectedFilePath);
 
   const contentRanges = useMemo<Range[]>(() => {
     if (!selectedNode) {
@@ -87,7 +90,9 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     return values.map((val) => ({ start: val.start, end: val.end }));
   }, [selectedNode]);
 
-  const schemaFileState = useAppState(AppStateKey.SchemaFile);
+  const [treeNode, setTreeNode] = useAppState<Array<FlatSchemaFile>>(
+    AppStateKey.SchemaEditorTreeNode
+  );
 
   const { data: contentData } = useDbSchemaFileContetQuery({
     variables: { filePath: selectedFilePath || "", ranges: contentRanges },
@@ -119,20 +124,26 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
   const [searchDbSchema, { called, loading, data, error }] =
     useDbSchemaSearchFlatLazyQuery();
 
+  useEffect(() => {
+    if (data?.dbSchemasFlat) {
+      setTreeNode(data?.dbSchemasFlat);
+    }
+  }, [data?.dbSchemasFlat, setTreeNode]);
+
   const onNodeSelect = useCallback(
     (id: string) => {
-      if (!data || !id) {
+      if (!treeNode || !id) {
         return;
       }
 
       const fileIndex = parseInt(id.split("-")[0]);
-      const selectedNode = data.dbSchemasFlat[fileIndex].nodes.find(
+      const selectedNode = treeNode[fileIndex].nodes.find(
         (node) => node.id === id
       );
       setSelectedNode(selectedNode);
-      setSelectedFilePath(data.dbSchemasFlat[fileIndex].path);
+      setSelectedFilePath(treeNode[fileIndex].path);
     },
-    [data]
+    [setSelectedFilePath, setSelectedNode, treeNode]
   );
 
   const handleClickSearch = useCallback(() => {
@@ -200,7 +211,12 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
             isLoading={loading}
           />
           <Divider style={{ marginTop: 10 }} />
-          {data && <SchemaTreeView treeData={data} />}
+          {treeNode && (
+            <SchemaTreeView
+              treeData={treeNode}
+              selectedNodeId={selectedNode?.id}
+            />
+          )}
         </Resizable>
         <Divider orientation="vertical" flexItem />
         <div className={classes.rightContainer}>

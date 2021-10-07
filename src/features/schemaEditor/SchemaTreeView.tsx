@@ -3,16 +3,16 @@ import TextField from "@material-ui/core/TextField";
 import clsx from "clsx";
 import { Maybe } from "graphql/jsutils/Maybe";
 import React, { useCallback, useMemo } from "react";
-import { useSelector } from "react-redux";
 import { withSize } from "react-sizeme";
 import { TreeWalker } from "react-vtree";
 import { FixedSizeTree } from "react-vtree/dist/es/FixedSizeTree";
 import {
+  AppStateKey,
   DbFamily,
-  DbSchemaSearchFlatQuery,
   FlatNode,
+  FlatSchemaFile,
 } from "../../generated/graphql";
-import { RootState } from "../../reducers";
+import { useAppState } from "../../hooks/useAppState";
 import SchemaTreeViewNode from "./SchemaTreeViewNode";
 
 const useStyles = makeStyles((theme) =>
@@ -58,9 +58,10 @@ const useStyles = makeStyles((theme) =>
 );
 
 interface SchemaTreeViewProps {
-  treeData: DbSchemaSearchFlatQuery;
+  treeData: Array<FlatSchemaFile>;
+  selectedNodeId?: string;
   size?: any;
-  className?: String;
+  className?: string;
 }
 
 export interface NodeData {
@@ -78,11 +79,41 @@ interface Node {
   node: FlatNode;
 }
 
-const getNodeData = (node: FlatNode, index: number): Node => ({
+const shouldNodeDisplayed = (
+  nodes: Array<FlatNode>,
+  nodeIndex: number,
+  filterIds: [Set<number>, Set<number>]
+): boolean => {
+  let index = nodeIndex;
+  const [displaySet, matchSet] = filterIds;
+  if (displaySet.has(index)) {
+    return true;
+  }
+
+  while (true) {
+    const node = nodes[index];
+    if (matchSet.has(index)) {
+      return true;
+    }
+    if (node == null || node.parentIndex == null) {
+      break;
+    }
+
+    index = node.parentIndex;
+  }
+
+  return false;
+};
+
+const getNodeData = (
+  node: FlatNode,
+  index: number,
+  isOpenByDefault: boolean
+): Node => ({
   data: {
     id: node.id,
     isLeaf: node.childIndexes == null || node.childIndexes.length === 0,
-    isOpenByDefault: true,
+    isOpenByDefault: isOpenByDefault,
     tagName: node.tagName,
     nameAttr: node.nameAttr,
     nestingLevel: node.nestingLevel,
@@ -93,51 +124,65 @@ const getNodeData = (node: FlatNode, index: number): Node => ({
 
 const SchemaTreeView = ({
   className,
+  selectedNodeId,
   size,
   treeData,
 }: SchemaTreeViewProps): any => {
   const listRef = React.useRef(null);
-  const [filterText, setFilterText] = React.useState("");
-  const activeNodeId = useSelector(
-    (state: RootState) => state.schemaEditor.activeNodeId
+  const [filterText, setFilterText] = useAppState<string>(
+    AppStateKey.SchemaEditorSearchTerm,
+    ""
   );
-  const pathOpenMap = useSelector(
-    (state: RootState) => state.schemaEditor.pathOpenMap
+  const [openNodeIds, setOpenNodeIds] = useAppState<{ [key: string]: boolean }>(
+    AppStateKey.SchemaEditorOpenNodeIds,
+    {} as { [key: string]: boolean }
   );
 
-  const filterIds = useMemo(() => {
+  const [filterIds, surviveNodeCount] = useMemo(() => {
     if (!filterText || filterText.length === 0) {
-      return null;
+      return [null, Number.MAX_SAFE_INTEGER];
     }
 
-    return treeData.dbSchemasFlat.map((fileRes) => {
-      const filter = new Set();
+    let count = 0;
+    const filterIds = treeData.map((fileRes) => {
+      const displaySet = new Set<number>();
+      const matchSet = new Set<number>();
       fileRes.nodes.forEach((node) => {
         if (
           node.tagName.toLowerCase().includes(filterText) ||
           (node.nameAttr || "").toLowerCase().includes(filterText)
         ) {
-          node.id
-            .split("-")
-            .slice(1)
-            .forEach((is) => filter.add(parseInt(is)));
+          const ancestorIds = node.id.split("-").slice(1);
+
+          ancestorIds.forEach((is, index) => {
+            const numberId = parseInt(is);
+            if (index === ancestorIds.length - 1) {
+              matchSet.add(numberId);
+            } else {
+              displaySet.add(numberId);
+            }
+            count += 1;
+          });
         }
       });
-      return filter;
+      return [displaySet, matchSet] as [Set<number>, Set<number>];
     });
-  }, [filterText, treeData.dbSchemasFlat]);
+
+    return [filterIds, count];
+  }, [filterText, treeData]);
 
   const treeWalker: TreeWalker<NodeData, Node> = useCallback(
     function* (): Generator<Node | undefined, any, Node> {
-      if (!treeData || treeData.dbSchemasFlat.length === 0) {
-        return;
-      }
-
-      for (let i = 0; i < treeData.dbSchemasFlat.length; i++) {
-        if (filterIds != null && !filterIds[i].has(0)) {
+      for (let i = 0; i < treeData.length; i++) {
+        if (filterIds != null && !filterIds[i][0].has(0)) {
           continue;
         }
-        yield getNodeData(treeData.dbSchemasFlat[i].nodes[0], 0);
+        const node = treeData[i].nodes[0];
+        yield getNodeData(
+          node,
+          0,
+          (filterText?.length ?? 0) > 0 || (openNodeIds ?? {})[node.id] === true
+        );
       }
 
       while (true) {
@@ -150,56 +195,92 @@ const SchemaTreeView = ({
           continue;
         }
 
+        const nodes = treeData[parent.node.fileIndex].nodes;
+        const [displaySet, matchSet] =
+          filterIds == null ? [null, null] : filterIds[parent.node.fileIndex];
+
         for (let childIndex of parent.node.childIndexes) {
+          const node = nodes[childIndex];
           if (
             filterIds != null &&
-            !filterIds[parent.node.fileIndex].has(childIndex)
+            !shouldNodeDisplayed(
+              nodes,
+              childIndex,
+              filterIds[parent.node.fileIndex]
+            )
           ) {
             continue;
           }
+
           yield getNodeData(
-            treeData.dbSchemasFlat[parent.node.fileIndex].nodes[childIndex],
-            childIndex
+            node,
+            childIndex,
+            (displaySet != null && displaySet.has(childIndex)) ||
+              (openNodeIds ?? {})[node.id] === true
           );
         }
       }
     },
-    [filterIds, treeData]
+    [filterIds, filterText?.length, openNodeIds, treeData]
   );
 
-  const handleSearchTextChange = React.useCallback((e) => {
-    setFilterText(e.target.value.toLowerCase());
-  }, []);
+  const handleSearchTextChange = React.useCallback(
+    (e) => {
+      setFilterText(e.target.value.trim().toLowerCase());
+    },
+    [setFilterText]
+  );
+
+  const handleOpenToggle = useCallback(
+    (id: string) => {
+      if (!openNodeIds) {
+        return;
+      }
+      if (openNodeIds[id]) {
+        const { [id]: removeId, ...others } = openNodeIds;
+        setOpenNodeIds(others);
+      } else {
+        const newOpenNodeIds = Object.assign({}, openNodeIds, { [id]: true });
+        setOpenNodeIds(newOpenNodeIds);
+      }
+    },
+    [openNodeIds, setOpenNodeIds]
+  );
 
   const itemData = React.useMemo(
     () => ({
       filterText,
-      activeNodeId,
+      selectedNodeId,
+      toggleOpen: handleOpenToggle,
     }),
-    [activeNodeId, filterText]
+    [filterText, selectedNodeId, handleOpenToggle]
   );
 
   const classes = useStyles();
   return (
     <div className={clsx(classes.root, className)}>
       <TextField
+        autoComplete="off"
         className={classes.searchBar}
         placeholder="Search..."
         margin="dense"
         size="small"
         id="filled-basic"
         variant="outlined"
+        value={filterText}
         onChange={handleSearchTextChange}
       />
-      <FixedSizeTree
-        ref={listRef}
-        itemSize={24}
-        treeWalker={treeWalker}
-        height={size.height - 10 - 50}
-        itemData={itemData}
-      >
-        {SchemaTreeViewNode}
-      </FixedSizeTree>
+      {surviveNodeCount > 0 && treeData != null && (
+        <FixedSizeTree
+          ref={listRef}
+          itemSize={24}
+          treeWalker={treeWalker}
+          height={size.height - 10 - 50}
+          itemData={itemData}
+        >
+          {SchemaTreeViewNode}
+        </FixedSizeTree>
+      )}
     </div>
   );
 };

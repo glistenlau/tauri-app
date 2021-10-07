@@ -3,7 +3,11 @@ use async_graphql::*;
 
 #[derive(Enum, Copy, Clone, Debug, Eq, PartialEq)]
 enum AppStateKey {
-    SchemaFile,
+    SchemaEditorOpenNodeIds,
+    SchemaEditorTreeNode,
+    SchemaEditorSelectedNode,
+    SchemaEditorSelectedFilePath,
+    SchemaEditorSearchTerm,
 }
 
 static APP_STATE_CF: &str = "APP_STATE";
