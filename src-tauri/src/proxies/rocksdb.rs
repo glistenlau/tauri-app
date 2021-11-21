@@ -76,11 +76,8 @@ impl RocksDataStore {
 
     pub fn get(key: &str, db: &DB, cf: Option<&str>) -> Result<Option<String>> {
         log::debug!("try to get value for key: {} with cf: {:?}", key, cf);
-        let res_opt = match cf {
-            Some(cf_str) => {
-                let cf_handle = db.cf_handle(cf_str).unwrap();
-                db.get_cf(cf_handle, key.as_bytes())
-            }
+        let res_opt = match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
+            Some(cf_handle) => db.get_cf(cf_handle, key.as_bytes()),
             None => db.get(key.as_bytes()),
         };
 

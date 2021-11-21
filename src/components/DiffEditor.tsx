@@ -1,14 +1,10 @@
-import { editor } from "monaco-editor";
+import { DiffEditor as MonacoDiffEditor, DiffEditorProps as MonacoDiffEditorProps, DiffOnMount } from "@monaco-editor/react";
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import React, { useCallback } from "react";
-import {
-  DiffEditorDidMount,
-  MonacoDiffEditor,
-  MonacoDiffEditorProps,
-} from "react-monaco-editor";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";
 
-const DiffEditor = React.forwardRef<editor.IDiffEditor, MonacoDiffEditorProps>(
+const DiffEditor = React.forwardRef<monaco.editor.IDiffEditor, MonacoDiffEditorProps>(
   ({ options, ...otherProps }, ref) => {
     const theme = useSelector((state: RootState) => state.editorSettings.theme);
     const fontSize = useSelector(
@@ -28,8 +24,8 @@ const DiffEditor = React.forwardRef<editor.IDiffEditor, MonacoDiffEditorProps>(
       [ref]
     );
 
-    const handleDiffEditorMount: DiffEditorDidMount = useCallback(
-      (editor: editor.IDiffEditor, monaco) => {
+    const handleDiffEditorMount: DiffOnMount = useCallback(
+      (editor: monaco.editor.IDiffEditor, monaco) => {
         handleRef(editor);
       },
       [handleRef]
@@ -50,7 +46,7 @@ const DiffEditor = React.forwardRef<editor.IDiffEditor, MonacoDiffEditorProps>(
 
     return (
       <MonacoDiffEditor
-        editorDidMount={handleDiffEditorMount}
+        onMount={handleDiffEditorMount}
         theme={theme}
         options={effectiveOptions}
         {...otherProps}

@@ -1,36 +1,34 @@
-// import MonacoEditor, { MonacoEditorProps } from "react-monaco-editor";
-import MonacoEditor, {
-  MonacoEditorProps,
-  EditorDidMount,
-} from "react-monaco-editor";
-import { editor } from "monaco-editor";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import MonacoEditor, { EditorProps as MonacoEditorProps, loader, OnMount } from "@monaco-editor/react";
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import React, {
   ForwardRefRenderFunction,
   useCallback,
   useImperativeHandle,
-  useState,
+  useState
 } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../reducers";
 import {
   getEffectiveValueFromEditor,
-  getValueFromEditor,
+  getValueFromEditor
 } from "../util/monaco";
 
 export const themeList: string[] = [];
 const themeDataMap: any = require("monaco-themes/themes/themelist.json");
-Object.keys(themeDataMap).forEach((themeName) => {
-  const themeFileName = themeDataMap[themeName];
-  const themeData = require(`monaco-themes/themes/${themeFileName}.json`);
-  monaco.editor.defineTheme(themeName, themeData);
-  themeList.push(themeName);
+
+loader.init().then(monaco => {
+  Object.keys(themeDataMap).forEach((themeName) => {
+    const themeFileName = themeDataMap[themeName];
+    const themeData = require(`monaco-themes/themes/${themeFileName}.json`);
+    monaco.editor.defineTheme(themeName, themeData);
+    themeList.push(themeName);
+  });
 });
 
 export interface EditorHandle {
   getEffectiveValue(): string;
   getValue(): string;
-  editor?: editor.IStandaloneCodeEditor;
+  editor?: monaco.editor.IStandaloneCodeEditor;
 }
 
 export interface EditorProps extends MonacoEditorProps {
@@ -42,7 +40,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
   { decorations, onBlur, options, ...otherProps }: EditorProps,
   ref
 ) => {
-  const [instance, setInstance] = useState<editor.IStandaloneCodeEditor>();
+  const [instance, setInstance] = useState<monaco.editor.IStandaloneCodeEditor>();
   const oldDecorations = React.useRef([] as string[]);
   const theme = useSelector((state: RootState) => state.editorSettings.theme);
   const fontSize = useSelector(
@@ -71,7 +69,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
       instance?.deltaDecorations(oldDecorations.current, decorations) || [];
   }, [decorations, instance]);
 
-  const handleEditorDidMount: EditorDidMount = useCallback(
+  const handleEditorDidMount: OnMount = useCallback(
     (editor, monaco) => {
       setInstance(editor);
       setDecorations();
@@ -109,7 +107,7 @@ const Editor: ForwardRefRenderFunction<EditorHandle, EditorProps> = (
     <MonacoEditor
       theme={theme}
       options={effectiveOptions}
-      editorDidMount={handleEditorDidMount}
+      onMount={handleEditorDidMount}
       {...otherProps}
     />
   );
