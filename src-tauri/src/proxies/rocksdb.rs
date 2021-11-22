@@ -89,23 +89,26 @@ impl RocksDataStore {
     }
 
     pub fn multi_get(cf: Option<&str>, keys: &[&str], db: &DB) -> Result<Vec<Option<String>>> {
-        let mut res_bytes = match cf {
-            Some(cf_str) => match db.cf_handle(cf_str) {
-                Some(cf_handle) => {
-                    let multi_keys: Vec<(&ColumnFamily, &str)> =
-                        keys.iter().map(|&key| (cf_handle, key)).collect();
-                    db.multi_get_cf(multi_keys)?
-                }
-                None => db.multi_get(keys)?,
-            },
-            None => return Err(anyhow!("The column family doesn't exists.")),
+        let mut res_bytes = match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
+            Some(cf_handle) => {
+                let multi_keys: Vec<(&ColumnFamily, &str)> =
+                    keys.iter().map(|&key| (cf_handle, key)).collect();
+                db.multi_get_cf(multi_keys)
+            }
+            None => db.multi_get(keys),
         };
 
         Ok(res_bytes
             .drain(..)
-            .map(|res_byte| match String::from_utf8(res_byte) {
-                Ok(str) => Some(str),
+            .map(|res| match res {
+                Ok(res_op) => res_op,
                 Err(_) => None,
+            })
+            .map(|res_op| {
+                res_op.and_then(|res_byte| match String::from_utf8(res_byte) {
+                    Ok(s) => Some(s),
+                    Err(_) => None,
+                })
             })
             .collect())
     }

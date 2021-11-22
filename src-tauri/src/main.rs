@@ -8,7 +8,7 @@ use std::{net::TcpListener, thread};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::Schema;
-use async_graphql_warp::{graphql_subscription, Response};
+use async_graphql_warp::{graphql_subscription, GraphQLResponse};
 use mylib::graphql::{Mutation, Query};
 use tauri::Submenu;
 use tauri::{Menu, MenuItem};
@@ -90,7 +90,7 @@ async fn run_graphql_server(port: u16) {
                 Schema<Query, Mutation, Subscription>,
                 async_graphql::Request,
             )| async move {
-                let rsp = Response::from(schema.execute(request).await);
+                let rsp = GraphQLResponse::from(schema.execute(request).await);
                 Ok::<_, Infallible>(rsp)
             },
         ));
