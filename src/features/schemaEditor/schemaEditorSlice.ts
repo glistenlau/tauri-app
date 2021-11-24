@@ -1,16 +1,8 @@
 // @ts-ignore
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { initApp, showNotification } from "../../actions";
+import { initApp } from "../../actions";
 import { XmlTag } from "../../core/xmlParser";
-import xmlProcessor, {
-  aggregateSameNamePair,
-  extractXmlFileIndex,
-  FAMILY,
-  getAncestors,
-  XmlFile,
-} from "../../core/xmlProcessor";
 import { DbSchemaSearchFlatQuery } from "../../generated/graphql";
-import { AppThunk } from "../../reducers";
 
 export interface SchemaEditorState {
   activePair: [boolean, boolean];
@@ -95,50 +87,6 @@ const schemaEditor = createSlice({
     setActivePair(state, { payload }: PayloadAction<[boolean, boolean]>) {
       state.activePair = payload;
     },
-    selectXmlNode(state, { payload }: PayloadAction<string>) {
-      const id = payload;
-      const fileIndex = extractXmlFileIndex(id);
-      if (id === state.activeNodeId) {
-        return;
-      }
-      if (!state.flatTreeData) {
-        return;
-      }
-
-      let valuePair;
-      let pathList: Array<[XmlTag, XmlTag]> = [];
-      if (
-        isNaN(fileIndex) ||
-        fileIndex >= state.flatTreeData.dbSchemasFlat.length ||
-        !state.flatTreeData.dbSchemasFlat[fileIndex]
-      ) {
-        valuePair = ["", ""];
-      }
-
-      if (state.flatTreeData.dbSchemasFlat[fileIndex]) {
-        const { nodes } = state.flatTreeData.dbSchemasFlat[fileIndex];
-        pathList = getAncestors(id, pathValueMap);
-        if (!pathValueMap || !pathValueMap[id]) {
-          valuePair = ["", ""];
-        }
-
-        if (!valuePair) {
-          valuePair = pathValueMap[id].map((tag) => {
-            if (!tag || tag.start === -1 || tag.end === -1) {
-              return "";
-            }
-            if (tag.start < 0 || tag.end + 1 > xmlData.length) {
-              return "";
-            }
-            return xmlData.substring(tag.start, tag.end + 1);
-          });
-        }
-      }
-
-      state.valuePair = [valuePair[0], valuePair[1]];
-      state.activeNodeId = id;
-      state.activeNodePaths = pathList;
-    },
   },
   extraReducers: (builder) => {
     builder.addCase(initApp, (state) => {
@@ -160,159 +108,6 @@ export const {
   toggleDiffMode,
   toggleOpen,
   toggleActiveEditor,
-  selectXmlNode,
 } = schemaEditor.actions;
 
 export default schemaEditor.reducer;
-
-export const searchXmlFiles =
-  (searchPath: string, searchFile: string): AppThunk =>
-  async (dispatch) => {
-    try {
-      const resultList = await xmlProcessor.findAndProcessXMLFile(
-        searchPath,
-        searchFile
-      );
-      dispatch(loadXmlList(resultList));
-    } catch (e) {
-      dispatch(showNotification("Search and parse xml failed.", "error"));
-    }
-  };
-
-const replaceTargetNode = (node: XmlTag, targetNode: XmlTag) => {
-  if (node === null || typeof node !== "object") {
-    return null;
-  }
-
-  if (node.id === targetNode.id) {
-    return targetNode;
-  }
-
-  const cloneNode = XmlTag.clone(node);
-
-  cloneNode.children = node.children.map((childNode) =>
-    replaceTargetNode(childNode, targetNode)
-  );
-  return cloneNode;
-};
-
-export const saveTagValue = (
-  id: string,
-  value: string,
-  position: 0 | 1,
-  xmlFile: XmlFile
-): XmlFile => {
-  const { rootNode, pathStatusMap, pathValueMap, xmlData } = xmlFile;
-  const theOtherIndex = Math.abs(position - 1);
-
-  const targetTag = pathValueMap[id][position];
-  const theOtherTag = pathValueMap[id][theOtherIndex];
-
-  const family =
-    position === 1
-      ? FAMILY.POSTGRES
-      : pathStatusMap[id][0]
-      ? FAMILY.ORACLE
-      : FAMILY.NONE;
-
-  const parentEndIndex = id.lastIndexOf("-<");
-  const parentPath =
-    parentEndIndex !== -1 ? id.substring(0, parentEndIndex) : id;
-
-  const oldStart = targetTag === null ? theOtherTag.end + 1 : targetTag.start;
-  const oldEnd = targetTag === null ? theOtherTag.end : targetTag.end;
-  const newEnd = oldStart + value.length - 1;
-  const delta = newEnd - oldEnd;
-
-  let processed;
-  let newTargetTagNode;
-  try {
-    processed = xmlProcessor.processXMLData(
-      value,
-      "root",
-      parentPath,
-      family,
-      oldStart,
-      position
-    );
-
-    if (processed.rootNode && processed.rootNode.children.length > 1) {
-      throw new Error("Multiple roots found.");
-    }
-    newTargetTagNode = processed.rootNode.children[0];
-  } catch (e) {
-    const cloneNode =
-      targetTag === null ? XmlTag.clone(theOtherTag) : XmlTag.clone(targetTag);
-
-    if (cloneNode.attr.family) {
-      delete cloneNode.attr.family;
-    }
-
-    cloneNode.setStart(oldStart);
-    cloneNode.setEnd(newEnd);
-    cloneNode.setId(id);
-
-    const newValuePair: [XmlTag, XmlTag] = [null, null];
-    const newStatusPair: [boolean, boolean] = [false, false];
-    newValuePair[position] = cloneNode;
-    newStatusPair[position] = pathStatusMap[id][position];
-    processed = {
-      pathValueMap: { [id]: newValuePair },
-      pathStatusMap: { [id]: newStatusPair },
-      rootNode: cloneNode,
-      xmlData: value,
-    };
-
-    newTargetTagNode = cloneNode;
-  }
-  const newPathValueMap = processed.pathValueMap;
-  const newPathStatusMap = processed.pathStatusMap;
-
-  Object.keys(pathValueMap).forEach((pathKey) => {
-    const valuePair = pathValueMap[pathKey];
-    const newValuePair = valuePair.map((tagValue) => {
-      if (tagValue === null) {
-        return null;
-      }
-      const cloneNode = XmlTag.clone(tagValue);
-
-      if (tagValue.start > oldEnd) {
-        cloneNode.start += delta;
-        cloneNode.end += delta;
-      } else if (tagValue.end > oldEnd) {
-        cloneNode.end += delta;
-      }
-      return cloneNode;
-    });
-    const newStatusPair = [
-      pathStatusMap[pathKey][0],
-      pathStatusMap[pathKey][1],
-    ];
-
-    if (pathKey.startsWith(id)) {
-      newValuePair[position] =
-        (newPathValueMap[pathKey] && newPathValueMap[pathKey][position]) ||
-        null;
-      newStatusPair[position] =
-        (newPathStatusMap[pathKey] && newPathStatusMap[pathKey][position]) ||
-        false;
-    }
-
-    if (newValuePair.some((val) => val != null)) {
-      newPathValueMap[pathKey] = [newValuePair[0], newValuePair[1]];
-      newPathStatusMap[pathKey] = [newStatusPair[0], newStatusPair[1]];
-    }
-  });
-
-  const newViewNode = aggregateSameNamePair(newTargetTagNode, theOtherTag);
-  const newRootNode = replaceTargetNode(rootNode, newViewNode);
-  const newXmlData =
-    xmlData.substring(0, oldStart) + value + xmlData.substring(oldEnd + 1);
-
-  return {
-    rootNode: newRootNode,
-    pathStatusMap: newPathStatusMap,
-    pathValueMap: newPathValueMap,
-    xmlData: newXmlData,
-  };
-};

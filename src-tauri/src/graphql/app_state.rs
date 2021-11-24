@@ -28,6 +28,7 @@ impl AppStateQuery {
             .map(|key| format!("{:?}", key))
             .collect();
         let keys_ref: Vec<&str> = key_strs.iter().map(|k| k.as_ref()).collect();
+
         Ok(RocksDataStore::multi_get(
             Some(APP_STATE_CF),
             &keys_ref,
@@ -59,6 +60,7 @@ impl AppStateMutation {
         for i in 0..key_strs.len() {
             key_vals.push((&key_strs[i], &state_vals[i]))
         }
+
         RocksDataStore::write_batch(APP_STATE_CF, &key_vals, &mut db)?;
         Ok(true)
     }

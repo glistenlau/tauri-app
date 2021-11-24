@@ -6,7 +6,6 @@ import DiffToolBar from "../../components/DiffToolbar";
 import PathBreadcrumbs from "../../components/PathBreadcrumbs";
 import { RootState } from "../../reducers";
 import {
-  selectXmlNode,
   setActivePair,
   toggleDiffMode,
 } from "./schemaEditorSlice";
@@ -57,7 +56,7 @@ const SchemaTreeViewToolBar = React.memo(() => {
   }, [dispatch]);
 
   const handleClickPath = React.useCallback(
-    (id) => dispatch(selectXmlNode(id)),
+    (id) => { },
     [dispatch]
   );
 

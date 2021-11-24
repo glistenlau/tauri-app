@@ -45,7 +45,7 @@ interface SearchBarProps {
   fileNameValue: string;
   searchFolderLabel: string;
   searchFileLabel: string;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 const SearchBar = React.memo(
