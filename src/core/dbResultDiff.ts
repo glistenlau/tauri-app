@@ -156,7 +156,6 @@ const getHeadersWidth = (headers: Array<any>) => {
   return headers.map((header) => getTextWidth(header.name, HEADER_FONT) + 40);
 };
 
-
 const buildIndexMap = (columnIndexMap: any, fields: Array<any>, i: number) => {
   if (!fields) return;
 

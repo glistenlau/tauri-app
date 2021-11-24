@@ -47,7 +47,7 @@ const SchemaTreeViewToolBar = React.memo(() => {
     dispatch(toggleDiffMode());
   }, [dispatch]);
 
-  const handleClickPath = React.useCallback((id) => { }, [dispatch]);
+  const handleClickPath = React.useCallback((id) => {}, [dispatch]);
 
   // const pathBreadcrumbs = React.useMemo(
   //   () =>

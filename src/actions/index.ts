@@ -236,51 +236,51 @@ export const saveProp =
     values: Array<string>,
     saveTarget: number
   ) =>
-    async (dispatch: Function) => {
-      const ret: any = {};
-      if (saveTarget === 0 || saveTarget === 2) {
-        try {
-          await writePgProp(classPath, propKey, values[1]);
-          dispatch(
-            showNotification(
-              `Saved ${propKey} to the Postgres properties file.`,
-              "success"
-            )
-          );
-          ret.postgres = { success: true };
-        } catch (e) {
-          dispatch(
-            showNotification(
-              `Failed to Save ${propKey} to the Postgres properties file.`,
-              "error"
-            )
-          );
-          ret.postgres = { success: false, error: e };
-        }
+  async (dispatch: Function) => {
+    const ret: any = {};
+    if (saveTarget === 0 || saveTarget === 2) {
+      try {
+        await writePgProp(classPath, propKey, values[1]);
+        dispatch(
+          showNotification(
+            `Saved ${propKey} to the Postgres properties file.`,
+            "success"
+          )
+        );
+        ret.postgres = { success: true };
+      } catch (e) {
+        dispatch(
+          showNotification(
+            `Failed to Save ${propKey} to the Postgres properties file.`,
+            "error"
+          )
+        );
+        ret.postgres = { success: false, error: e };
       }
+    }
 
-      if (saveTarget === 1 || saveTarget === 2) {
-        try {
-          await writeOracleProp(classPath, propKey, values[0]);
-          dispatch(
-            showNotification(
-              `Saved ${propKey} to the Oracle properties file.`,
-              "success"
-            )
-          );
-          ret.oracle = { success: true };
-        } catch (e) {
-          dispatch(
-            showNotification(
-              `Failed to Save ${propKey} the to Oracle properties file.`,
-              "error"
-            )
-          );
-          ret.oracle = { success: false, error: e };
-        }
+    if (saveTarget === 1 || saveTarget === 2) {
+      try {
+        await writeOracleProp(classPath, propKey, values[0]);
+        dispatch(
+          showNotification(
+            `Saved ${propKey} to the Oracle properties file.`,
+            "success"
+          )
+        );
+        ret.oracle = { success: true };
+      } catch (e) {
+        dispatch(
+          showNotification(
+            `Failed to Save ${propKey} the to Oracle properties file.`,
+            "error"
+          )
+        );
+        ret.oracle = { success: false, error: e };
       }
+    }
 
-      return ret;
-    };
+    return ret;
+  };
 
 export const initApp = createAction("initApp");
