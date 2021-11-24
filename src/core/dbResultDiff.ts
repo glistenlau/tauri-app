@@ -1,7 +1,6 @@
 import Duration from "../apis/duration";
 import { ScanSchemaQueryResult, ScanSchemaResult } from "../apis/queryRunner";
 import { getTextWidth } from "../util";
-import { ResultType } from "./queryRunner";
 
 const HEADER_FONT = "700 14px monospace";
 const ROW_FONT = "400 14px monospace";
@@ -157,43 +156,6 @@ const getHeadersWidth = (headers: Array<any>) => {
   return headers.map((header) => getTextWidth(header.name, HEADER_FONT) + 40);
 };
 
-const generateProcessedResult = (
-  originResult: ResultType,
-  processedRows: Array<any>,
-  headersWidth: Array<number>
-) => {
-  const ret: any = originResult &&
-    originResult.fields &&
-    originResult.fields.length > 0 && {
-      success: originResult.success,
-      elapsed: originResult.elapsed,
-      columns: [
-        {
-          name: "",
-          id: "-1",
-          sticky: "left",
-          width:
-            getTextWidth(`${processedRows.length}`, HEADER_FONT) + EXTRA_WIDTH,
-        },
-        ...originResult.fields.map((f: any, i: number) => ({
-          ...f,
-          width: headersWidth[i],
-          id: `${i}`,
-        })),
-      ],
-      rows: processedRows,
-    };
-
-  if (ret && originResult && originResult.error) {
-    ret.error = originResult.error;
-  }
-
-  if (ret && originResult && originResult.rowsAffected !== undefined) {
-    ret.rowsAffected = originResult.rowsAffected;
-  }
-
-  return ret;
-};
 
 const buildIndexMap = (columnIndexMap: any, fields: Array<any>, i: number) => {
   if (!fields) return;

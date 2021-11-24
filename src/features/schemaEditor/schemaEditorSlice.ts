@@ -1,7 +1,6 @@
 // @ts-ignore
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initApp } from "../../actions";
-import { XmlTag } from "../../core/xmlParser";
 import { DbSchemaSearchFlatQuery } from "../../generated/graphql";
 
 export interface SchemaEditorState {
@@ -12,7 +11,6 @@ export interface SchemaEditorState {
   searchPath: string;
   searchFile: string;
   activeNodeId: string;
-  activeNodePaths: Array<[XmlTag, XmlTag]>;
   diffMode: boolean;
   filterText: string;
   pathOpenMap: any;
@@ -26,7 +24,6 @@ const initialState: SchemaEditorState = {
   searchPath: "",
   searchFile: "",
   activeNodeId: "",
-  activeNodePaths: [],
   diffMode: false,
   filterText: "",
   pathOpenMap: {},
@@ -54,18 +51,11 @@ const schemaEditor = createSlice({
     setActiveNodeId(state, { payload }: PayloadAction<string>) {
       state.activeNodeId = payload;
     },
-    setActiveNodePaths(
-      state,
-      { payload }: PayloadAction<Array<[XmlTag, XmlTag]>>
-    ) {
-      state.activeNodePaths = payload;
-    },
     loadXmlList(
       state,
       { payload }: PayloadAction<DbSchemaSearchFlatQuery | undefined>
     ) {
       state.activeNodeId = initialState.activeNodeId;
-      state.activeNodePaths = initialState.activeNodePaths;
       state.pathOpenMap = {};
       state.flatTreeData = payload;
       state.valuePair = initialState.valuePair;
@@ -104,7 +94,6 @@ export const {
   changeSearchFile,
   setActivePair,
   setActiveNodeId,
-  setActiveNodePaths,
   toggleDiffMode,
   toggleOpen,
   toggleActiveEditor,

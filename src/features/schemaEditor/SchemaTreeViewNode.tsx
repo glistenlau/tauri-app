@@ -2,7 +2,6 @@ import { createStyles, makeStyles } from "@material-ui/core/styles";
 import React, { useCallback, useContext, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import SVGIcon from "../../components/SVGIcon";
-import { extractXmlFileIndex } from "../../core/xmlProcessor";
 import { getHashColor } from "../../util";
 import { toggleOpen } from "./schemaEditorSlice";
 import { SchemaEditorContext } from "./SchemaEditorView";
@@ -47,8 +46,6 @@ const SchemaTreeViewNode = React.memo(
     const classes = useStyles();
     const dispatch = useDispatch();
     const { onSelectNode } = useContext(SchemaEditorContext);
-
-    const rootIndex = React.useMemo(() => extractXmlFileIndex(id), [id]);
 
     const tagColor = useMemo(() => getHashColor(tagName)[800], [tagName]);
 

@@ -2,7 +2,7 @@ import { Response } from "../apis";
 import oracle from "../apis/oracle";
 import postgres from "../apis/postgres";
 import { SQLResult } from "../apis/sqlCommon";
-import { Parameter } from "../containers/QueryRunner";
+import { Parameter } from "../features/queryScan/queryScanSlice";
 import { isEmptyObjectOrNull, stringifySqlError } from "../util";
 import { DB_TYPE } from "./databaseConsole";
 
@@ -80,7 +80,7 @@ const evaluateCommon = async (
       success: true,
       value: evaled,
     };
-  } catch (err) {
+  } catch (err: any) {
     return {
       success: false,
       errorMessage: err.message,

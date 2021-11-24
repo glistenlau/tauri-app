@@ -13,16 +13,15 @@ import {
   pink,
   purple,
   red,
-  teal,
+  teal
 } from "@material-ui/core/colors";
 import crypto from "crypto";
 import glob from "glob";
 import { SQLError } from "../apis/sqlCommon";
-import { TimeElapsed } from "../reducers/queryRunner";
 
-export const getLogPath = () => {};
+export const getLogPath = () => { };
 
-export const getDBPath = () => {};
+export const getDBPath = () => { };
 
 const NS_PER_S = 1e9;
 export const isSpace = (c: string) => {
@@ -111,15 +110,6 @@ export const getTextWidth = (text: string, font: string): number => {
   context.font = font;
   var metrics = context.measureText(text);
   return Math.ceil(metrics.width);
-};
-
-export const addTimeElapsed = (
-  e1: TimeElapsed,
-  e2: TimeElapsed
-): TimeElapsed => {
-  const nano = e1[1] + e2[1];
-  const second = e1[0] + e2[0] + Math.floor(nano / NS_PER_S);
-  return [second, nano % NS_PER_S];
 };
 
 export const globFile = (
@@ -247,10 +237,8 @@ export const postgresIntevalToString = (pi: any) => {
   }
 
   ret.push(
-    `${numberToString(pi.hours, 2) || "00"}:${
-      numberToString(pi.minutes, 2) || "00"
-    }:${numberToString(pi.seconds, 2) || "00"}.${
-      numberToString(pi.milliseconds * 1000, 6) || "000000"
+    `${numberToString(pi.hours, 2) || "00"}:${numberToString(pi.minutes, 2) || "00"
+    }:${numberToString(pi.seconds, 2) || "00"}.${numberToString(pi.milliseconds * 1000, 6) || "000000"
     }`
   );
   return ret.join(" ");

@@ -19,7 +19,6 @@ import transactionControl from "../features/transactionControl/transactionContro
 import editor from "./editor";
 import navigator from "./navigator";
 import notification from "./notification";
-import queryRunner from "./queryRunner";
 import search from "./search";
 
 const persistConfig = {
@@ -34,7 +33,6 @@ const appReducer = combineReducers({
   editor,
   editorSettings,
   search,
-  queryRunner,
   queryScan,
   navigator,
   settings,

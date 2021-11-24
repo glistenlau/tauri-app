@@ -1,14 +1,9 @@
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import DiffToolBar from "../../components/DiffToolbar";
-import PathBreadcrumbs from "../../components/PathBreadcrumbs";
 import { RootState } from "../../reducers";
-import {
-  setActivePair,
-  toggleDiffMode,
-} from "./schemaEditorSlice";
+import { setActivePair, toggleDiffMode } from "./schemaEditorSlice";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -47,73 +42,67 @@ const SchemaTreeViewToolBar = React.memo(() => {
   const activePair = useSelector(
     (state: RootState) => state.schemaEditor.activePair
   );
-  const activeNodePaths = useSelector(
-    (state: RootState) => state.schemaEditor.activeNodePaths
-  );
 
   const handleToogleDiff = React.useCallback(() => {
     dispatch(toggleDiffMode());
   }, [dispatch]);
 
-  const handleClickPath = React.useCallback(
-    (id) => { },
-    [dispatch]
-  );
+  const handleClickPath = React.useCallback((id) => { }, [dispatch]);
 
-  const pathBreadcrumbs = React.useMemo(
-    () =>
-      activeNodePaths.map((valuePair, index) => {
-        if (!valuePair || !Array.isArray(valuePair)) {
-          return null;
-        }
-        const tag = valuePair.find((value) => value !== null);
-        if (tag === undefined) {
-          return null;
-        }
-        const result: any = { id: tag.id };
-        let tagName = tag.tagName;
-        if (index > 0 || tagName.indexOf(".") === -1) {
-          tagName = `<${tagName}>`;
-        }
-        const attrName = tag.attr.name;
-        result.value = (active?: boolean) => (
-          <span
-            key={tag.id}
-            style={{
-              flex: 1,
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {tagName && (
-              <Typography
-                component="span"
-                color="textPrimary"
-                style={{
-                  color: active ? "#6200EE" : tag.tagColor,
-                }}
-              >
-                {tagName}
-              </Typography>
-            )}
-            {tagName && attrName && <Typography component="span"> </Typography>}
-            {attrName && (
-              <Typography
-                component="span"
-                color="textPrimary"
-                style={{ color: active ? "#6200EE" : undefined }}
-              >
-                {attrName}
-              </Typography>
-            )}
-          </span>
-        );
+  // const pathBreadcrumbs = React.useMemo(
+  //   () =>
+  //     activeNodePaths.map((valuePair, index) => {
+  //       if (!valuePair || !Array.isArray(valuePair)) {
+  //         return null;
+  //       }
+  //       const tag = valuePair.find((value) => value !== null);
+  //       if (tag === undefined) {
+  //         return null;
+  //       }
+  //       const result: any = { id: tag.id };
+  //       let tagName = tag.tagName;
+  //       if (index > 0 || tagName.indexOf(".") === -1) {
+  //         tagName = `<${tagName}>`;
+  //       }
+  //       const attrName = tag.attr.name;
+  //       result.value = (active?: boolean) => (
+  //         <span
+  //           key={tag.id}
+  //           style={{
+  //             flex: 1,
+  //             textOverflow: "ellipsis",
+  //             overflow: "hidden",
+  //             whiteSpace: "nowrap",
+  //           }}
+  //         >
+  //           {tagName && (
+  //             <Typography
+  //               component="span"
+  //               color="textPrimary"
+  //               style={{
+  //                 color: active ? "#6200EE" : tag.tagColor,
+  //               }}
+  //             >
+  //               {tagName}
+  //             </Typography>
+  //           )}
+  //           {tagName && attrName && <Typography component="span"> </Typography>}
+  //           {attrName && (
+  //             <Typography
+  //               component="span"
+  //               color="textPrimary"
+  //               style={{ color: active ? "#6200EE" : undefined }}
+  //             >
+  //               {attrName}
+  //             </Typography>
+  //           )}
+  //         </span>
+  //       );
 
-        return result;
-      }),
-    [activeNodePaths]
-  );
+  //       return result;
+  //     }),
+  //   [activeNodePaths]
+  // );
 
   const handleActivePairChange = useCallback(
     (activePair: [boolean, boolean]) => {
@@ -124,11 +113,11 @@ const SchemaTreeViewToolBar = React.memo(() => {
 
   return (
     <div className={classes.container}>
-      <PathBreadcrumbs
+      {/* <PathBreadcrumbs
         className={classes.path}
         onClick={handleClickPath}
         paths={pathBreadcrumbs}
-      />
+      /> */}
       <DiffToolBar
         activePair={activePair}
         diffMode={diffMode}
