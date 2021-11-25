@@ -6,6 +6,7 @@ use oracle::{sql_type::ToSql, Connection};
 use oracle::{ColumnInfo, Statement};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use uuid::Uuid;
 
 use crate::{core::oracle_param_mapper::map_params, utilities::oracle::get_row_values};
 
@@ -62,6 +63,52 @@ impl OracleClient {
             &self.config.password,
             connect_string,
         )?)
+    }
+
+    fn execute_stmt_with_statistics(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResult, SQLError> {
+        let conn_wrap = self.get_connection()?;
+        let conn_lock = conn_wrap.lock().unwrap();
+        let statement = conn_lock.statement(stmt).build()?;
+        let gather_plan_statistics_hint = format!(" /*+ gather_plan_statistics {} */ ", Uuid::new_v4().to_string());
+        let stmt_lower = stmt.to_lowercase();
+
+        let key_str = match statement.statement_type() {
+            oracle::StatementType::Select => "select",
+            oracle::StatementType::Insert => "insert",
+            oracle::StatementType::Update => "update",
+            oracle::StatementType::Delete => "delete",
+            oracle::StatementType::Merge => "merge",
+            _ => return Err(SQLError::new_str("Can't explain the statement.")),
+        };
+        let insert_pos = stmt_lower.find(key_str).and_then(|pos| Some(pos + key_str.len())).unwrap();
+        let mut new_statement = stmt.to_owned();
+        new_statement.insert_str(insert_pos, &gather_plan_statistics_hint);
+
+        let res = self.execute_stmt(&new_statement, params)?;
+        let statistics_res = self.retrieve_statistics(&new_statement);
+
+        Ok(match statistics_res {
+            Ok(res_set) => SQLResult::new_result_with_statistics(Some(res), Some(res_set)),
+            Err(_e) => SQLResult::new_result_with_statistics(Some(res), Option::<SQLResultSet>::None),
+        })
+    }
+
+    fn retrieve_statistics(&mut self, stmt: &str) -> Result<SQLResultSet, SQLError> {
+        let sql_id_stmt = format!("SELECT sql_id FROM V$SQL WHERE sql_text = '{}'", stmt);
+        let sql_id_res = self.execute_stmt(&sql_id_stmt, &Vec::new())?;
+
+        let sql_id = match sql_id_res.rows() {
+            Some(rows) => {
+                if rows.is_empty() || rows[0].is_empty() {
+                    return Err(SQLError::new_str("Can't find the sql statement.")); 
+                }
+                rows[0][0].to_owned()
+            },
+            None => return Err(SQLError::new_str("Can't find the sql statement.")),
+        };
+
+        let _statistics_stmt = "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,0,'ALLSTATS LAST'))";
+        self.execute_stmt(stmt, &vec![sql_id])
     }
 
     fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet, SQLError> {

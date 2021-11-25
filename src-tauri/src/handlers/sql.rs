@@ -82,6 +82,7 @@ pub fn handle_command<C>(
                     SQLResult::Error(err) => {
                         return Err(anyhow!(err.message()));
                     }
+                    SQLResult::ResultWithStatistics { result, statistics: _ } => Ok(SQLResult::new_result(result)),
                 },
                 Err(err) => Err(err),
             }

@@ -340,6 +340,10 @@ impl From<tokio_postgres::Error> for SQLError {
 #[serde(rename_all = "camelCase")]
 pub enum SQLResult {
     Result(Option<SQLResultSet>),
+    ResultWithStatistics {
+        result: Option<SQLResultSet>,
+        statistics: Option<SQLResultSet>,
+    },
     Error(SQLError),
 }
 
@@ -348,9 +352,17 @@ impl SQLResult {
         SQLResult::Result(result)
     }
 
+    pub fn new_result_with_statistics(result: Option<SQLResultSet>, statistics: Option<SQLResultSet>) -> Self {
+        Self::ResultWithStatistics {
+            result,
+            statistics
+        }
+    }
+
     pub fn new_error(error: SQLError) -> SQLResult {
         SQLResult::Error(error)
     }
+
 }
 
 #[derive(Serialize, Deserialize)]

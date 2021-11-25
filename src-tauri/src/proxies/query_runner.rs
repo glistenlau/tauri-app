@@ -399,7 +399,7 @@ pub fn scan_schema_queries(
                             Some(rs) => rs.rows().as_deref(),
                             None => None,
                         },
-                        SQLResult::Error(_) => None,
+                        _ => None,
                     }
                 })
                 .collect();
