@@ -352,17 +352,16 @@ impl SQLResult {
         SQLResult::Result(result)
     }
 
-    pub fn new_result_with_statistics(result: Option<SQLResultSet>, statistics: Option<SQLResultSet>) -> Self {
-        Self::ResultWithStatistics {
-            result,
-            statistics
-        }
+    pub fn new_result_with_statistics(
+        result: Option<SQLResultSet>,
+        statistics: Option<SQLResultSet>,
+    ) -> Self {
+        Self::ResultWithStatistics { result, statistics }
     }
 
     pub fn new_error(error: SQLError) -> SQLResult {
         SQLResult::Error(error)
     }
-
 }
 
 #[derive(Serialize, Deserialize)]

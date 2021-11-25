@@ -65,11 +65,18 @@ impl OracleClient {
         )?)
     }
 
-    fn execute_stmt_with_statistics(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResult, SQLError> {
+    fn execute_stmt_with_statistics(
+        &mut self,
+        stmt: &str,
+        params: &[Value],
+    ) -> Result<SQLResult, SQLError> {
         let conn_wrap = self.get_connection()?;
         let conn_lock = conn_wrap.lock().unwrap();
         let statement = conn_lock.statement(stmt).build()?;
-        let gather_plan_statistics_hint = format!(" /*+ gather_plan_statistics {} */ ", Uuid::new_v4().to_string());
+        let gather_plan_statistics_hint = format!(
+            " /*+ gather_plan_statistics {} */ ",
+            Uuid::new_v4().to_string()
+        );
         let stmt_lower = stmt.to_lowercase();
 
         let key_str = match statement.statement_type() {
@@ -80,7 +87,10 @@ impl OracleClient {
             oracle::StatementType::Merge => "merge",
             _ => return Err(SQLError::new_str("Can't explain the statement.")),
         };
-        let insert_pos = stmt_lower.find(key_str).and_then(|pos| Some(pos + key_str.len())).unwrap();
+        let insert_pos = stmt_lower
+            .find(key_str)
+            .and_then(|pos| Some(pos + key_str.len()))
+            .unwrap();
         let mut new_statement = stmt.to_owned();
         new_statement.insert_str(insert_pos, &gather_plan_statistics_hint);
 
@@ -89,7 +99,9 @@ impl OracleClient {
 
         Ok(match statistics_res {
             Ok(res_set) => SQLResult::new_result_with_statistics(Some(res), Some(res_set)),
-            Err(_e) => SQLResult::new_result_with_statistics(Some(res), Option::<SQLResultSet>::None),
+            Err(_e) => {
+                SQLResult::new_result_with_statistics(Some(res), Option::<SQLResultSet>::None)
+            }
         })
     }
 
@@ -100,14 +112,15 @@ impl OracleClient {
         let sql_id = match sql_id_res.rows() {
             Some(rows) => {
                 if rows.is_empty() || rows[0].is_empty() {
-                    return Err(SQLError::new_str("Can't find the sql statement.")); 
+                    return Err(SQLError::new_str("Can't find the sql statement."));
                 }
                 rows[0][0].to_owned()
-            },
+            }
             None => return Err(SQLError::new_str("Can't find the sql statement.")),
         };
 
-        let _statistics_stmt = "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,0,'ALLSTATS LAST'))";
+        let _statistics_stmt =
+            "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,0,'ALLSTATS LAST'))";
         self.execute_stmt(stmt, &vec![sql_id])
     }
 
