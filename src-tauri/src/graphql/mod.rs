@@ -1,5 +1,6 @@
 mod app_state;
 mod db_schema;
+mod sql;
 mod sql_explain;
 mod sql_formatter;
 
@@ -13,6 +14,7 @@ use sql_formatter::SqlFormatterQuery;
 
 use self::{
     app_state::{AppStateMutation, AppStateQuery},
+    sql::SqlQuery,
     sql_explain::SqlExplainQuery,
 };
 
@@ -20,6 +22,7 @@ use self::{
 pub struct Query(
     AppStateQuery,
     DbSchemaQuery,
+    SqlQuery,
     SqlExplainQuery,
     SqlFormatterQuery,
 );

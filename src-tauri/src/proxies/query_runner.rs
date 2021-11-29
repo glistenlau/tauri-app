@@ -396,7 +396,7 @@ pub fn scan_schema_queries(
                     let (_, sql_result) = fr.as_ref().unwrap();
                     match sql_result {
                         SQLResult::Result(rs_opt) => match rs_opt {
-                            Some(rs) => rs.rows().as_deref(),
+                            Some(rs) => rs.get_rows().as_deref(),
                             None => None,
                         },
                         _ => None,

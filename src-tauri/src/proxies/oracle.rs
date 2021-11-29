@@ -65,7 +65,7 @@ impl OracleClient {
         )?)
     }
 
-    fn execute_stmt_with_statistics(
+    pub fn execute_stmt_with_statistics(
         &mut self,
         stmt: &str,
         params: &[Value],
@@ -109,7 +109,7 @@ impl OracleClient {
         let sql_id_stmt = format!("SELECT sql_id FROM V$SQL WHERE sql_text = '{}'", stmt);
         let sql_id_res = self.execute_stmt(&sql_id_stmt, &Vec::new())?;
 
-        let sql_id = match sql_id_res.rows() {
+        let sql_id = match sql_id_res.get_rows() {
             Some(rows) => {
                 if rows.is_empty() || rows[0].is_empty() {
                     return Err(SQLError::new_str("Can't find the sql statement."));
@@ -124,7 +124,7 @@ impl OracleClient {
         self.execute_stmt(stmt, &vec![sql_id])
     }
 
-    fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet, SQLError> {
+    pub fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet, SQLError> {
         let conn_wrap = self.get_connection()?;
         let conn = conn_wrap.lock().unwrap();
         let mapped_params = map_params(Some(stmt), params, &conn)?;
@@ -286,6 +286,22 @@ impl SQLClient<OracleConfig> for OracleClient {
         }
 
         Ok(SQLResult::new_result(None))
+    }
+
+    fn execute_stmt(
+        &mut self,
+        statement: &str,
+        parameters: &[Value],
+        with_statistics: bool,
+    ) -> Result<SQLResult> {
+        let exec_res = if with_statistics {
+            self.execute_stmt_with_statistics(statement, parameters)
+        } else {
+            let res = self.execute_stmt(statement, parameters);
+            res.map(|rs| SQLResult::new_result(Some(rs)))
+        };
+
+        exec_res.or_else(|e| Ok(SQLResult::new_error(e)))
     }
 }
 

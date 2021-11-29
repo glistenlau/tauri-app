@@ -388,6 +388,15 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
     fn rollback_to_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
         todo!()
     }
+
+    fn execute_stmt(
+        &mut self,
+        _statement: &str,
+        _parameters: &[Value],
+        _with_statistics: bool,
+    ) -> Result<SQLResult> {
+        todo!()
+    }
 }
 
 lazy_static! {

@@ -1,8 +1,10 @@
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{cmp, error::Error, fmt};
 
 use anyhow::Result;
 
+use async_graphql::Enum;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -49,7 +51,7 @@ pub fn process_statement_params(statement: &str, param_sign: &str) -> String {
     new_stmt
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Enum, Serialize, Deserialize, Debug, Copy, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum DBType {
     Oracle,
@@ -111,7 +113,7 @@ impl SQLResultSet {
         }
     }
 
-    pub fn rows(&self) -> &Option<Vec<Vec<Value>>> {
+    pub fn get_rows(&self) -> &Option<Vec<Vec<Value>>> {
         &self.rows
     }
 }
@@ -388,10 +390,31 @@ pub struct SavePoint {
 pub trait SQLClient<C> {
     fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value])
         -> Result<SQLResult>;
+    fn execute_stmt(
+        &mut self,
+        statement: &str,
+        parameters: &[Value],
+        with_statistics: bool,
+    ) -> Result<SQLResult>;
     fn set_config(&mut self, config: C) -> Result<SQLResult>;
     fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
     fn commit(&mut self) -> Result<SQLResult>;
     fn rollback(&mut self) -> Result<SQLResult>;
     fn add_savepoint(&mut self, name: &str) -> Result<SQLResult>;
     fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult>;
+}
+
+pub fn execute_stmt<C>(
+    stmt: &str,
+    params: &[Value],
+    with_statistics: bool,
+    proxy: Arc<Mutex<dyn SQLClient<C>>>,
+) -> Result<SQLResult> {
+    let mut proxy_lock = proxy.lock().unwrap();
+    proxy_lock.execute_stmt(stmt, params, with_statistics)
+}
+
+pub fn get_schema_stmt(schema: &str, stmt: &str) -> String {
+    stmt.to_lowercase()
+        .replace(COMPANY_PLACEHOLDER, &format!("{}.", schema))
 }
