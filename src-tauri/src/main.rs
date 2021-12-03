@@ -3,35 +3,16 @@
     windows_subsystem = "windows"
 )]
 
-use std::net::SocketAddr;
-use std::{net::TcpListener, thread};
+use std::thread;
 
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::Schema;
-use async_graphql_warp::{graphql_subscription, GraphQLResponse};
-use mylib::graphql::{Mutation, Query};
+use mylib::graphql::run_graphql_server;
+use mylib::utilities::find_open_port;
 use tauri::Submenu;
 use tauri::{Menu, MenuItem};
 
-use std::convert::Infallible;
-
-use warp::{http::Response as HttpResponse, Filter};
-
-use mylib::graphql::Subscription;
 use mylib::state::AppState;
 
 static APP_NAME: &str = "AP Database Dev Tool";
-
-fn find_open_port() -> u16 {
-    let addrs = [
-        SocketAddr::from(([127, 0, 0, 1], 8888)),
-        SocketAddr::from(([127, 0, 0, 1], 0)),
-    ];
-
-    let listener = TcpListener::bind(&addrs[..]).expect("Failed to bind random port");
-    // We retrieve the port assigned to us by the OS
-    listener.local_addr().unwrap().port()
-}
 
 fn get_menu() -> Menu {
     Menu::new()
@@ -78,41 +59,6 @@ fn get_menu() -> Menu {
                 .add_native_item(MenuItem::Zoom)
                 .add_native_item(MenuItem::CloseWindow),
         ))
-}
-
-#[tokio::main]
-async fn run_graphql_server(port: u16) {
-    let schema = Schema::build(Query::default(), Mutation::default(), Subscription).finish();
-
-    let graphql_post =
-        warp::path("graphql").and(async_graphql_warp::graphql(schema.clone()).and_then(
-            |(schema, request): (
-                Schema<Query, Mutation, Subscription>,
-                async_graphql::Request,
-            )| async move {
-                let rsp = GraphQLResponse::from(schema.execute(request).await);
-                Ok::<_, Infallible>(rsp)
-            },
-        ));
-
-    let graphql_playground = warp::path::end().and(warp::get()).map(|| {
-        HttpResponse::builder()
-            .header("content-type", "text/html")
-            .body(playground_source(
-                GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/"),
-            ))
-    });
-
-    let routes = graphql_subscription(schema)
-        .or(graphql_playground)
-        .or(graphql_post.with(
-            warp::cors()
-                .allow_any_origin()
-                .allow_header("Content-Type")
-                .allow_method("POST"),
-        ));
-
-    warp::serve(routes).run(([127, 0, 0, 1], port)).await;
 }
 
 fn main() {

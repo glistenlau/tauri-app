@@ -66,26 +66,27 @@ impl OracleClient {
     }
 
     pub fn execute_stmt_with_statistics(
-        &mut self,
         stmt: &str,
         params: &[Value],
+        conn: &Connection,
     ) -> Result<SQLResult, SQLError> {
-        let conn_wrap = self.get_connection()?;
-        let conn_lock = conn_wrap.lock().unwrap();
-        let statement = conn_lock.statement(stmt).build()?;
         let gather_plan_statistics_hint = format!(
             " /*+ gather_plan_statistics {} */ ",
             Uuid::new_v4().to_string()
         );
         let stmt_lower = stmt.to_lowercase();
 
-        let key_str = match statement.statement_type() {
-            oracle::StatementType::Select => "select",
-            oracle::StatementType::Insert => "insert",
-            oracle::StatementType::Update => "update",
-            oracle::StatementType::Delete => "delete",
-            oracle::StatementType::Merge => "merge",
-            _ => return Err(SQLError::new_str("Can't explain the statement.")),
+        let key_str = {
+            let statement = conn.statement(stmt).build()?;
+
+            match statement.statement_type() {
+                oracle::StatementType::Select => "select",
+                oracle::StatementType::Insert => "insert",
+                oracle::StatementType::Update => "update",
+                oracle::StatementType::Delete => "delete",
+                oracle::StatementType::Merge => "merge",
+                _ => return Err(SQLError::new_str("Can't explain the statement.")),
+            }
         };
         let insert_pos = stmt_lower
             .find(key_str)
@@ -94,8 +95,8 @@ impl OracleClient {
         let mut new_statement = stmt.to_owned();
         new_statement.insert_str(insert_pos, &gather_plan_statistics_hint);
 
-        let res = self.execute_stmt(&new_statement, params)?;
-        let statistics_res = self.retrieve_statistics(&new_statement);
+        let res = Self::execute_stmt(&new_statement, params, conn)?;
+        let statistics_res = Self::retrieve_statistics(&new_statement, conn);
 
         Ok(match statistics_res {
             Ok(res_set) => SQLResult::new_result_with_statistics(Some(res), Some(res_set)),
@@ -105,9 +106,9 @@ impl OracleClient {
         })
     }
 
-    fn retrieve_statistics(&mut self, stmt: &str) -> Result<SQLResultSet, SQLError> {
+    fn retrieve_statistics(stmt: &str, conn: &Connection) -> Result<SQLResultSet, SQLError> {
         let sql_id_stmt = format!("SELECT sql_id FROM V$SQL WHERE sql_text = '{}'", stmt);
-        let sql_id_res = self.execute_stmt(&sql_id_stmt, &Vec::new())?;
+        let sql_id_res = Self::execute_stmt(&sql_id_stmt, &Vec::new(), conn)?;
 
         let sql_id = match sql_id_res.get_rows() {
             Some(rows) => {
@@ -119,15 +120,16 @@ impl OracleClient {
             None => return Err(SQLError::new_str("Can't find the sql statement.")),
         };
 
-        let _statistics_stmt =
-            "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,0,'ALLSTATS LAST'))";
-        self.execute_stmt(stmt, &vec![sql_id])
+        let statistics_stmt = "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,0,'ALLSTATS LAST'))";
+        Self::execute_stmt(statistics_stmt, &vec![sql_id], conn)
     }
 
-    pub fn execute_stmt(&mut self, stmt: &str, params: &[Value]) -> Result<SQLResultSet, SQLError> {
-        let conn_wrap = self.get_connection()?;
-        let conn = conn_wrap.lock().unwrap();
-        let mapped_params = map_params(Some(stmt), params, &conn)?;
+    pub fn execute_stmt(
+        stmt: &str,
+        params: &[Value],
+        conn: &Connection,
+    ) -> Result<SQLResultSet, SQLError> {
+        let mapped_params = map_params(Some(stmt), params, conn)?;
         let mut unboxed_params = Vec::with_capacity(mapped_params.len());
         for b in &mapped_params {
             unboxed_params.push(b.as_ref());
@@ -143,9 +145,9 @@ impl OracleClient {
                 replaced_stmt.push_str(part);
                 i += 1;
             }
-            Self::execute_stmt_mapped(&replaced_stmt, &unboxed_params, &conn)
+            Self::execute_stmt_mapped(&replaced_stmt, &unboxed_params, conn)
         } else {
-            Self::execute_stmt_mapped(stmt, &unboxed_params, &conn)
+            Self::execute_stmt_mapped(stmt, &unboxed_params, conn)
         }
     }
 
@@ -199,23 +201,6 @@ impl OracleClient {
 }
 
 impl SQLClient<OracleConfig> for OracleClient {
-    fn execute(
-        &mut self,
-        statement: &str,
-        _schema: &str,
-        parameters: &[Value],
-    ) -> Result<SQLResult> {
-        log::debug!(
-            "execute oracle, statement {}, parameters {:?}",
-            statement,
-            parameters
-        );
-        match self.execute_stmt(statement, parameters) {
-            Ok(result_set) => Ok(SQLResult::new_result(Some(result_set))),
-            Err(e) => Ok(SQLResult::new_error(e)),
-        }
-    }
-
     fn set_config(&mut self, config: OracleConfig) -> Result<SQLResult> {
         self.set_config(config);
         self.conn = None;
@@ -294,10 +279,13 @@ impl SQLClient<OracleConfig> for OracleClient {
         parameters: &[Value],
         with_statistics: bool,
     ) -> Result<SQLResult> {
+        let conn = self.get_connection()?;
+        let conn_lock = conn.lock().unwrap();
+
         let exec_res = if with_statistics {
-            self.execute_stmt_with_statistics(statement, parameters)
+            Self::execute_stmt_with_statistics(statement, parameters, &conn_lock)
         } else {
-            let res = self.execute_stmt(statement, parameters);
+            let res = Self::execute_stmt(statement, parameters, &conn_lock);
             res.map(|rs| SQLResult::new_result(Some(rs)))
         };
 
@@ -315,4 +303,10 @@ lazy_static! {
 
 pub fn get_proxy() -> Arc<Mutex<OracleClient>> {
     Arc::clone(&INSTANCE)
+}
+
+pub fn get_conn() -> Arc<Mutex<Connection>> {
+    let proxy = get_proxy();
+    let mut proxy_lock = proxy.lock().unwrap();
+    proxy_lock.get_connection().unwrap()
 }

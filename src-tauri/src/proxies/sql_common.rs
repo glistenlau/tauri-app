@@ -388,8 +388,6 @@ pub struct SavePoint {
 }
 
 pub trait SQLClient<C> {
-    fn execute(&mut self, statement: &str, schema: &str, parameters: &[Value])
-        -> Result<SQLResult>;
     fn execute_stmt(
         &mut self,
         statement: &str,

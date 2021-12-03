@@ -49,5 +49,9 @@ name = "mylib"
 path = "src/lib.rs"
 
 [[bin]]
+name = "graphql_server"
+path = "src/graphql/main.rs"
+
+[[bin]]
 name = "ap_database_dev_tool"
 path = "src/main.rs"

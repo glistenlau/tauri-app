@@ -10,7 +10,7 @@
 /resource
 
 # production
-/build
+/build/*
 
 /**/generated/*
 

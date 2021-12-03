@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, Result};
 use std::path::Path;
-use std::{cmp, collections::HashMap, fs};
+use std::{collections::HashMap, fs};
 
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -187,13 +187,18 @@ pub fn save_prop<P: AsRef<Path>>(filepath: P, prop_key: &str, prop_value: &str) 
         escape_key(prop_key),
         escape_value(prop_value.trim())
     );
+    let prop_key_md5 = format!("{}.md5", prop_key.to_lowercase());
     let file_str = match read_lines(filepath.as_ref()) {
         Ok(lines_iter) => {
             let mut props_iter = PropsKeyValue::new(lines_iter, true, false);
+            let mut found_md5 = false;
             let mut start = None;
             let mut end = None;
 
             while let Some((key, _, start_line, end_line)) = props_iter.next() {
+                if prop_key_md5 == key.to_lowercase() {
+                    found_md5 = true
+                }
                 if prop_key.to_lowercase() == key.to_lowercase() {
                     start = Some(start_line);
                     end = Some(end_line);
@@ -211,10 +216,20 @@ pub fn save_prop<P: AsRef<Path>>(filepath: P, prop_key: &str, prop_value: &str) 
                         [&prop_str, ""].join("\n")
                     } else {
                         let pre_prop = line_str_vec[0..start.unwrap()].join("\n");
-                        let post_prop = line_str_vec
-                            [cmp::min(end.unwrap() + 1, line_str_vec.len() - 1)..]
-                            .join("\n");
-                        [pre_prop.trim_end(), &prop_str, post_prop.trim_start()].join("\n")
+                        let post_prop = if end.unwrap() >= line_str_vec.len() - 1 {
+                            String::new()
+                        } else {
+                            line_str_vec[end.unwrap() + 1..].join("\n")
+                        };
+                        if found_md5 {
+                            [
+                                &format!("{}{}", pre_prop.trim_end(), &prop_str),
+                                post_prop.trim_start(),
+                            ]
+                            .join("\n")
+                        } else {
+                            [pre_prop.trim_end(), &prop_str, post_prop.trim_start()].join("\n")
+                        }
                     }
                 }
                 None => [&prop_str, ""].join("\n"),

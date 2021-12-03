@@ -247,35 +247,6 @@ impl PostgresProxy {
 }
 
 impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
-    fn execute<'b>(
-        &mut self,
-        statement: &str,
-        _schema: &str,
-        parameters: &[Value],
-    ) -> Result<SQLResult> {
-        log::debug!("start executing postgres statement...");
-
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                let client = self.get_connection().await?;
-                let client_lock = client.lock().unwrap();
-
-                let result =
-                    match Self::execute_string_statement(&statement, &parameters, &client_lock)
-                        .await
-                    {
-                        Ok(rs) => SQLResult::new_result(Some(rs)),
-                        Err(e) => SQLResult::new_error(e),
-                    };
-                Ok(result)
-            })
-    }
-
     fn set_config(&mut self, config: ConnectionConfig) -> Result<SQLResult> {
         POSTGRES_RUNTIME
             .lock()

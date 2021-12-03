@@ -10,6 +10,10 @@ enum DbFamily {
 	POSTGRES
 	BOTH
 }
+enum Dbtype {
+	ORACLE
+	POSTGRES
+}
 type ExplainRow {
 	id: Int!
 	operation: String!
@@ -42,6 +46,7 @@ type FlatSchemaFile {
 	path: String!
 	nodes: [FlatNode!]!
 }
+scalar JSON
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
 }
@@ -55,6 +60,7 @@ type Query {
 	dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
 	dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
 	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
+	executeStmt(dbType: Dbtype!, schema: String!, stmt: String!, params: [JSON!]!, withStatistics: Boolean!): JSON!
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
 	formatSql(sqlStmts: [String!]!): [String!]!
 }

@@ -69,7 +69,7 @@ pub fn handle_command<C>(
             proxy
                 .lock()
                 .unwrap()
-                .execute(&statement, &schema, &parameters)
+                .execute_stmt(&statement, &parameters, false)
         }
         Action::SetConfig => {
             if payload.config.is_none() {
