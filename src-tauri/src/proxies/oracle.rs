@@ -107,21 +107,24 @@ impl OracleClient {
     }
 
     fn retrieve_statistics(stmt: &str, conn: &Connection) -> Result<SQLResultSet, SQLError> {
-        let sql_id_stmt = format!("SELECT sql_id FROM V$SQL WHERE sql_text = '{}'", stmt);
+        let sql_id_stmt = format!(
+            "SELECT sql_id, child_number FROM V$SQL WHERE sql_text = '{}'",
+            stmt
+        );
         let sql_id_res = Self::execute_stmt(&sql_id_stmt, &Vec::new(), conn)?;
 
-        let sql_id = match sql_id_res.get_rows() {
+        let (sql_id, child_number) = match sql_id_res.get_rows() {
             Some(rows) => {
                 if rows.is_empty() || rows[0].is_empty() {
                     return Err(SQLError::new_str("Can't find the sql statement."));
                 }
-                rows[0][0].to_owned()
+                (rows[0][0].to_owned(), rows[0][1].to_owned())
             }
             None => return Err(SQLError::new_str("Can't find the sql statement.")),
         };
 
         let statistics_stmt = "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,0,'ALLSTATS LAST'))";
-        Self::execute_stmt(statistics_stmt, &vec![sql_id], conn)
+        Self::execute_stmt(statistics_stmt, &vec![sql_id, child_number], conn)
     }
 
     pub fn execute_stmt(

@@ -10,7 +10,8 @@
 /resource
 
 # production
-/build/*
+build/*
+!build/.gitkeep 
 
 /**/generated/*
 
