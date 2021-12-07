@@ -10,7 +10,8 @@ use serde_json::Value;
 
 use crate::utilities::find_position_line;
 
-use super::postgres::PostgresProxy;
+use super::oracle::OracleConfig;
+use super::postgres::{ConnectionConfig, PostgresProxy};
 
 const COMPANY_PLACEHOLDER: &str = "company_";
 
@@ -56,6 +57,12 @@ pub fn process_statement_params(statement: &str, param_sign: &str) -> String {
 pub enum DBType {
     Oracle,
     Postgres,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum DBConfig {
+    Oracle(OracleConfig),
+    Postgres(ConnectionConfig),
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -387,26 +394,27 @@ pub struct SavePoint {
     name: String,
 }
 
-pub trait SQLClient<C> {
+pub trait SQLClient {
     fn execute_stmt(
         &mut self,
         statement: &str,
         parameters: &[Value],
         with_statistics: bool,
     ) -> Result<SQLResult>;
-    fn set_config(&mut self, config: C) -> Result<SQLResult>;
+    fn set_config(&mut self, config: DBConfig) -> Result<SQLResult>;
     fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
     fn commit(&mut self) -> Result<SQLResult>;
     fn rollback(&mut self) -> Result<SQLResult>;
     fn add_savepoint(&mut self, name: &str) -> Result<SQLResult>;
     fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult>;
+    fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>>;
 }
 
-pub fn execute_stmt<C>(
+pub fn execute_stmt(
     stmt: &str,
     params: &[Value],
     with_statistics: bool,
-    proxy: Arc<Mutex<dyn SQLClient<C>>>,
+    proxy: Arc<Mutex<dyn SQLClient>>,
 ) -> Result<SQLResult> {
     let mut proxy_lock = proxy.lock().unwrap();
     proxy_lock.execute_stmt(stmt, params, with_statistics)
@@ -415,4 +423,18 @@ pub fn execute_stmt<C>(
 pub fn get_schema_stmt(schema: &str, stmt: &str) -> String {
     stmt.to_lowercase()
         .replace(COMPANY_PLACEHOLDER, &format!("{}.", schema))
+}
+
+pub fn generate_param_stmt(stmt: &str, param_sign: &str) -> String {
+    let mut res = String::with_capacity(stmt.len());
+    let (mut stmt_parts, mut i) = (stmt.split("?"), 1);
+
+    res.push_str(stmt_parts.next().unwrap());
+    for part in stmt_parts {
+        res.push_str(&format!("{}{}", param_sign, i));
+        res.push_str(part);
+        i += 1;
+    }
+
+    res
 }

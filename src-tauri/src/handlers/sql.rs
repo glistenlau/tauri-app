@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::proxies::sql_common::{SQLClient, SQLResult};
+use crate::proxies::sql_common::{DBConfig, SQLClient, SQLResult};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -17,20 +17,20 @@ pub enum Action {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Payload<C> {
+pub struct Payload {
     statement: Option<String>,
     schema: Option<String>,
     parameters: Option<Vec<Value>>,
-    config: Option<C>,
+    config: Option<DBConfig>,
     autocommit: Option<bool>,
 }
 
 const COMPANY_PLACEHOLDER: &str = "company_";
 
-pub fn handle_command<C>(
+pub fn handle_command(
     action: Action,
-    payload: Payload<C>,
-    proxy: Arc<Mutex<dyn SQLClient<C>>>,
+    payload: Payload,
+    proxy: Arc<Mutex<dyn SQLClient>>,
 ) -> Result<SQLResult> {
     match action {
         Action::ExecuteStatement => {

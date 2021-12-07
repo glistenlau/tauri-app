@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use oracle::{sql_type::ToSql, Connection};
 use oracle::{ColumnInfo, Statement};
@@ -10,7 +10,9 @@ use uuid::Uuid;
 
 use crate::{core::oracle_param_mapper::map_params, utilities::oracle::get_row_values};
 
-use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
+use super::sql_common::{
+    generate_param_stmt, DBConfig, SQLClient, SQLError, SQLResult, SQLResultSet,
+};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OracleConfig {
@@ -39,6 +41,8 @@ pub struct OracleClient {
     autocommit: bool,
 }
 
+static PARAM_SIGN: &str = ":";
+
 impl OracleClient {
     fn set_config(&mut self, config: OracleConfig) {
         self.config = config;
@@ -63,6 +67,14 @@ impl OracleClient {
             &self.config.password,
             connect_string,
         )?)
+    }
+
+    pub fn validate_stmt(stmt: &str, conn: &Connection) -> SQLResult {
+        let param_stmt = generate_param_stmt(stmt, PARAM_SIGN);
+        match conn.statement(&param_stmt).build() {
+            Ok(_) => SQLResult::new_result(None),
+            Err(e) => SQLResult::new_error(SQLError::from(e)),
+        }
     }
 
     pub fn execute_stmt_with_statistics(
@@ -123,7 +135,7 @@ impl OracleClient {
             None => return Err(SQLError::new_str("Can't find the sql statement.")),
         };
 
-        let statistics_stmt = "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,0,'ALLSTATS LAST'))";
+        let statistics_stmt = "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(?,?,'ALLSTATS LAST'))";
         Self::execute_stmt(statistics_stmt, &vec![sql_id, child_number], conn)
     }
 
@@ -139,15 +151,7 @@ impl OracleClient {
         }
 
         if mapped_params.len() > 0 {
-            let mut replaced_stmt = String::with_capacity(stmt.len());
-            let (mut stmt_parts, mut i) = (stmt.split("?"), 1);
-
-            replaced_stmt.push_str(stmt_parts.next().unwrap());
-            for part in stmt_parts {
-                replaced_stmt.push_str(&format!(":{}", i));
-                replaced_stmt.push_str(part);
-                i += 1;
-            }
+            let replaced_stmt = generate_param_stmt(stmt, PARAM_SIGN);
             Self::execute_stmt_mapped(&replaced_stmt, &unboxed_params, conn)
         } else {
             Self::execute_stmt_mapped(stmt, &unboxed_params, conn)
@@ -203,13 +207,17 @@ impl OracleClient {
     }
 }
 
-impl SQLClient<OracleConfig> for OracleClient {
-    fn set_config(&mut self, config: OracleConfig) -> Result<SQLResult> {
-        self.set_config(config);
-        self.conn = None;
-        match self.get_connection() {
-            Ok(_) => Ok(SQLResult::new_result(None)),
-            Err(e) => Ok(SQLResult::new_error(e)),
+impl SQLClient for OracleClient {
+    fn set_config(&mut self, db_config: DBConfig) -> Result<SQLResult> {
+        if let DBConfig::Oracle(config) = db_config {
+            self.set_config(config);
+            self.conn = None;
+            match self.get_connection() {
+                Ok(_) => Ok(SQLResult::new_result(None)),
+                Err(e) => Ok(SQLResult::new_error(e)),
+            }
+        } else {
+            Err(anyhow!("Invalid db config."))
         }
     }
 
@@ -293,6 +301,18 @@ impl SQLClient<OracleConfig> for OracleClient {
         };
 
         exec_res.or_else(|e| Ok(SQLResult::new_error(e)))
+    }
+
+    fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
+        let conn = get_conn();
+        let conn_lock = conn.lock().unwrap();
+
+        let res = stmts
+            .iter()
+            .map(|&stmt| Self::validate_stmt(stmt, &conn_lock))
+            .collect();
+
+        Ok(res)
     }
 }
 

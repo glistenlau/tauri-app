@@ -3,14 +3,18 @@ use std::sync::{Arc, Mutex};
 use anyhow::{anyhow, Result};
 use futures::future;
 use lazy_static::lazy_static;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::{runtime::Runtime, spawn};
 use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
 
-use crate::{core::postgres_param_mapper::map_to_sql, utilities::postgres::get_row_values};
+use crate::{
+    core::postgres_param_mapper::map_to_sql, proxies::sql_common::generate_param_stmt,
+    utilities::postgres::get_row_values,
+};
 
-use super::sql_common::{SQLClient, SQLError, SQLResult, SQLResultSet};
+use super::sql_common::{DBConfig, SQLClient, SQLError, SQLResult, SQLResultSet};
 
 pub struct QueryVlidationResult {
     pub pass: bool,
@@ -30,6 +34,8 @@ impl QueryVlidationResult {
         QueryVlidationResult { pass, error }
     }
 }
+
+static PARAM_SIGN: &str = "$";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConnectionConfig {
@@ -131,21 +137,27 @@ impl PostgresProxy {
     pub async fn validate_stmt(stmt: &str, client: &Client) -> Result<QueryVlidationResult, Error> {
         log::debug!("validating query: {}", stmt);
         let company_stmt = stmt.replace("COMPANY_", "GREENCO.");
-        let split = company_stmt.split("?");
-        let mut mapped_stmt = String::with_capacity(company_stmt.len());
-
-        for (i, part) in split.enumerate() {
-            if i > 0 {
-                mapped_stmt.push_str(&format!("${}", i));
-            }
-            mapped_stmt.push_str(part)
-        }
+        let mapped_stmt = generate_param_stmt(&company_stmt, PARAM_SIGN);
 
         match client.prepare(&mapped_stmt).await {
             Ok(_) => Ok(QueryVlidationResult::new_pass()),
             Err(e) => {
                 let sql_error = SQLError::new_postgres_error(e, &mapped_stmt);
                 Ok(QueryVlidationResult::new_fail_err(sql_error))
+            }
+        }
+    }
+
+    pub async fn validate_statement(stmt: &str, client: &Client) -> Result<SQLResult, Error> {
+        log::debug!("validating query: {}", stmt);
+        let company_stmt = stmt.replace("COMPANY_", "GREENCO.");
+        let mapped_stmt = generate_param_stmt(&company_stmt, PARAM_SIGN);
+
+        match client.prepare(&mapped_stmt).await {
+            Ok(_) => Ok(SQLResult::new_result(None)),
+            Err(e) => {
+                let sql_error = SQLError::new_postgres_error(e, &mapped_stmt);
+                Ok(SQLResult::new_error(sql_error))
             }
         }
     }
@@ -246,8 +258,8 @@ impl PostgresProxy {
     }
 }
 
-impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
-    fn set_config(&mut self, config: ConnectionConfig) -> Result<SQLResult> {
+impl<'a> SQLClient for PostgresProxy {
+    fn set_config(&mut self, db_config: DBConfig) -> Result<SQLResult> {
         POSTGRES_RUNTIME
             .lock()
             .or_else(|e| {
@@ -255,11 +267,15 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
                 Err(anyhow!("failed to get postgres runtime: {}", e))
             })?
             .block_on(async {
-                self.config = config;
-                self.client = None;
-                match self.get_connection().await {
-                    Ok(_) => Ok(SQLResult::new_result(None)),
-                    Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
+                if let DBConfig::Postgres(config) = db_config {
+                    self.config = config;
+                    self.client = None;
+                    match self.get_connection().await {
+                        Ok(_) => Ok(SQLResult::new_result(None)),
+                        Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
+                    }
+                } else {
+                    Err(anyhow!("Invalid config."))
                 }
             })
     }
@@ -360,13 +376,39 @@ impl<'a> SQLClient<ConnectionConfig> for PostgresProxy {
         todo!()
     }
 
-    fn execute_stmt(
+    #[tokio::main]
+    async fn execute_stmt(
         &mut self,
-        _statement: &str,
-        _parameters: &[Value],
+        statement: &str,
+        parameters: &[Value],
         _with_statistics: bool,
     ) -> Result<SQLResult> {
-        todo!()
+        let client = self.get_connection().await?;
+        let client_lock = client.lock().unwrap();
+
+        let result =
+            match Self::execute_string_statement(&statement, &parameters, &client_lock).await {
+                Ok(rs) => SQLResult::new_result(Some(rs)),
+                Err(e) => SQLResult::new_error(e),
+            };
+        Ok(result)
+    }
+
+    #[tokio::main]
+    async fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
+        let client = self.get_connection().await?;
+        let client_lock = client.lock().unwrap();
+
+        client_lock
+            .execute("SET search_path TO anaconda", &[])
+            .await?;
+        let pending_tasks = stmts
+            .iter()
+            .map(|&s| Self::validate_statement(s, &client_lock));
+        match future::try_join_all(pending_tasks).await {
+            Ok(res) => Ok(res),
+            Err(e) => Err(e.into()),
+        }
     }
 }
 

@@ -23,8 +23,8 @@ pub struct Endpoint<A, P> {
 #[derive(Deserialize, Debug)]
 #[serde(tag = "name", rename_all = "camelCase")]
 pub enum Handler {
-    Oracle(Endpoint<sql::Action, sql::Payload<proxies::oracle::OracleConfig>>),
-    Postgres(Endpoint<sql::Action, sql::Payload<proxies::postgres::ConnectionConfig>>),
+    Oracle(Endpoint<sql::Action, sql::Payload>),
+    Postgres(Endpoint<sql::Action, sql::Payload>),
     QueryRunner(Endpoint<query_runner::Action, query_runner::Payload>),
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
     File(Endpoint<fs::Action, fs::Payload>),
