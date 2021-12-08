@@ -21,6 +21,7 @@
     "babel-plugin-relay": "^11.0.2",
     "crypto-js": "^4.0.0",
     "graphiql": "^1.4.2",
+    "graphql-config": "^4.1.0",
     "graphql-tag": "^2.11.0",
     "monaco-themes": "^0.3.3",
     "notistack": "^1.0.3",

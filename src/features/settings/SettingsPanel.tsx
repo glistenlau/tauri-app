@@ -7,13 +7,15 @@ import postgres, { Postgres } from "../../apis/postgres";
 import SqlCommon from "../../apis/sqlCommon";
 import Settings from "../../components/Settings";
 import TabContent from "../../components/TabContent";
-import { RootState } from "../../reducers";
 import {
-  OracleSettings,
-  PostgreSettings,
-  setOracleConfig,
-  setPostgresConfig,
-} from "./settingsSlice";
+  AppStateKey,
+  Config,
+  Dbtype,
+  useSetConfigMutation,
+} from "../../generated/graphql";
+import { useAppState } from "../../hooks/useAppState";
+import { RootState } from "../../reducers";
+import {} from "./settingsSlice";
 
 const Container = styled(TabContent)`
   background-color: ${({ theme }) => theme.palette.background.paper};
@@ -23,61 +25,85 @@ const Container = styled(TabContent)`
 
 const SettingsPanel = React.memo(({ active }: any) => {
   const snackBar = useSnackbar();
-  const oracleSettings = useSelector(
-    (state: RootState) => state.settings.oracleSettings
+  const [oracleConfig, setOracleConfig] = useAppState<Config>(
+    AppStateKey.OralceConfig,
+    {
+      host: "localhost",
+      port: "1521",
+      db: "anaconda",
+      username: "anaconda",
+      password: "anaconda",
+    }
   );
-  const postgreSettings = useSelector(
-    (state: RootState) => state.settings.postgreSettings
+  const [pgConfig, setPgConfig] = useAppState<Config>(
+    AppStateKey.PostgresConfig,
+    {
+      host: "localhost",
+      port: "5432",
+      db: "planning",
+      username: "postgres",
+      password: "#postgres#",
+    }
   );
-  const dispatch = useDispatch();
+  const [setConfigMutation, { data, loading }] = useSetConfigMutation();
 
-  const updateDBConfig = useCallback(
-    async <C, T extends SqlCommon<C>>(config: C, api: T, dbName: string) => {
-      try {
-        await api.setConfig(config);
-        snackBar.enqueueSnackbar(`Successfully connected to the ${dbName}.`, {
+  useEffect(() => {
+    if (!oracleConfig) {
+      return;
+    }
+    setConfigMutation({
+      variables: { dbType: Dbtype.Oracle, dbConfig: oracleConfig },
+    })
+      .then(() =>
+        snackBar.enqueueSnackbar(`Successfully connected to the Oracle.`, {
           variant: "success",
-        });
-      } catch (e) {
-        snackBar.enqueueSnackbar(`Failed to connect to ${dbName}: ${e}`, {
+        })
+      )
+      .catch((e) =>
+        snackBar.enqueueSnackbar(`Failed to connect to Oracle: ${e}`, {
           variant: "error",
-        });
-      }
-    },
-    [snackBar]
-  );
+        })
+      );
+  }, [oracleConfig, setConfigMutation, snackBar]);
 
   useEffect(() => {
-    updateDBConfig<OracleSettings, Oracle>(oracleSettings, oracle, "Oracle");
-  }, [oracleSettings, updateDBConfig]);
-
-  useEffect(() => {
-    updateDBConfig<PostgreSettings, Postgres>(
-      postgreSettings,
-      postgres,
-      "Postgres"
-    );
-  }, [postgreSettings, updateDBConfig]);
+    if (!pgConfig) {
+      return;
+    }
+    setConfigMutation({
+      variables: { dbType: Dbtype.Postgres, dbConfig: pgConfig },
+    })
+      .then(() =>
+        snackBar.enqueueSnackbar(`Successfully connected to the Postgres.`, {
+          variant: "success",
+        })
+      )
+      .catch((e) =>
+        snackBar.enqueueSnackbar(`Failed to connect to Postgres: ${e}`, {
+          variant: "error",
+        })
+      );
+  }, [pgConfig, setConfigMutation, snackBar]);
 
   const handleOracleConfigChange = useCallback(
-    (config: OracleSettings) => {
-      dispatch(setOracleConfig(config));
+    (config: Config) => {
+      setOracleConfig(config);
     },
-    [dispatch]
+    [setOracleConfig]
   );
 
   const handlePostgresConfigChange = useCallback(
-    (config: PostgreSettings) => {
-      dispatch(setPostgresConfig(config));
+    (config: Config) => {
+      setPgConfig(config);
     },
-    [dispatch]
+    [setPgConfig]
   );
 
   return (
     <Container active={active}>
       <Settings
-        oracleSettings={oracleSettings}
-        postgreSettings={postgreSettings}
+        oracleSettings={oracleConfig}
+        postgreSettings={pgConfig}
         onOracleConfigChange={handleOracleConfigChange}
         onPostgresConfigChange={handlePostgresConfigChange}
       />

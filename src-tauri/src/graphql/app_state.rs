@@ -8,6 +8,8 @@ enum AppStateKey {
     SchemaEditorSelectedNode,
     SchemaEditorSelectedFilePath,
     SchemaEditorSearchTerm,
+    OralceConfig,
+    PostgresConfig,
 }
 
 static APP_STATE_CF: &str = "APP_STATE";

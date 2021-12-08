@@ -1,13 +1,10 @@
 import { Link, Typography } from "@material-ui/core";
-import React, { useCallback, useContext } from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
+import { DBType } from "../apis/sqlCommon";
 import { GlobalContext } from "../App";
 import EditorSettingsPanel from "../features/editorSettings/EditorSetttinsPanel";
-import {
-  isOracleSettings,
-  OracleSettings,
-  PostgreSettings,
-} from "../features/settings/settingsSlice";
+import { Config } from "../generated/graphql";
 import DBSettings from "./DBSettings";
 import SVGIcon from "./SVGIcon";
 
@@ -21,10 +18,10 @@ const Container = styled.div`
 `;
 
 interface SettingsProps {
-  oracleSettings: OracleSettings;
-  postgreSettings: PostgreSettings;
-  onOracleConfigChange: (config: OracleSettings) => void;
-  onPostgresConfigChange: (config: PostgreSettings) => void;
+  oracleSettings?: Config;
+  postgreSettings?: Config;
+  onOracleConfigChange: (config: Config) => void;
+  onPostgresConfigChange: (config: Config) => void;
 }
 
 const Settings = ({
@@ -33,31 +30,26 @@ const Settings = ({
   onOracleConfigChange,
   onPostgresConfigChange,
 }: SettingsProps) => {
-  const handleDBSettingsChange = useCallback(
-    (config: OracleSettings | PostgreSettings) => {
-      if (isOracleSettings(config)) {
-        onOracleConfigChange(config);
-      } else {
-        onPostgresConfigChange(config);
-      }
-    },
-    [onOracleConfigChange, onPostgresConfigChange]
-  );
-
   const { serverPort } = useContext(GlobalContext);
 
   return (
     <Container>
-      <DBSettings
-        onChange={handleDBSettingsChange}
-        title="Oracle Configuaration"
-        value={oracleSettings}
-      />
-      <DBSettings
-        onChange={handleDBSettingsChange}
-        title="Postgres Configuaration"
-        value={postgreSettings}
-      />
+      {oracleSettings && (
+        <DBSettings
+          onChange={onOracleConfigChange}
+          title="Oracle Configuaration"
+          value={oracleSettings}
+          type={DBType.Oracle}
+        />
+      )}
+      {postgreSettings && (
+        <DBSettings
+          onChange={onOracleConfigChange}
+          title="Postgres Configuaration"
+          value={postgreSettings}
+          type={DBType.Postgres}
+        />
+      )}
       <EditorSettingsPanel />
       <div
         style={{

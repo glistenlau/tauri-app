@@ -1,0 +1,3 @@
+mutation setConfig($dbType: Dbtype!, $dbConfig: Config!) {
+    dbConfig(dbType:$dbType, dbConfig: $dbConfig)
+}

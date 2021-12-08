@@ -9,11 +9,8 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import React from "react";
-import {
-  isOracleSettings,
-  OracleSettings,
-  PostgreSettings,
-} from "../features/settings/settingsSlice";
+import { DBType } from "../apis/sqlCommon";
+import { Config } from "../generated/graphql";
 import SVGIcon from "./SVGIcon";
 
 const useStyles = makeStyles((theme) =>
@@ -40,25 +37,16 @@ const useStyles = makeStyles((theme) =>
 );
 
 interface DBSettingsProps {
-  onChange: (config: OracleSettings | PostgreSettings) => void;
+  onChange: (config: Config) => void;
   title: string;
-  value: OracleSettings | PostgreSettings;
+  value: Config;
+  type: DBType;
 }
 
-const extractData = (config: OracleSettings | PostgreSettings) => {
-  if ("sid" in config) {
-    return [config.sid, "SID", "sid"];
-  } else {
-    return [config.dbname, "DBname", "dbname"];
-  }
-};
-
-const DBSettings = ({ onChange, title, value }: DBSettingsProps) => {
+const DBSettings = ({ onChange, title, value, type }: DBSettingsProps) => {
   const classes = useStyles();
   const [localValue, setLocalValue] = React.useState(Object.assign({}, value));
   const [disabled, setDisabled] = React.useState(true);
-  const [sidValue, sidLabel, sidId] = extractData(value);
-  const isOracle = isOracleSettings(value);
 
   const handleChange = React.useCallback(
     (key: string, val: string) => {
@@ -101,8 +89,8 @@ const DBSettings = ({ onChange, title, value }: DBSettingsProps) => {
           <SVGIcon
             width={20}
             height={20}
-            fill={isOracle ? "red" : undefined}
-            name={isOracle ? "database" : "postgres"}
+            fill={type === DBType.Oracle ? "red" : undefined}
+            name={type === DBType.Oracle ? "database" : "postgres"}
             style={{ marginRight: 10 }}
           />
           <Typography>{title}</Typography>
@@ -138,11 +126,11 @@ const DBSettings = ({ onChange, title, value }: DBSettingsProps) => {
             className={classes.mainInput}
             color="primary"
             disabled={disabled}
-            id={sidId}
-            label={sidLabel}
+            id="db"
+            label={type === DBType.Oracle ? "SID" : "DBName"}
             size="small"
-            onChange={(e) => handleChange(sidId, e.target.value)}
-            value={sidValue}
+            onChange={(e) => handleChange("db", e.target.value)}
+            value={localValue.db}
             margin="dense"
           />
           <TextField
@@ -152,8 +140,8 @@ const DBSettings = ({ onChange, title, value }: DBSettingsProps) => {
             id="user"
             label="User"
             size="small"
-            onChange={(e) => handleChange("user", e.target.value)}
-            value={localValue.user}
+            onChange={(e) => handleChange("username", e.target.value)}
+            value={localValue.username}
             margin="dense"
           />
           <TextField

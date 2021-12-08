@@ -51,22 +51,6 @@ export const isOracleSettings = (
   return (config as OracleSettings).sid !== undefined;
 };
 
-export const updateOracleConfig = createAsyncThunk(
-  "settings/updateOracleConfig",
-  async ({ config }: { config: OracleSettings }) => {
-    const res = await oracle.setConfig(config);
-    return res;
-  }
-);
-
-export const updatePostgresConfig = createAsyncThunk(
-  "settings/updatePostgresConfig",
-  async ({ config }: { config: PostgreSettings }) => {
-    const res = await postgres.setConfig(config);
-    return res;
-  }
-);
-
 const settingsSlice = createSlice({
   name: "settings",
   initialState,

@@ -4,7 +4,6 @@ use anyhow::{anyhow, Result};
 use futures::future;
 use lazy_static::lazy_static;
 
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::{runtime::Runtime, spawn};
 use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
@@ -14,7 +13,7 @@ use crate::{
     utilities::postgres::get_row_values,
 };
 
-use super::sql_common::{DBConfig, SQLClient, SQLError, SQLResult, SQLResultSet};
+use super::sql_common::{Config, SQLClient, SQLError, SQLResult, SQLResultSet};
 
 pub struct QueryVlidationResult {
     pub pass: bool,
@@ -37,43 +36,15 @@ impl QueryVlidationResult {
 
 static PARAM_SIGN: &str = "$";
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ConnectionConfig {
-    host: String,
-    port: String,
-    user: String,
-    password: String,
-    dbname: String,
-}
-
-impl ConnectionConfig {
-    fn new(host: &str, port: &str, user: &str, password: &str, dbname: &str) -> ConnectionConfig {
-        ConnectionConfig {
-            host: String::from(host),
-            port: String::from(port),
-            user: String::from(user),
-            password: String::from(password),
-            dbname: String::from(dbname),
-        }
-    }
-
-    fn to_key_value_string(&self) -> String {
-        format!(
-            "host={} port={} user={} password={} dbname={}",
-            self.host, self.port, self.user, self.password, self.dbname
-        )
-    }
-}
-
 pub struct PostgresProxy {
-    config: ConnectionConfig,
+    config: Config,
     client: Option<Arc<Mutex<Client>>>,
     autocommit: bool,
     uncommit_count: usize,
 }
 
 impl PostgresProxy {
-    const fn new(config: ConnectionConfig) -> PostgresProxy {
+    const fn new(config: Config) -> PostgresProxy {
         PostgresProxy {
             config: config,
             client: None,
@@ -259,25 +230,14 @@ impl PostgresProxy {
 }
 
 impl<'a> SQLClient for PostgresProxy {
-    fn set_config(&mut self, db_config: DBConfig) -> Result<SQLResult> {
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                if let DBConfig::Postgres(config) = db_config {
-                    self.config = config;
-                    self.client = None;
-                    match self.get_connection().await {
-                        Ok(_) => Ok(SQLResult::new_result(None)),
-                        Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
-                    }
-                } else {
-                    Err(anyhow!("Invalid config."))
-                }
-            })
+    #[tokio::main]
+    async fn set_config(&mut self, db_config: Config) -> Result<SQLResult> {
+        self.config = db_config;
+        self.client = None;
+        match self.get_connection().await {
+            Ok(_) => Ok(SQLResult::new_result(None)),
+            Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
+        }
     }
 
     fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
@@ -414,7 +374,7 @@ impl<'a> SQLClient for PostgresProxy {
 
 lazy_static! {
     static ref INSTANCE: Arc<Mutex<PostgresProxy>> = Arc::new(Mutex::new(PostgresProxy::new(
-        ConnectionConfig::new("localhost", "5432", "postgres", "#postgres#", "planning")
+        Config::new("localhost", "5432", "planning", "postgres", "#postgres#")
     )));
     static ref POSTGRES_RUNTIME: Arc<Mutex<Runtime>> =
         Arc::new(Mutex::new(Runtime::new().unwrap()));

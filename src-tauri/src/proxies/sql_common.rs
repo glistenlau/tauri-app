@@ -4,14 +4,13 @@ use std::{cmp, error::Error, fmt};
 
 use anyhow::Result;
 
-use async_graphql::Enum;
+use async_graphql::{Enum, InputObject, SimpleObject};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::utilities::find_position_line;
 
-use super::oracle::OracleConfig;
-use super::postgres::{ConnectionConfig, PostgresProxy};
+use super::postgres::PostgresProxy;
 
 const COMPANY_PLACEHOLDER: &str = "company_";
 
@@ -57,12 +56,6 @@ pub fn process_statement_params(statement: &str, param_sign: &str) -> String {
 pub enum DBType {
     Oracle,
     Postgres,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum DBConfig {
-    Oracle(OracleConfig),
-    Postgres(ConnectionConfig),
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -390,6 +383,33 @@ impl SQLReponse {
     }
 }
 
+#[derive(SimpleObject, InputObject)]
+pub struct Config {
+    pub host: String,
+    pub port: String,
+    pub db: String,
+    pub username: String,
+    pub password: String,
+}
+
+impl Config {
+    pub fn new(host: &str, port: &str, db: &str, username: &str, password: &str) -> Self {
+        Config {
+            host: host.to_string(),
+            port: port.to_string(),
+            db: db.to_string(),
+            username: username.to_string(),
+            password: password.to_string(),
+        }
+    }
+    pub fn to_key_value_string(&self) -> String {
+        format!(
+            "host={} port={} user={} password={} dbname={}",
+            self.host, self.port, self.username, self.password, self.db
+        )
+    }
+}
+
 pub struct SavePoint {
     name: String,
 }
@@ -401,7 +421,7 @@ pub trait SQLClient {
         parameters: &[Value],
         with_statistics: bool,
     ) -> Result<SQLResult>;
-    fn set_config(&mut self, config: DBConfig) -> Result<SQLResult>;
+    fn set_config(&mut self, config: Config) -> Result<SQLResult>;
     fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
     fn commit(&mut self) -> Result<SQLResult>;
     fn rollback(&mut self) -> Result<SQLResult>;

@@ -4,6 +4,15 @@ enum AppStateKey {
 	SCHEMA_EDITOR_SELECTED_NODE
 	SCHEMA_EDITOR_SELECTED_FILE_PATH
 	SCHEMA_EDITOR_SEARCH_TERM
+	ORALCE_CONFIG
+	POSTGRES_CONFIG
+}
+input Config {
+	host: String!
+	port: String!
+	db: String!
+	username: String!
+	password: String!
 }
 enum DbFamily {
 	ORACLE
@@ -49,6 +58,7 @@ type FlatSchemaFile {
 scalar JSON
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
+	dbConfig(dbType: Dbtype!, dbConfig: Config!): JSON!
 }
 type NodeValue {
 	start: Int!
@@ -61,6 +71,7 @@ type Query {
 	dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
 	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
 	executeStmt(dbType: Dbtype!, schema: String!, stmt: String!, params: [JSON!]!, withStatistics: Boolean!): JSON!
+	validateStmts(dbType: Dbtype!, stmts: [String!]!): JSON!
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
 	formatSql(sqlStmts: [String!]!): [String!]!
 }

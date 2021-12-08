@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::proxies::sql_common::{DBConfig, SQLClient, SQLResult};
+use crate::proxies::sql_common::{SQLClient, SQLResult};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -13,7 +13,7 @@ pub enum Action {
     SetAutocommit,
     Rollback,
     Commit,
-    SetConfig,
+    // SetConfig,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,7 +21,7 @@ pub struct Payload {
     statement: Option<String>,
     schema: Option<String>,
     parameters: Option<Vec<Value>>,
-    config: Option<DBConfig>,
+    // config: Option<DBConfig>,
     autocommit: Option<bool>,
 }
 
@@ -71,25 +71,25 @@ pub fn handle_command(
                 .unwrap()
                 .execute_stmt(&statement, &parameters, false)
         }
-        Action::SetConfig => {
-            if payload.config.is_none() {
-                return Err(anyhow!("missing config..."));
-            }
+        // Action::SetConfig => {
+        //     if payload.config.is_none() {
+        //         return Err(anyhow!("missing config..."));
+        //     }
 
-            match proxy.lock().unwrap().set_config(payload.config.unwrap()) {
-                Ok(sql_result) => match sql_result {
-                    SQLResult::Result(sr) => Ok(SQLResult::new_result(sr)),
-                    SQLResult::Error(err) => {
-                        return Err(anyhow!(err.message()));
-                    }
-                    SQLResult::ResultWithStatistics {
-                        result,
-                        statistics: _,
-                    } => Ok(SQLResult::new_result(result)),
-                },
-                Err(err) => Err(err),
-            }
-        }
+        //     match proxy.lock().unwrap().set_config(payload.config.unwrap()) {
+        //         Ok(sql_result) => match sql_result {
+        //             SQLResult::Result(sr) => Ok(SQLResult::new_result(sr)),
+        //             SQLResult::Error(err) => {
+        //                 return Err(anyhow!(err.message()));
+        //             }
+        //             SQLResult::ResultWithStatistics {
+        //                 result,
+        //                 statistics: _,
+        //             } => Ok(SQLResult::new_result(result)),
+        //         },
+        //         Err(err) => Err(err),
+        //     }
+        // }
         Action::SetAutocommit => {
             if payload.autocommit.is_none() {
                 return Err(anyhow!("missing autocommit"));

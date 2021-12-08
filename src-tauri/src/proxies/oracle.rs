@@ -1,42 +1,21 @@
 use std::sync::{Arc, Mutex};
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use lazy_static::lazy_static;
 use oracle::{sql_type::ToSql, Connection};
 use oracle::{ColumnInfo, Statement};
-use serde::{Deserialize, Serialize};
+
 use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{core::oracle_param_mapper::map_params, utilities::oracle::get_row_values};
 
 use super::sql_common::{
-    generate_param_stmt, DBConfig, SQLClient, SQLError, SQLResult, SQLResultSet,
+    generate_param_stmt, Config, SQLClient, SQLError, SQLResult, SQLResultSet,
 };
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct OracleConfig {
-    host: String,
-    port: String,
-    sid: String,
-    user: String,
-    password: String,
-}
-
-impl OracleConfig {
-    fn new(host: &str, port: &str, sid: &str, user: &str, password: &str) -> OracleConfig {
-        OracleConfig {
-            host: String::from(host),
-            port: String::from(port),
-            sid: String::from(sid),
-            user: String::from(user),
-            password: String::from(password),
-        }
-    }
-}
-
 pub struct OracleClient {
-    config: OracleConfig,
+    config: Config,
     conn: Option<Arc<Mutex<Connection>>>,
     autocommit: bool,
 }
@@ -44,7 +23,7 @@ pub struct OracleClient {
 static PARAM_SIGN: &str = ":";
 
 impl OracleClient {
-    fn set_config(&mut self, config: OracleConfig) {
+    fn set_config(&mut self, config: Config) {
         self.config = config;
     }
 
@@ -61,9 +40,9 @@ impl OracleClient {
     }
 
     fn connect(&self) -> Result<Connection, SQLError> {
-        let connect_string: String = format!("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={})(PORT={}))(CONNECT_DATA=(SERVER=DEDICATED)(SID={})))", self.config.host, self.config.port, self.config.sid);
+        let connect_string: String = format!("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={})(PORT={}))(CONNECT_DATA=(SERVER=DEDICATED)(SID={})))", self.config.host, self.config.port, self.config.db);
         Ok(Connection::connect(
-            &self.config.user,
+            &self.config.username,
             &self.config.password,
             connect_string,
         )?)
@@ -208,16 +187,12 @@ impl OracleClient {
 }
 
 impl SQLClient for OracleClient {
-    fn set_config(&mut self, db_config: DBConfig) -> Result<SQLResult> {
-        if let DBConfig::Oracle(config) = db_config {
-            self.set_config(config);
-            self.conn = None;
-            match self.get_connection() {
-                Ok(_) => Ok(SQLResult::new_result(None)),
-                Err(e) => Ok(SQLResult::new_error(e)),
-            }
-        } else {
-            Err(anyhow!("Invalid db config."))
+    fn set_config(&mut self, db_config: Config) -> Result<SQLResult> {
+        self.set_config(db_config);
+        self.conn = None;
+        match self.get_connection() {
+            Ok(_) => Ok(SQLResult::new_result(None)),
+            Err(e) => Ok(SQLResult::new_error(e)),
         }
     }
 
@@ -318,7 +293,7 @@ impl SQLClient for OracleClient {
 
 lazy_static! {
     static ref INSTANCE: Arc<Mutex<OracleClient>> = Arc::new(Mutex::new(OracleClient {
-        config: OracleConfig::new("localhost", "1521", "anaconda", "anaconda", "anaconda"),
+        config: Config::new("localhost", "1521", "anaconda", "anaconda", "anaconda"),
         conn: None,
         autocommit: true,
     }));

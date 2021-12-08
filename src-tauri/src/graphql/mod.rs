@@ -16,6 +16,7 @@ use tokio_stream::StreamExt;
 use db_schema::DbSchemaQuery;
 use sql_formatter::SqlFormatterQuery;
 
+use self::sql::SqlMutation;
 use self::{
     app_state::{AppStateMutation, AppStateQuery},
     sql::SqlQuery,
@@ -32,7 +33,7 @@ pub struct Query(
 );
 
 #[derive(MergedObject, Default)]
-pub struct Mutation(AppStateMutation);
+pub struct Mutation(AppStateMutation, SqlMutation);
 
 pub struct Subscription;
 

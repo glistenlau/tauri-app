@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::proxies::oracle;
 use crate::proxies::postgres::{self};
-use crate::proxies::sql_common::{get_schema_stmt, DBType, SQLClient, SQLResult};
+use crate::proxies::sql_common::{get_schema_stmt, Config, DBType, SQLClient, SQLResult};
 use async_graphql::*;
 
 #[derive(Default)]
@@ -53,6 +53,23 @@ impl SqlQuery {
             proxy_lock.validate_stmts(&stmts_ref).unwrap()
         };
         Ok(Json::from(run_sql_task(db_type, task_fn)))
+    }
+}
+
+#[derive(Default)]
+pub struct SqlMutation;
+
+#[Object]
+impl SqlMutation {
+    async fn db_config(&self, db_type: DBType, db_config: Config) -> Result<Json<SQLResult>> {
+        let task_fn = |proxy: Arc<Mutex<dyn SQLClient>>| -> anyhow::Result<SQLResult> {
+            let mut proxy_lock = proxy.lock().unwrap();
+            proxy_lock.set_config(db_config)
+        };
+        match run_sql_task(db_type, task_fn) {
+            Ok(res) => Ok(Json(res)),
+            Err(e) => Err(Error::from(e)),
+        }
     }
 }
 
