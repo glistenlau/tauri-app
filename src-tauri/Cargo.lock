@@ -46,6 +46,7 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "async-graphql-warp",
+ "async-trait",
  "chrono",
  "dirs 4.0.0",
  "fern",

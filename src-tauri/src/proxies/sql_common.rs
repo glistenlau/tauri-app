@@ -1,10 +1,12 @@
-use std::sync::{Arc, Mutex};
+
 use std::time::Duration;
 use std::{cmp, error::Error, fmt};
 
 use anyhow::Result;
+use async_trait::async_trait;
 
 use async_graphql::{Enum, InputObject, SimpleObject};
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -414,30 +416,21 @@ pub struct SavePoint {
     name: String,
 }
 
+#[async_trait]
 pub trait SQLClient {
-    fn execute_stmt(
+    async fn execute_stmt(
         &mut self,
         statement: &str,
         parameters: &[Value],
         with_statistics: bool,
     ) -> Result<SQLResult>;
-    fn set_config(&mut self, config: Config) -> Result<SQLResult>;
-    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
-    fn commit(&mut self) -> Result<SQLResult>;
-    fn rollback(&mut self) -> Result<SQLResult>;
-    fn add_savepoint(&mut self, name: &str) -> Result<SQLResult>;
-    fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult>;
-    fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>>;
-}
-
-pub fn execute_stmt(
-    stmt: &str,
-    params: &[Value],
-    with_statistics: bool,
-    proxy: Arc<Mutex<dyn SQLClient>>,
-) -> Result<SQLResult> {
-    let mut proxy_lock = proxy.lock().unwrap();
-    proxy_lock.execute_stmt(stmt, params, with_statistics)
+    async fn set_config(&mut self, config: Config) -> Result<SQLResult>;
+    async fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
+    async fn commit(&mut self) -> Result<SQLResult>;
+    async fn rollback(&mut self) -> Result<SQLResult>;
+    async fn add_savepoint(&mut self, name: &str) -> Result<SQLResult>;
+    async fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult>;
+    async fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>>;
 }
 
 pub fn get_schema_stmt(schema: &str, stmt: &str) -> String {

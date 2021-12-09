@@ -1,6 +1,8 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use anyhow::Result;
+use async_trait::async_trait;
+use futures::lock::Mutex;
 use lazy_static::lazy_static;
 use oracle::{sql_type::ToSql, Connection};
 use oracle::{ColumnInfo, Statement};
@@ -27,8 +29,8 @@ impl OracleClient {
         self.config = config;
     }
 
-    pub fn get_connection(&mut self) -> Result<Arc<Mutex<Connection>>, SQLError> {
-        if self.conn.is_none() || self.conn.as_ref().unwrap().lock().unwrap().ping().is_err() {
+    pub async fn get_connection(&mut self) -> Result<Arc<Mutex<Connection>>, SQLError> {
+        if self.conn.is_none() || self.conn.as_ref().unwrap().lock().await.ping().is_err() {
             log::debug!(
                 "try to obtain a new oracle connection, conn was present: {}",
                 self.conn.is_some()
@@ -186,17 +188,18 @@ impl OracleClient {
     }
 }
 
+#[async_trait]
 impl SQLClient for OracleClient {
-    fn set_config(&mut self, db_config: Config) -> Result<SQLResult> {
+    async fn set_config(&mut self, db_config: Config) -> Result<SQLResult> {
         self.set_config(db_config);
         self.conn = None;
-        match self.get_connection() {
+        match self.get_connection().await {
             Ok(_) => Ok(SQLResult::new_result(None)),
             Err(e) => Ok(SQLResult::new_error(e)),
         }
     }
 
-    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
+    async fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
         if self.autocommit == autocommit {
             log::warn!(
                 "Try to set Oracle autocommit to the same value: {}",
@@ -208,7 +211,7 @@ impl SQLClient for OracleClient {
         log::debug!("Set oracle autocommit: {}", autocommit);
         self.autocommit = autocommit;
         if let Some(conn_lock) = &self.conn {
-            let mut conn = conn_lock.lock().unwrap();
+            let mut conn = conn_lock.lock().await;
             conn.set_autocommit(autocommit);
             if autocommit {
                 conn.commit()?;
@@ -218,55 +221,55 @@ impl SQLClient for OracleClient {
         Ok(SQLResult::Result(None))
     }
 
-    fn commit(&mut self) -> Result<SQLResult> {
+    async fn commit(&mut self) -> Result<SQLResult> {
         if let Some(conn_lock) = &self.conn {
-            let conn = conn_lock.lock().unwrap();
+            let conn = conn_lock.lock().await;
             conn.commit()?;
         }
 
         Ok(SQLResult::new_result(None))
     }
 
-    fn rollback(&mut self) -> Result<SQLResult> {
+    async fn rollback(&mut self) -> Result<SQLResult> {
         if let Some(conn_lock) = &self.conn {
-            let conn = conn_lock.lock().unwrap();
+            let conn = conn_lock.lock().await;
             conn.rollback()?;
         }
 
         Ok(SQLResult::new_result(None))
     }
 
-    fn add_savepoint(&mut self, savepoint: &str) -> Result<SQLResult> {
+    async fn add_savepoint(&mut self, savepoint: &str) -> Result<SQLResult> {
         if self.autocommit {
             return Ok(SQLResult::new_error(SQLError::new(
                 "Can't add savepoint when autocommit on.".to_string(),
             )));
         }
         if let Some(conn_lock) = &self.conn {
-            let conn = conn_lock.lock().unwrap();
+            let conn = conn_lock.lock().await;
             conn.execute(&format!("SAVEPOINT {}", savepoint), &[])?;
         }
 
         Ok(SQLResult::new_result(None))
     }
 
-    fn rollback_to_savepoint(&mut self, savepoint: &str) -> Result<SQLResult> {
+    async fn rollback_to_savepoint(&mut self, savepoint: &str) -> Result<SQLResult> {
         if let Some(conn_lock) = &self.conn {
-            let conn = conn_lock.lock().unwrap();
+            let conn = conn_lock.lock().await;
             conn.execute(&format!("ROLLBACK TO {}", savepoint), &[])?;
         }
 
         Ok(SQLResult::new_result(None))
     }
 
-    fn execute_stmt(
+    async fn execute_stmt(
         &mut self,
         statement: &str,
         parameters: &[Value],
         with_statistics: bool,
     ) -> Result<SQLResult> {
-        let conn = self.get_connection()?;
-        let conn_lock = conn.lock().unwrap();
+        let conn = self.get_connection().await?;
+        let conn_lock = conn.lock().await;
 
         let exec_res = if with_statistics {
             Self::execute_stmt_with_statistics(statement, parameters, &conn_lock)
@@ -278,9 +281,9 @@ impl SQLClient for OracleClient {
         exec_res.or_else(|e| Ok(SQLResult::new_error(e)))
     }
 
-    fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
-        let conn = get_conn();
-        let conn_lock = conn.lock().unwrap();
+    async fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
+        let conn = get_conn().await;
+        let conn_lock = conn.lock().await;
 
         let res = stmts
             .iter()
@@ -303,8 +306,8 @@ pub fn get_proxy() -> Arc<Mutex<OracleClient>> {
     Arc::clone(&INSTANCE)
 }
 
-pub fn get_conn() -> Arc<Mutex<Connection>> {
+pub async fn get_conn() -> Arc<Mutex<Connection>> {
     let proxy = get_proxy();
-    let mut proxy_lock = proxy.lock().unwrap();
-    proxy_lock.get_connection().unwrap()
+    let mut proxy_lock = proxy.lock().await;
+    proxy_lock.get_connection().await.unwrap()
 }

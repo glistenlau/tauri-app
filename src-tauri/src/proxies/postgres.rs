@@ -1,7 +1,8 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
-use futures::future;
+use async_trait::async_trait;
+use futures::{future, lock::Mutex};
 use lazy_static::lazy_static;
 
 use serde_json::Value;
@@ -9,7 +10,7 @@ use tokio::{runtime::Runtime, spawn};
 use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
 
 use crate::{
-    core::postgres_param_mapper::map_to_sql, proxies::sql_common::generate_param_stmt,
+    proxies::sql_common::generate_param_stmt,
     utilities::postgres::get_row_values,
 };
 
@@ -54,7 +55,7 @@ impl PostgresProxy {
     }
 
     pub async fn get_connection(&mut self) -> Result<Arc<Mutex<Client>>, Error> {
-        if self.client.is_none() || self.client.as_ref().unwrap().lock().unwrap().is_closed() {
+        if self.client.is_none() || self.client.as_ref().unwrap().lock().await.is_closed() {
             log::debug!("try to obtain a new postgres connection, is the connection present: {}, thread id: {:?}", self.client.is_some(), std::thread::current().id());
             if self.client.is_some() {
                 log::debug!(
@@ -93,16 +94,15 @@ impl PostgresProxy {
         Ok(client)
     }
 
-    pub fn validate_stmts(stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
-        POSTGRES_RUNTIME.lock().unwrap().block_on(async {
-            // use a new connection to do the query validation
-            let client = get_proxy().lock().unwrap().connect().await?;
-            client.execute("SET search_path TO anaconda", &[]).await?;
-            let pending_tasks = stmts
-                .iter()
-                .map(|&s| PostgresProxy::validate_stmt(s, &client));
-            future::try_join_all(pending_tasks).await
-        })
+    #[tokio::main]
+    pub async fn validate_stmts(stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
+        // use a new connection to do the query validation
+        let client = get_proxy().lock().await.connect().await?;
+        client.execute("SET search_path TO anaconda", &[]).await?;
+        let pending_tasks = stmts
+            .iter()
+            .map(|&s| PostgresProxy::validate_stmt(s, &client));
+        future::try_join_all(pending_tasks).await
     }
 
     pub async fn validate_stmt(stmt: &str, client: &Client) -> Result<QueryVlidationResult, Error> {
@@ -165,18 +165,19 @@ impl PostgresProxy {
                 params.len()
             )));
         }
+        todo!()
 
-        let mut mapped_params = Vec::with_capacity(params.len());
+        // let mut mapped_params = Vec::with_capacity(params.len());
 
-        for (idx, param) in params.iter().enumerate() {
-            mapped_params.push(map_to_sql(param, &stmt_params[idx])?);
-        }
-        let mut mapped_params_unbox = Vec::with_capacity(mapped_params.len());
-        for param_box in &mapped_params {
-            mapped_params_unbox.push(param_box.as_ref());
-        }
+        // for (idx, param) in params.iter().enumerate() {
+        //     mapped_params.push(map_to_sql(param, &stmt_params[idx])?);
+        // }
+        // let mut mapped_params_unbox = Vec::with_capacity(mapped_params.len());
+        // for param_box in &mapped_params {
+        //     mapped_params_unbox.push(param_box.as_ref());
+        // }
 
-        Self::execute_prepared(&prepared_stmt, &mapped_params_unbox, client).await
+        // Self::execute_prepared(&prepared_stmt, &mapped_params_unbox, client).await
     }
 
     pub async fn execute_prepared(
@@ -229,8 +230,8 @@ impl PostgresProxy {
     }
 }
 
+#[async_trait]
 impl<'a> SQLClient for PostgresProxy {
-    #[tokio::main]
     async fn set_config(&mut self, db_config: Config) -> Result<SQLResult> {
         self.config = db_config;
         self.client = None;
@@ -240,103 +241,70 @@ impl<'a> SQLClient for PostgresProxy {
         }
     }
 
-    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                if self.autocommit == autocommit {
-                    log::warn!(
-                        "Try to set Postgres autocommit to the same value: {}",
-                        autocommit
-                    );
-                    return Ok(SQLResult::new_result(None));
-                }
+    async fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
+        if self.autocommit == autocommit {
+            log::warn!(
+                "Try to set Postgres autocommit to the same value: {}",
+                autocommit
+            );
+            return Ok(SQLResult::new_result(None));
+        }
 
-                self.autocommit = autocommit;
-                if let Some(client_lock) = &self.client {
-                    let client = client_lock.lock().unwrap();
-                    if autocommit {
-                        Self::commit_transaction(&client).await?;
-                    } else {
-                        Self::start_transaction(&client).await?;
-                    }
-                }
+        self.autocommit = autocommit;
+        if let Some(client_lock) = &self.client {
+            let client = client_lock.lock().await;
+            if autocommit {
+                Self::commit_transaction(&client).await?;
+            } else {
+                Self::start_transaction(&client).await?;
+            }
+        }
 
-                Ok(SQLResult::new_result(None))
-            })
+        Ok(SQLResult::new_result(None))
     }
 
-    fn commit(&mut self) -> Result<SQLResult> {
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                if let Some(client_lock) = &self.client {
-                    let client = client_lock.lock().unwrap();
-                    Self::commit_transaction(&client).await?;
-                    if !self.autocommit {
-                        Self::start_transaction(&client).await?;
-                    }
-                }
-                Ok(SQLResult::new_result(None))
-            })
+    async fn commit(&mut self) -> Result<SQLResult> {
+        if let Some(client_lock) = &self.client {
+            let client = client_lock.lock().await;
+            Self::commit_transaction(&client).await?;
+            if !self.autocommit {
+                Self::start_transaction(&client).await?;
+            }
+        }
+        Ok(SQLResult::new_result(None))
     }
 
-    fn rollback(&mut self) -> Result<SQLResult> {
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                if let Some(client_lock) = &self.client {
-                    let client = client_lock.lock().unwrap();
-                    Self::rollback_transaction(&client).await?;
-                    if !self.autocommit {
-                        Self::start_transaction(&client).await?;
-                    }
-                }
-                Ok(SQLResult::new_result(None))
-            })
+    async fn rollback(&mut self) -> Result<SQLResult> {
+        if let Some(client_lock) = &self.client {
+            let client = client_lock.lock().await;
+            Self::rollback_transaction(&client).await?;
+            if !self.autocommit {
+                Self::start_transaction(&client).await?;
+            }
+        }
+        Ok(SQLResult::new_result(None))
     }
 
-    fn add_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                if self.autocommit {
-                    return Ok(SQLResult::new_error(SQLError::new(
-                        "Can't add savepoint when autocommit on.".to_string(),
-                    )));
-                }
-                if let Some(client_lock) = &self.client {
-                    let client = client_lock.lock().unwrap();
-                    Self::rollback_transaction(&client).await?;
-                    if !self.autocommit {
-                        Self::start_transaction(&client).await?;
-                    }
-                }
-                Ok(SQLResult::new_result(None))
-            })
+    async fn add_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
+        if self.autocommit {
+            return Ok(SQLResult::new_error(SQLError::new(
+                "Can't add savepoint when autocommit on.".to_string(),
+            )));
+        }
+        if let Some(client_lock) = &self.client {
+            let client = client_lock.lock().await;
+            Self::rollback_transaction(&client).await?;
+            if !self.autocommit {
+                Self::start_transaction(&client).await?;
+            }
+        }
+        Ok(SQLResult::new_result(None))
     }
 
-    fn rollback_to_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
+    async fn rollback_to_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
         todo!()
     }
 
-    #[tokio::main]
     async fn execute_stmt(
         &mut self,
         statement: &str,
@@ -344,7 +312,7 @@ impl<'a> SQLClient for PostgresProxy {
         _with_statistics: bool,
     ) -> Result<SQLResult> {
         let client = self.get_connection().await?;
-        let client_lock = client.lock().unwrap();
+        let client_lock = client.lock().await;
 
         let result =
             match Self::execute_string_statement(&statement, &parameters, &client_lock).await {
@@ -354,10 +322,9 @@ impl<'a> SQLClient for PostgresProxy {
         Ok(result)
     }
 
-    #[tokio::main]
     async fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
         let client = self.get_connection().await?;
-        let client_lock = client.lock().unwrap();
+        let client_lock = client.lock().await;
 
         client_lock
             .execute("SET search_path TO anaconda", &[])
