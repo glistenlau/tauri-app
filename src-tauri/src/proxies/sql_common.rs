@@ -417,7 +417,7 @@ pub struct SavePoint {
 pub trait SQLClient {
     fn execute_stmt(
         &mut self,
-        statement: &str,
+        statement: & str,
         parameters: &[Value],
         with_statistics: bool,
     ) -> Result<SQLResult>;
@@ -428,16 +428,6 @@ pub trait SQLClient {
     fn add_savepoint(&mut self, name: &str) -> Result<SQLResult>;
     fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult>;
     fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>>;
-}
-
-pub fn execute_stmt(
-    stmt: &str,
-    params: &[Value],
-    with_statistics: bool,
-    proxy: Arc<Mutex<dyn SQLClient>>,
-) -> Result<SQLResult> {
-    let mut proxy_lock = proxy.lock().unwrap();
-    proxy_lock.execute_stmt(stmt, params, with_statistics)
 }
 
 pub fn get_schema_stmt(schema: &str, stmt: &str) -> String {

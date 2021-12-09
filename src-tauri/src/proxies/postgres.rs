@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+};
 
 use anyhow::{anyhow, Result};
 use futures::future;
@@ -37,21 +40,17 @@ impl QueryVlidationResult {
 
 static PARAM_SIGN: &str = "$";
 
-pub struct PostgresProxy {
-    config: Config,
-    client: Option<Arc<Mutex<Client>>>,
+pub struct ClientManager {
     autocommit: bool,
-    uncommit_count: usize,
+    config: Config,
+    console_client: Option<Mutex<Client>>
 }
+
+pub struct PostgresProxy(Arc<ClientManager>);
 
 impl PostgresProxy {
     const fn new(config: Config) -> PostgresProxy {
-        PostgresProxy {
-            config: config,
-            client: None,
-            autocommit: true,
-            uncommit_count: 0,
-        }
+        PostgresProxy(Arc::new(ClientManager{autocommit: false, config: config, console_client: None}))
     }
 
     pub async fn get_connection(&mut self) -> Result<Arc<Mutex<Client>>, Error> {
@@ -120,7 +119,7 @@ impl PostgresProxy {
         }
     }
 
-    pub async fn validate_statement(stmt: &str, client: &Client) -> Result<SQLResult, Error> {
+    pub async fn validate_statement(stmt: String, client: &Client) -> Result<SQLResult, Error> {
         log::debug!("validating query: {}", stmt);
         let company_stmt = stmt.replace("COMPANY_", "GREENCO.");
         let mapped_stmt = generate_param_stmt(&company_stmt, PARAM_SIGN);
@@ -351,21 +350,26 @@ impl<'a> SQLClient for PostgresProxy {
 
     fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
         let handle = Handle::current();
-        handle.block_on(async {
-            let client = self.get_connection().await?;
-            let client_lock = client.lock().unwrap();
+        let stmts_vec: Vec<String> = stmts.iter().map(|stmt| stmt.to_string()).collect();
+        thread::spawn(move || {
+            handle.block_on(async {
+                let proxy = get_proxy();
+                let mut proxy_lock = proxy.lock().unwrap();
+                let client = proxy_lock.get_connection().await?;
+                let client_lock = client.lock().unwrap();
 
-            client_lock
-                .execute("SET search_path TO anaconda", &[])
-                .await?;
-            let pending_tasks = stmts
-                .iter()
-                .map(|&s| Self::validate_statement(s, &client_lock));
-            match future::try_join_all(pending_tasks).await {
-                Ok(res) => Ok(res),
-                Err(e) => Err(e.into()),
-            }
-        })
+                client_lock
+                    .execute("SET search_path TO anaconda", &[])
+                    .await?;
+                let pending_tasks = stmts_vec
+                    .iter()
+                    .map(|s| Self::validate_statement(s.clone(), &client_lock));
+                match future::try_join_all(pending_tasks).await {
+                    Ok(res) => Ok(res),
+                    Err(e) => Err(e.into()),
+                }
+            })
+        }).join().unwrap()
     }
 }
 
