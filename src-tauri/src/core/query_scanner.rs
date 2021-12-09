@@ -124,7 +124,8 @@ impl<'a> QueryScanner<'a> {
         OracleClient::execute_stmt_mapped(stmt, &params_unboxed, &conn_lock)
     }
 
-    fn next_postgres_result(
+    #[tokio::main]
+    async fn next_postgres_result(
         &self,
         params_iter: &RefCell<ParameterIterator<Box<dyn pg_ToSql + Sync>, PgStmt>>,
     ) -> Result<SQLResultSet, SQLError> {
@@ -138,19 +139,14 @@ impl<'a> QueryScanner<'a> {
 
         let prepared_stmt = param_iter_ref.prepared_stmt();
 
-        crate::proxies::postgres::get_runtime()
-            .lock()
-            .unwrap()
-            .block_on(async {
-                log::debug!("got postgres runtime lock.");
-                let proxy = crate::proxies::postgres::get_proxy();
-                let mut proxy_lock = proxy.lock().unwrap();
-                log::debug!("got postgres proxy lock.");
-                let client = proxy_lock.get_connection().await?;
-                let client_lock = client.lock().unwrap();
-                log::debug!("got postgres connection lock.");
-                PostgresProxy::execute_prepared(prepared_stmt, &params_unboxed, &client_lock).await
-            })
+        log::debug!("got postgres runtime lock.");
+        let proxy = crate::proxies::postgres::get_proxy();
+        let mut proxy_lock = proxy.lock().await;
+        log::debug!("got postgres proxy lock.");
+        let client = proxy_lock.get_connection().await?;
+        let client_lock = client.lock().await;
+        log::debug!("got postgres connection lock.");
+        PostgresProxy::execute_prepared(prepared_stmt, &params_unboxed, &client_lock).await
     }
 
     pub fn finished(&self) -> usize {
@@ -191,47 +187,41 @@ impl<'a> QueryScanner<'a> {
         Ok(ParamSeeds::Oracle(processed_stmt, mapped_params))
     }
 
-    pub fn map_postgres_param_seeds(schema: String, query: &Query) -> Result<ParamSeeds> {
+    #[tokio::main]
+    pub async fn map_postgres_param_seeds(schema: String, query: &Query) -> Result<ParamSeeds> {
         let emptry_params = vec![];
-        crate::proxies::postgres::get_runtime()
-            .lock()
-            .or_else(|e| {
-                log::error!("try to get postgres runtime error: {}", e);
-                Err(anyhow!("Something was wrong: {}", e))
-            })?
-            .block_on(async {
-                log::debug!("got postgres runtime lock.");
-                let proxy_lock = crate::proxies::postgres::get_proxy();
-                let mut proxy = proxy_lock.lock().unwrap();
-                log::debug!("got postgres proxy lock.");
-                let client_lock = proxy.get_connection().await?;
-                let client = client_lock.lock().unwrap();
 
-                let processed_stmt = process_pg_statement(query.statement(), &schema)?;
-                let prepared_stmt = client.prepare(&processed_stmt).await?;
-                let params = query.parameters().unwrap_or(&emptry_params);
-                let param_types = prepared_stmt.params();
+        log::debug!("got postgres runtime lock.");
+        let proxy_lock = crate::proxies::postgres::get_proxy();
+        let mut proxy = proxy_lock.lock().await;
+        log::debug!("got postgres proxy lock.");
+        let client_lock = proxy.get_connection().await?;
+        let client = client_lock.lock().await;
 
-                if params.len() != param_types.len() {
-                    return Err(anyhow!(
-                        "The number of params are not matched, expect {}, actual {}",
-                        param_types.len(),
-                        params.len()
-                    ));
-                }
+        let processed_stmt = process_pg_statement(query.statement(), &schema)?;
+        let prepared_stmt = client.prepare(&processed_stmt).await?;
+        let params = query.parameters().unwrap_or(&emptry_params);
+        let param_types = prepared_stmt.params();
 
-                let mut mapped_params = Vec::with_capacity(params.len());
+        if params.len() != param_types.len() {
+            return Err(anyhow!(
+                "The number of params are not matched, expect {}, actual {}",
+                param_types.len(),
+                params.len()
+            ));
+        }
 
-                for (i, param_list) in params.iter().enumerate() {
-                    let mut mapped_param_list = Vec::with_capacity(param_list.len());
+        let mut mapped_params = Vec::with_capacity(params.len());
 
-                    for param in param_list {
-                        mapped_param_list.push(map_to_sql(param, &param_types[i])?);
-                    }
-                    mapped_params.push(mapped_param_list);
-                }
+        for (i, param_list) in params.iter().enumerate() {
+            let mut mapped_param_list = Vec::with_capacity(param_list.len());
 
-                Ok(ParamSeeds::Postgres(prepared_stmt, mapped_params))
-            })
+            for param in param_list {
+                mapped_param_list.push(map_to_sql(param, &param_types[i])?);
+            }
+            mapped_params.push(mapped_param_list);
+        }
+
+        Ok(ParamSeeds::Postgres(prepared_stmt, mapped_params))
     }
 }

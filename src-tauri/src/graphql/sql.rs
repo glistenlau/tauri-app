@@ -62,12 +62,22 @@ pub struct SqlMutation;
 #[Object]
 impl SqlMutation {
     async fn db_config(&self, db_type: DBType, db_config: Config) -> Result<Json<SQLResult>> {
-        let task_fn = |proxy: Arc<Mutex<dyn SQLClient>>| -> anyhow::Result<SQLResult> {
-            let mut proxy_lock = proxy.lock().unwrap();
-            proxy_lock.set_config(db_config)
+        let res = match db_type {
+            DBType::Oracle => {
+                let proxy = oracle::get_proxy();
+                let mut proxy_lock = proxy.lock().unwrap();
+                proxy_lock.set_config(db_config)
+            }
+            DBType::Postgres => {
+                let proxy = postgres::get_proxy();
+                let mut proxy_lock = proxy.lock().await;
+                proxy_lock.config = db_config;
+                proxy_lock.client = None;
+                Ok(SQLResult::new_result(None))
+            }
         };
-        match run_sql_task(db_type, task_fn) {
-            Ok(res) => Ok(Json(res)),
+        match res {
+            Ok(sql_res) => Ok(Json(sql_res)),
             Err(e) => Err(Error::from(e)),
         }
     }
@@ -79,6 +89,6 @@ where
 {
     match db_type {
         DBType::Oracle => task_fn(oracle::get_proxy()),
-        DBType::Postgres => task_fn(postgres::get_proxy()),
+        DBType::Postgres => todo!(),
     }
 }

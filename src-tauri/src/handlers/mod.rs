@@ -133,10 +133,11 @@ pub fn invoke_handler(
             sql::handle_command(e.action, e.payload, proxies::oracle::get_proxy()),
             now.elapsed(),
         ),
-        Handler::Postgres(e) => generate_response(
+        Handler::Postgres(_e) => todo!(),
+        /*generate_response(
             sql::handle_command(e.action, e.payload, proxies::postgres::get_proxy()),
-            now.elapsed(),
-        ),
+            now.elapsed()
+        ),*/
         Handler::RocksDB(e) => match rocksdb::handle_command(e.action, e.payload) {
             Ok(rsp) => seralize_response(rsp),
             Err(e) => Err(e),
