@@ -1,3 +1,19 @@
+query executeStmt($dbType: Dbtype!, $params: [JSON!]!, $schema: String!, $stmt: String!, $withStat:Boolean!) {
+    executeStmt(dbType: $dbType, params: $params, schema: $schema, stmt: $stmt, withStatistics: $withStat)
+}
+
+mutation commitConsole($dbType: Dbtype!) {
+    commitConsole(dbType: $dbType)
+}
+
+mutation rollbackConsole($dbType: Dbtype!) {
+    rollbackConsole(dbType: $dbType)
+}
+
 mutation setConfig($dbType: Dbtype!, $dbConfig: Config!) {
     dbConfig(dbType:$dbType, dbConfig: $dbConfig)
+}
+
+mutation setAutocommit($dbType: Dbtype!, $dbAutocommit: Boolean!) {
+    dbAutocommit(dbType: $dbType, dbAutocommit: $dbAutocommit)
 }

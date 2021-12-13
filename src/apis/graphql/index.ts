@@ -3,6 +3,7 @@ import {
   ApolloLink,
   HttpLink,
   InMemoryCache,
+  NormalizedCacheObject,
   Observable,
   split,
 } from "@apollo/client";
@@ -65,32 +66,38 @@ const fetchGraphql = async (query: string, variables: Record<string, any>) => {
   return requestAsync("graphQL", "query", { query, variables });
 };
 
+let instance: ApolloClient<NormalizedCacheObject>;
+
 export const getClient = (serverPort: number) => {
-  const httpLink = new HttpLink({
-    uri: `http://127.0.0.1:${serverPort}/graphql/`,
-  });
+  if (!instance) {
+    const httpLink = new HttpLink({
+      uri: `http://127.0.0.1:${serverPort}/graphql/`,
+    });
 
-  const wsLink = new WebSocketLink({
-    uri: `ws://127.0.0.1:${serverPort}/`,
-    options: {
-      reconnect: true,
-    },
-  });
+    const wsLink = new WebSocketLink({
+      uri: `ws://127.0.0.1:${serverPort}/`,
+      options: {
+        reconnect: true,
+      },
+    });
 
-  const splitLink = split(
-    ({ query }) => {
-      const definition = getMainDefinition(query);
-      return (
-        definition.kind === "OperationDefinition" &&
-        definition.operation === "subscription"
-      );
-    },
-    wsLink,
-    httpLink
-  );
+    const splitLink = split(
+      ({ query }) => {
+        const definition = getMainDefinition(query);
+        return (
+          definition.kind === "OperationDefinition" &&
+          definition.operation === "subscription"
+        );
+      },
+      wsLink,
+      httpLink
+    );
 
-  return new ApolloClient({
-    link: splitLink,
-    cache: new InMemoryCache(),
-  });
+    instance = new ApolloClient({
+      link: splitLink,
+      cache: new InMemoryCache(),
+    });
+  }
+
+  return instance;
 };

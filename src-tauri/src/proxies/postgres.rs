@@ -1,10 +1,10 @@
-use std::{
-    sync::{Arc, Mutex},
-    thread,
-};
+use std::{sync::Arc, thread};
 
 use anyhow::{anyhow, Result};
-use futures::future;
+use futures::{
+    future,
+    lock::{Mutex, MutexGuard},
+};
 use lazy_static::lazy_static;
 
 use serde_json::Value;
@@ -17,7 +17,7 @@ use crate::{
     utilities::postgres::get_row_values,
 };
 
-use super::sql_common::{Config, SQLClient, SQLError, SQLResult, SQLResultSet};
+use super::sql_common::{Config, ConsoleManager, SQLClient, SQLError, SQLResult, SQLResultSet};
 
 pub struct QueryVlidationResult {
     pub pass: bool,
@@ -40,47 +40,46 @@ impl QueryVlidationResult {
 
 static PARAM_SIGN: &str = "$";
 
-pub struct ClientManager {
-    autocommit: bool,
-    config: Config,
-    console_client: Option<Mutex<Client>>
-}
+impl ConsoleManager<Client> {
+    pub async fn get_console_conn(&mut self) -> Result<&Client, Error> {
+        if self.console_client.is_none() || self.console_client.as_ref().unwrap().is_closed() {
+            log::debug!("try to obtain a new postgres console connection, is the connection present: {}, thread id: {:?}", self.console_client.is_some(), std::thread::current().id());
 
-pub struct PostgresProxy(Arc<ClientManager>);
-
-impl PostgresProxy {
-    const fn new(config: Config) -> PostgresProxy {
-        PostgresProxy(Arc::new(ClientManager{autocommit: false, config: config, console_client: None}))
-    }
-
-    pub async fn get_connection(&mut self) -> Result<Arc<Mutex<Client>>, Error> {
-        if self.client.is_none() || self.client.as_ref().unwrap().lock().unwrap().is_closed() {
-            log::debug!("try to obtain a new postgres connection, is the connection present: {}, thread id: {:?}", self.client.is_some(), std::thread::current().id());
-            if self.client.is_some() {
-                log::debug!(
-                    "current connection has {} strong ref",
-                    Arc::strong_count(self.client.as_ref().unwrap())
-                );
-            }
-            let conn_res = self.connect().await?;
+            let conn_res = PostgresProxy::connect(&self.config).await?;
             conn_res
                 .batch_execute("SET search_path TO anaconda")
                 .await?;
 
             if !self.autocommit {
-                Self::start_transaction(&conn_res).await?;
+                PostgresProxy::start_transaction(&conn_res).await?;
             }
 
-            self.client = Some(Arc::new(Mutex::new(conn_res)));
+            self.console_client = Some(conn_res);
         }
+        Ok(self.console_client.as_ref().unwrap())
+    }
+}
 
-        Ok(Arc::clone(self.client.as_ref().unwrap()))
+pub struct PostgresProxy(Arc<Mutex<ConsoleManager<Client>>>);
+
+impl PostgresProxy {
+    fn new(config: Config) -> Self {
+        let console_manager = Arc::new(Mutex::new(ConsoleManager {
+            autocommit: false,
+            config,
+            console_client: None,
+        }));
+        PostgresProxy(console_manager)
     }
 
-    async fn connect(&self) -> Result<Client, Error> {
+    pub async fn get_console_manager(&self) -> Result<MutexGuard<'_, ConsoleManager<Client>>> {
+        Ok(self.0.lock().await)
+    }
+
+    async fn connect(config: &Config) -> Result<Client, Error> {
         log::debug!("trying to get new postgres connection.");
         let (client, connection) =
-            tokio_postgres::connect(&self.config.to_key_value_string(), NoTls).await?;
+            tokio_postgres::connect(&config.to_key_value_string(), NoTls).await?;
         log::debug!("got new postgres connection");
 
         spawn(async move {
@@ -93,16 +92,17 @@ impl PostgresProxy {
         Ok(client)
     }
 
-    pub fn validate_stmts(stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
-        POSTGRES_RUNTIME.lock().unwrap().block_on(async {
-            // use a new connection to do the query validation
-            let client = get_proxy().lock().unwrap().connect().await?;
-            client.execute("SET search_path TO anaconda", &[]).await?;
-            let pending_tasks = stmts
-                .iter()
-                .map(|&s| PostgresProxy::validate_stmt(s, &client));
-            future::try_join_all(pending_tasks).await
-        })
+    pub fn validate_stmts(_stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
+        todo!()
+        // POSTGRES_RUNTIME.lock().unwrap().block_on(async {
+        //     // use a new connection to do the query validation
+        //     let client = get_proxy().lock().unwrap().connect().await?;
+        //     client.execute("SET search_path TO anaconda", &[]).await?;
+        //     let pending_tasks = stmts
+        //         .iter()
+        //         .map(|&s| PostgresProxy::validate_stmt(s, &client));
+        //     future::try_join_all(pending_tasks).await
+        // })
     }
 
     pub async fn validate_stmt(stmt: &str, client: &Client) -> Result<QueryVlidationResult, Error> {
@@ -230,159 +230,180 @@ impl PostgresProxy {
 }
 
 impl<'a> SQLClient for PostgresProxy {
-    fn set_config(&mut self, db_config: Config) -> Result<SQLResult> {
-        self.config = db_config;
-        self.client = None;
+    fn set_config(&'static self, db_config: Config) -> Result<SQLResult> {
         let handle = Handle::current();
-        handle.block_on(async {
-            match self.get_connection().await {
-                Ok(_) => Ok(SQLResult::new_result(None)),
-                Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
-            }
+        thread::spawn(move || {
+            handle.block_on(async {
+                let mut console_manager = self.get_console_manager().await?;
+                console_manager.config = db_config;
+                console_manager.console_client = None;
+                match console_manager.get_console_conn().await {
+                    Ok(_) => Ok(SQLResult::new_result(None)),
+                    Err(e) => Ok(SQLResult::new_error(SQLError::new_postgres_error(e, ""))),
+                }
+            })
         })
+        .join()
+        .unwrap()
     }
 
-    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult> {
+    fn set_autocommit(&'static self, autocommit: bool) -> Result<SQLResult> {
         let handle = Handle::current();
-        handle.block_on(async {
-            if self.autocommit == autocommit {
-                log::warn!(
-                    "Try to set Postgres autocommit to the same value: {}",
-                    autocommit
-                );
-                return Ok(SQLResult::new_result(None));
-            }
+        thread::spawn(move || {
+            handle.block_on(async {
+                let mut manager = self.get_console_manager().await?;
+                if manager.autocommit == autocommit {
+                    log::warn!(
+                        "Try to set Postgres autocommit to the same value: {}",
+                        autocommit
+                    );
+                    return Ok(SQLResult::new_result(None));
+                }
 
-            self.autocommit = autocommit;
-            if let Some(client_lock) = &self.client {
-                let client = client_lock.lock().unwrap();
-                if autocommit {
+                manager.autocommit = autocommit;
+                if let Some(client) = &manager.console_client {
+                    if autocommit {
+                        Self::commit_transaction(&client).await?;
+                    } else {
+                        Self::start_transaction(&client).await?;
+                    }
+                }
+
+                Ok(SQLResult::new_result(None))
+            })
+        })
+        .join()
+        .unwrap()
+    }
+
+    fn commit_console(&'static self) -> Result<SQLResult> {
+        let handle = Handle::current();
+        thread::spawn(move || {
+            handle.block_on(async {
+                let manager = self.get_console_manager().await?;
+                if let Some(client) = manager.console_client.as_ref() {
                     Self::commit_transaction(&client).await?;
-                } else {
-                    Self::start_transaction(&client).await?;
+                    if !manager.autocommit {
+                        Self::start_transaction(&client).await?;
+                    }
                 }
-            }
-
-            Ok(SQLResult::new_result(None))
+                Ok(SQLResult::new_result(None))
+            })
         })
+        .join()
+        .unwrap()
     }
 
-    fn commit(&mut self) -> Result<SQLResult> {
+    fn rollback_console(&'static self) -> Result<SQLResult> {
         let handle = Handle::current();
-        handle.block_on(async {
-            if let Some(client_lock) = &self.client {
-                let client = client_lock.lock().unwrap();
-                Self::commit_transaction(&client).await?;
-                if !self.autocommit {
-                    Self::start_transaction(&client).await?;
+        thread::spawn(move || {
+            handle.block_on(async {
+                let manager = self.get_console_manager().await?;
+                if let Some(client) = manager.console_client.as_ref() {
+                    Self::rollback_transaction(&client).await?;
+                    if !manager.autocommit {
+                        Self::start_transaction(&client).await?;
+                    }
                 }
-            }
-            Ok(SQLResult::new_result(None))
+                Ok(SQLResult::new_result(None))
+            })
         })
+        .join()
+        .unwrap()
     }
 
-    fn rollback(&mut self) -> Result<SQLResult> {
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                if let Some(client_lock) = &self.client {
-                    let client = client_lock.lock().unwrap();
-                    Self::rollback_transaction(&client).await?;
-                    if !self.autocommit {
-                        Self::start_transaction(&client).await?;
-                    }
-                }
-                Ok(SQLResult::new_result(None))
-            })
+    fn add_savepoint(&'static self, _name: &str) -> Result<SQLResult> {
+        todo!()
+        // POSTGRES_RUNTIME
+        //     .lock()
+        //     .or_else(|e| {
+        //         log::error!("failed to get postgres runtime: {}", e);
+        //         Err(anyhow!("failed to get postgres runtime: {}", e))
+        //     })?
+        //     .block_on(async {
+        //         if self.autocommit {
+        //             return Ok(SQLResult::new_error(SQLError::new(
+        //                 "Can't add savepoint when autocommit on.".to_string(),
+        //             )));
+        //         }
+        //         if let Some(client_lock) = &self.client {
+        //             let client = client_lock.lock().unwrap();
+        //             Self::rollback_transaction(&client).await?;
+        //             if !self.autocommit {
+        //                 Self::start_transaction(&client).await?;
+        //             }
+        //         }
+        //         Ok(SQLResult::new_result(None))
+        //     })
     }
 
-    fn add_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
-        POSTGRES_RUNTIME
-            .lock()
-            .or_else(|e| {
-                log::error!("failed to get postgres runtime: {}", e);
-                Err(anyhow!("failed to get postgres runtime: {}", e))
-            })?
-            .block_on(async {
-                if self.autocommit {
-                    return Ok(SQLResult::new_error(SQLError::new(
-                        "Can't add savepoint when autocommit on.".to_string(),
-                    )));
-                }
-                if let Some(client_lock) = &self.client {
-                    let client = client_lock.lock().unwrap();
-                    Self::rollback_transaction(&client).await?;
-                    if !self.autocommit {
-                        Self::start_transaction(&client).await?;
-                    }
-                }
-                Ok(SQLResult::new_result(None))
-            })
-    }
-
-    fn rollback_to_savepoint(&mut self, _name: &str) -> Result<SQLResult> {
+    fn rollback_to_savepoint(&'static self, _name: &str) -> Result<SQLResult> {
         todo!()
     }
 
     fn execute_stmt(
-        &mut self,
+        &'static self,
         statement: &str,
         parameters: &[Value],
         _with_statistics: bool,
     ) -> Result<SQLResult> {
         let handle = Handle::current();
-        handle.block_on(async {
-            let client = self.get_connection().await?;
-            let client_lock = client.lock().unwrap();
+        let stmt = statement.to_string();
+        let parameter_vec: Vec<Value> = parameters.iter().map(|p| p.clone()).collect();
+        thread::spawn(move || {
+            handle.block_on(async {
+                let mut console_manager = self.get_console_manager().await?;
+                let client = console_manager.get_console_conn().await?;
 
-            let result =
-                match Self::execute_string_statement(&statement, &parameters, &client_lock).await {
-                    Ok(rs) => SQLResult::new_result(Some(rs)),
-                    Err(e) => SQLResult::new_error(e),
-                };
-            Ok(result)
+                let result =
+                    match Self::execute_string_statement(&stmt, &parameter_vec, &client).await {
+                        Ok(rs) => SQLResult::new_result(Some(rs)),
+                        Err(e) => SQLResult::new_error(e),
+                    };
+                Ok(result)
+            })
         })
+        .join()
+        .unwrap()
     }
 
-    fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
+    fn validate_stmts(&'static self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
         let handle = Handle::current();
         let stmts_vec: Vec<String> = stmts.iter().map(|stmt| stmt.to_string()).collect();
         thread::spawn(move || {
             handle.block_on(async {
-                let proxy = get_proxy();
-                let mut proxy_lock = proxy.lock().unwrap();
-                let client = proxy_lock.get_connection().await?;
-                let client_lock = client.lock().unwrap();
+                let mut console_manager = self.get_console_manager().await?;
+                let client = console_manager.get_console_conn().await?;
 
-                client_lock
-                    .execute("SET search_path TO anaconda", &[])
-                    .await?;
+                client.execute("SET search_path TO anaconda", &[]).await?;
                 let pending_tasks = stmts_vec
                     .iter()
-                    .map(|s| Self::validate_statement(s.clone(), &client_lock));
+                    .map(|s| Self::validate_statement(s.clone(), &client));
                 match future::try_join_all(pending_tasks).await {
                     Ok(res) => Ok(res),
                     Err(e) => Err(e.into()),
                 }
             })
-        }).join().unwrap()
+        })
+        .join()
+        .unwrap()
     }
 }
 
 lazy_static! {
-    static ref INSTANCE: Arc<Mutex<PostgresProxy>> = Arc::new(Mutex::new(PostgresProxy::new(
-        Config::new("localhost", "5432", "planning", "postgres", "#postgres#")
-    )));
+    pub static ref INSTANCE: PostgresProxy = PostgresProxy::new(Config::new(
+        "localhost",
+        "5432",
+        "planning",
+        "postgres",
+        "#postgres#"
+    ));
     static ref POSTGRES_RUNTIME: Arc<Mutex<Runtime>> =
         Arc::new(Mutex::new(Runtime::new().unwrap()));
 }
 
-pub fn get_proxy() -> Arc<Mutex<PostgresProxy>> {
-    Arc::clone(&INSTANCE)
+pub fn get_proxy() -> &'static PostgresProxy {
+    &*INSTANCE
 }
 
 pub fn get_runtime() -> Arc<Mutex<Runtime>> {
