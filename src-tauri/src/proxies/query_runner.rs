@@ -15,6 +15,7 @@ use log::warn;
 use oracle::sql_type::ToSql as OracleToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use tauri::async_runtime::Handle;
 use tokio_postgres::types::ToSql as PgToSql;
 
 use crate::{
@@ -184,86 +185,99 @@ pub fn scan_schema_queries(
         let stop = Arc::clone(&stop);
         let schema_clone = schema.clone();
         let query_clone = Arc::clone(query);
+        let handle = Handle::current();
         thread::spawn(move || {
-            log::debug!("start scan query: {:#?}", query_clone);
-            let mode = query_clone.mode();
-            let oracle_seeds: Vec<Vec<Box<dyn OracleToSql>>>;
-            let postgres_seeds: Vec<Vec<Box<dyn PgToSql + Sync>>>;
+            handle.block_on(async {
+                log::debug!("start scan query: {:#?}", query_clone);
+                let mode = query_clone.mode();
+                let oracle_seeds: Vec<Vec<Box<dyn OracleToSql>>>;
+                let postgres_seeds: Vec<Vec<Box<dyn PgToSql + Sync>>>;
 
-            let param_seeds_ret = match query_clone.db_type() {
-                super::sql_common::DBType::Oracle => {
-                    QueryScanner::map_oracle_param_seeds(schema_clone.clone(), query_clone.as_ref())
-                }
-                super::sql_common::DBType::Postgres => QueryScanner::map_postgres_param_seeds(
-                    schema_clone.clone(),
-                    query_clone.as_ref(),
-                ),
-            };
+                let param_seeds_ret = match query_clone.db_type() {
+                    super::sql_common::DBType::Oracle => QueryScanner::map_oracle_param_seeds(
+                        schema_clone.clone(),
+                        query_clone.as_ref(),
+                    ),
+                    super::sql_common::DBType::Postgres => {
+                        QueryScanner::map_postgres_param_seeds(
+                            schema_clone.clone(),
+                            query_clone.as_ref(),
+                        )
+                        .await
+                    }
+                };
 
-            let mut query_scanner = match param_seeds_ret {
-                Ok(ParamSeeds::Oracle(prepared_statement, seeds)) => {
-                    oracle_seeds = seeds;
-                    let params_iter =
-                        ParameterIterator::new(&oracle_seeds, &mode, prepared_statement);
-                    let db_param_iter = DBParamIter::Oracle(RefCell::new(params_iter));
-                    QueryScanner::new(query_clone.as_ref(), db_param_iter)
-                }
-                Ok(ParamSeeds::Postgres(prepared_statement, seeds)) => {
-                    postgres_seeds = seeds;
-                    let params_iter =
-                        ParameterIterator::new(&postgres_seeds, &mode, prepared_statement);
-                    let db_param_iter = DBParamIter::Postgres(RefCell::new(params_iter));
-                    QueryScanner::new(query_clone.as_ref(), db_param_iter)
-                }
-                Err(err) => {
-                    log::error!("map params iterator failed: {}", err);
-                    match tx.send(Message::FinishQuery(
+                let mut query_scanner = match param_seeds_ret {
+                    Ok(ParamSeeds::Oracle(prepared_statement, seeds)) => {
+                        oracle_seeds = seeds;
+                        let params_iter =
+                            ParameterIterator::new(&oracle_seeds, &mode, prepared_statement);
+                        let db_param_iter = DBParamIter::Oracle(RefCell::new(params_iter));
+                        QueryScanner::new(query_clone.as_ref(), db_param_iter)
+                    }
+                    Ok(ParamSeeds::Postgres(prepared_statement, seeds)) => {
+                        postgres_seeds = seeds;
+                        let params_iter =
+                            ParameterIterator::new(&postgres_seeds, &mode, prepared_statement);
+                        let db_param_iter = DBParamIter::Postgres(RefCell::new(params_iter));
+                        QueryScanner::new(query_clone.as_ref(), db_param_iter)
+                    }
+                    Err(err) => {
+                        log::error!("map params iterator failed: {}", err);
+                        match tx.send(Message::FinishQuery(
+                            i,
+                            Err(SQLError::from(err)),
+                            None,
+                            0,
+                            Duration::default(),
+                        )) {
+                            Ok(_) => {
+                                log::debug!("send mag successfully.");
+                            }
+                            Err(e) => {
+                                log::error!("failed to send msg: {}", e);
+                            }
+                        };
+                        return;
+                    }
+                };
+
+                while !stop.load(Ordering::Acquire) {
+                    log::debug!(
+                        "{} scan params, finished: {}, total: {}, drained: {}",
                         i,
-                        Err(SQLError::from(err)),
-                        None,
-                        0,
-                        Duration::default(),
-                    )) {
-                        Ok(_) => {
-                            log::debug!("send mag successfully.");
+                        query_scanner.finished(),
+                        query_scanner.total(),
+                        query_scanner.drained()
+                    );
+                    let cur_params = query_scanner.current_params();
+                    let start_msg =
+                        Message::StartQuery(i, cur_params.clone(), query_scanner.total());
+                    tx.send(start_msg).unwrap();
+                    let now = Instant::now();
+                    match query_scanner.next() {
+                        Some(rs) => {
+                            let elapsed = now.elapsed();
+                            let messge = Message::FinishQuery(
+                                i,
+                                rs,
+                                cur_params,
+                                query_scanner.total(),
+                                elapsed,
+                            );
+                            if !stop.load(Ordering::Acquire) {
+                                tx.send(messge).unwrap();
+                            }
                         }
-                        Err(e) => {
-                            log::error!("failed to send msg: {}", e);
-                        }
-                    };
-                    return;
-                }
-            };
-
-            while !stop.load(Ordering::Acquire) {
-                log::debug!(
-                    "{} scan params, finished: {}, total: {}, drained: {}",
-                    i,
-                    query_scanner.finished(),
-                    query_scanner.total(),
-                    query_scanner.drained()
-                );
-                let cur_params = query_scanner.current_params();
-                let start_msg = Message::StartQuery(i, cur_params.clone(), query_scanner.total());
-                tx.send(start_msg).unwrap();
-                let now = Instant::now();
-                match query_scanner.next() {
-                    Some(rs) => {
-                        let elapsed = now.elapsed();
-                        let messge =
-                            Message::FinishQuery(i, rs, cur_params, query_scanner.total(), elapsed);
-                        if !stop.load(Ordering::Acquire) {
-                            tx.send(messge).unwrap();
+                        None => {
+                            log::debug!("got nothing from query scanner, stop the scanner.");
+                            break;
                         }
                     }
-                    None => {
-                        log::debug!("got nothing from query scanner, stop the scanner.");
-                        break;
-                    }
                 }
-            }
 
-            log::debug!("{} finished scan query.", i);
+                log::debug!("{} finished scan query.", i);
+            })
         });
     }
 

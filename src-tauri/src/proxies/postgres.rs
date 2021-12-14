@@ -92,17 +92,25 @@ impl PostgresProxy {
         Ok(client)
     }
 
-    pub fn validate_stmts(_stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
-        todo!()
-        // POSTGRES_RUNTIME.lock().unwrap().block_on(async {
-        //     // use a new connection to do the query validation
-        //     let client = get_proxy().lock().unwrap().connect().await?;
-        //     client.execute("SET search_path TO anaconda", &[]).await?;
-        //     let pending_tasks = stmts
-        //         .iter()
-        //         .map(|&s| PostgresProxy::validate_stmt(s, &client));
-        //     future::try_join_all(pending_tasks).await
-        // })
+    pub fn validate_stmts(stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
+        let handle = Handle::current();
+        crossbeam::thread::scope(|s| {
+            s.spawn(|_| {
+                handle.block_on(async {
+                    // use a new connection to do the query validation
+                    let manager = get_proxy().get_console_manager().await.unwrap();
+                    let client = Self::connect(&manager.config).await?;
+                    client.execute("SET search_path TO anaconda", &[]).await?;
+                    let pending_tasks = stmts
+                        .iter()
+                        .map(|&s| PostgresProxy::validate_stmt(s, &client));
+                    future::try_join_all(pending_tasks).await
+                })
+            })
+            .join()
+            .unwrap()
+        })
+        .unwrap()
     }
 
     pub async fn validate_stmt(stmt: &str, client: &Client) -> Result<QueryVlidationResult, Error> {
@@ -350,20 +358,28 @@ impl<'a> SQLClient for PostgresProxy {
         let handle = Handle::current();
         let stmt = statement.to_string();
         let parameter_vec: Vec<Value> = parameters.iter().map(|p| p.clone()).collect();
-        thread::spawn(move || {
-            handle.block_on(async {
-                let mut console_manager = self.get_console_manager().await?;
-                let client = console_manager.get_console_conn().await?;
+        crossbeam::thread::scope(|s| {
+            s.spawn(|_| {
+                handle.block_on(async {
+                    let mut console_manager = self.get_console_manager().await?;
+                    let client = console_manager.get_console_conn().await?;
 
-                let result =
-                    match Self::execute_string_statement(&stmt, &parameter_vec, &client).await {
+                    let result = match Self::execute_string_statement(
+                        &stmt,
+                        &parameter_vec,
+                        &client,
+                    )
+                    .await
+                    {
                         Ok(rs) => SQLResult::new_result(Some(rs)),
                         Err(e) => SQLResult::new_error(e),
                     };
-                Ok(result)
+                    Ok(result)
+                })
             })
+            .join()
+            .unwrap()
         })
-        .join()
         .unwrap()
     }
 
