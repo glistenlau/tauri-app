@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::state::AppState;
 
-pub mod formatter;
 pub mod fs;
 pub mod graphql;
 pub mod java_props;
@@ -25,7 +24,6 @@ pub enum Handler {
     QueryRunner(Endpoint<query_runner::Action, query_runner::Payload>),
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
     File(Endpoint<fs::Action, fs::Payload>),
-    Formatter(Endpoint<formatter::Action, formatter::Payload>),
     Log(Endpoint<log::Action, log::Payload>),
     JavaProps(Endpoint<java_props::Action, java_props::Payload>),
     GraphQL(Endpoint<graphql::Action, graphql::Payload>),
@@ -137,8 +135,7 @@ pub fn invoke_handler(
             query_runner::handle_command(window, e.action, e.payload),
             now.elapsed(),
         ),
-        Handler::Formatter(e) => seralize_response(formatter::handle_command(e)),
         Handler::GraphQL(e) => generate_response(graphql::handle_command(e, state), now.elapsed()),
     };
-    result.or_else(|e| Err(CommandError::new(e.to_string()).into()))
+    result.or_else(|e| Err(CommandError::new(e.to_string())))
 }
