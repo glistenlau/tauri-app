@@ -1,8 +1,7 @@
-import { Response } from "../apis";
-import oracle from "../apis/oracle";
-import postgres from "../apis/postgres";
+import { executeStmt } from "../apis/graphql/sql";
 import { SQLResult } from "../apis/sqlCommon";
 import { Parameter } from "../features/queryScan/queryScanSlice";
+import { Dbtype, ExecuteStmtQuery } from "../generated/graphql";
 import { isEmptyObjectOrNull, stringifySqlError } from "../util";
 import { DB_TYPE } from "./databaseConsole";
 
@@ -46,7 +45,8 @@ export const evaluateOracle = async (text: string, schema: string) => {
     text,
     schema,
     DB_TYPE.ORACLE,
-    (statement: string) => oracle.execute(statement, schema)
+    (statement: string) =>
+      executeStmt(Dbtype.Oracle, [], schema, statement, false)
   );
 };
 
@@ -55,7 +55,8 @@ export const evaluatePostgres = async (text: string, schema: string) => {
     text,
     schema,
     DB_TYPE.POSTGRES,
-    (statement: string) => postgres.execute(statement, schema)
+    (statement: string) =>
+      executeStmt(Dbtype.Postgres, [], schema, statement, false)
   );
 };
 
@@ -63,7 +64,7 @@ const evaluateCommon = async (
   text: string,
   schema: string,
   dbType: DB_TYPE,
-  queryFunc: (statement: string) => Promise<Response<SQLResult>>
+  queryFunc: (statement: string) => Promise<ExecuteStmtQuery>
 ) => {
   const trimmed = text.trim();
   try {
@@ -108,15 +109,14 @@ const evaluateSQL = async (
   statement: string,
   schema: string,
   dbType: DB_TYPE,
-  queryFunc: (statement: string) => Promise<Response<SQLResult>>
+  queryFunc: (statement: string) => Promise<ExecuteStmtQuery>
 ) => {
-  const sqlResponse = await queryFunc(statement);
-
-  if (!sqlResponse.success) {
-    throw new Error(sqlResponse.result.message);
+  try {
+    const sqlResponse: any = await queryFunc(statement);
+    return generateListFromResultSet(sqlResponse);
+  } catch (e: any) {
+    throw new Error(e.message);
   }
-
-  return generateListFromResultSet(sqlResponse.result);
 };
 
 const generateListFromResultSet = (rs?: SQLResult) => {

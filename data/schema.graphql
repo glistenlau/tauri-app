@@ -59,6 +59,9 @@ scalar JSON
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
 	dbConfig(dbType: Dbtype!, dbConfig: Config!): JSON!
+	dbAutocommit(dbType: Dbtype!, dbAutocommit: Boolean!): JSON!
+	commitConsole(dbType: Dbtype!): JSON!
+	rollbackConsole(dbType: Dbtype!): JSON!
 }
 type NodeValue {
 	start: Int!

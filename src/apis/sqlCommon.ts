@@ -1,4 +1,4 @@
-import { requestAsync, Response } from ".";
+import { requestAsync } from ".";
 
 export interface SQLError {
   action?: string;
@@ -74,40 +74,6 @@ class SqlCommon<C> {
     }
 
     return await requestAsync(this.handler, action, payload);
-  };
-
-  execute = async (
-    statement: string,
-    schema: string,
-    parameters?: any[]
-  ): Promise<Response<SQLResult>> => {
-    const payload = {
-      statement,
-      schema,
-      parameters,
-    };
-
-    return await this.sendRequest(Action.ExecuteStatement, payload);
-  };
-
-  setConfig = async (config: C) => {
-    const payload = {
-      config,
-    };
-
-    const res = await this.sendRequest(Action.SetConfig, payload);
-    if (res.success) {
-      return res;
-    }
-    throw new Error(res.result.message);
-  };
-
-  setAutocommit = async (autocommit: boolean) => {
-    const res = await this.sendRequest(Action.SetAutocomit, { autocommit });
-
-    if (!res.success) {
-      throw new Error(res.result.message);
-    }
   };
 
   commit = async () => {

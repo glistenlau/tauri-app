@@ -1,5 +1,6 @@
 mod app_state;
 mod db_schema;
+mod java_props;
 mod sql;
 mod sql_explain;
 mod sql_formatter;

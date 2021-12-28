@@ -1,0 +1,110 @@
+enum AppStateKey {
+  SCHEMA_EDITOR_OPEN_NODE_IDS
+  SCHEMA_EDITOR_TREE_NODE
+  SCHEMA_EDITOR_SELECTED_NODE
+  SCHEMA_EDITOR_SELECTED_FILE_PATH
+  SCHEMA_EDITOR_SEARCH_TERM
+  ORALCE_CONFIG
+  POSTGRES_CONFIG
+}
+
+input Config {
+  host: String!
+  port: String!
+  db: String!
+  username: String!
+  password: String!
+}
+
+enum DbFamily {
+  ORACLE
+  POSTGRES
+  BOTH
+}
+
+enum Dbtype {
+  ORACLE
+  POSTGRES
+}
+
+type ExplainRow {
+  id: Int!
+  operation: String!
+  level: Int!
+  name: String
+  starts: Int!
+  eRows: Int
+  aRows: Int
+  aTime: String
+  buffers: String!
+  hasChildren: Boolean!
+  oMem: String
+  oneMem: String
+  usedMem: String
+  predicateInformation: String
+  children: [ExplainRow!]
+}
+
+type FlatNode {
+  id: String!
+  tagName: String!
+  nameAttr: String
+  values: [NodeValue!]!
+  dbFamily: DbFamily
+  parentIndex: Int
+  childIndexes: [Int!]
+  nestingLevel: Int!
+  fileIndex: Int!
+}
+
+type FlatSchemaFile {
+  path: String!
+  nodes: [FlatNode!]!
+}
+
+scalar JSON
+
+type Mutation {
+  appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
+  dbConfig(dbType: Dbtype!, dbConfig: Config!): JSON!
+  dbAutocommit(dbType: Dbtype!, dbAutocommit: Boolean!): JSON!
+}
+
+type NodeValue {
+  start: Int!
+  end: Int!
+  dbFamily: DbFamily
+}
+
+type Query {
+  appState(stateKeys: [AppStateKey!]!): [String]!
+  dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
+  dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
+  dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
+  executeStmt(dbType: Dbtype!, schema: String!, stmt: String!, params: [JSON!]!, withStatistics: Boolean!): JSON!
+  validateStmts(dbType: Dbtype!, stmts: [String!]!): JSON!
+  dbExplain(text: String!, targetId: Int): [ExplainRow!]!
+  formatSql(sqlStmts: [String!]!): [String!]!
+}
+
+input Range {
+  start: Int!
+  end: Int!
+}
+
+type SchemaFile {
+  path: String!
+  root: TreeNode!
+}
+
+type Subscription {
+  integers(step: Int! = 1): Int!
+}
+
+type TreeNode {
+  tagName: String!
+  nameAttr: String
+  values: [NodeValue!]!
+  children: [TreeNode!]!
+  dbFamily: DbFamily
+}

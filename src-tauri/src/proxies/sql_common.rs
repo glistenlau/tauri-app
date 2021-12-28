@@ -1,4 +1,3 @@
-use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{cmp, error::Error, fmt};
 
@@ -13,6 +12,14 @@ use crate::utilities::find_position_line;
 use super::postgres::PostgresProxy;
 
 const COMPANY_PLACEHOLDER: &str = "company_";
+
+pub struct ConsoleManager<C> {
+    pub autocommit: bool,
+    pub config: Config,
+    pub console_client: Option<C>,
+}
+
+pub trait ConsoleManagerTrait<C> {}
 
 pub fn process_statement_schema(statement: &str, schema: &str) -> String {
     let mut stmt = String::from(statement);
@@ -416,28 +423,18 @@ pub struct SavePoint {
 
 pub trait SQLClient {
     fn execute_stmt(
-        &mut self,
+        &'static self,
         statement: &str,
         parameters: &[Value],
         with_statistics: bool,
     ) -> Result<SQLResult>;
-    fn set_config(&mut self, config: Config) -> Result<SQLResult>;
-    fn set_autocommit(&mut self, autocommit: bool) -> Result<SQLResult>;
-    fn commit(&mut self) -> Result<SQLResult>;
-    fn rollback(&mut self) -> Result<SQLResult>;
-    fn add_savepoint(&mut self, name: &str) -> Result<SQLResult>;
-    fn rollback_to_savepoint(&mut self, name: &str) -> Result<SQLResult>;
-    fn validate_stmts(&mut self, stmts: &[&str]) -> Result<Vec<SQLResult>>;
-}
-
-pub fn execute_stmt(
-    stmt: &str,
-    params: &[Value],
-    with_statistics: bool,
-    proxy: Arc<Mutex<dyn SQLClient>>,
-) -> Result<SQLResult> {
-    let mut proxy_lock = proxy.lock().unwrap();
-    proxy_lock.execute_stmt(stmt, params, with_statistics)
+    fn set_config(&'static self, config: Config) -> Result<SQLResult>;
+    fn set_autocommit(&'static self, autocommit: bool) -> Result<SQLResult>;
+    fn commit_console(&'static self) -> Result<SQLResult>;
+    fn rollback_console(&'static self) -> Result<SQLResult>;
+    fn add_savepoint(&'static self, name: &str) -> Result<SQLResult>;
+    fn rollback_to_savepoint(&'static self, name: &str) -> Result<SQLResult>;
+    fn validate_stmts(&'static self, stmts: &[&str]) -> Result<Vec<SQLResult>>;
 }
 
 pub fn get_schema_stmt(schema: &str, stmt: &str) -> String {

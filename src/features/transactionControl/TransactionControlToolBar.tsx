@@ -6,11 +6,15 @@ import SettingsBackupRestoreIcon from "@material-ui/icons/SettingsBackupRestore"
 import clsx from "clsx";
 import React, { useCallback, useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Oracle from "../../apis/oracle";
-import Postgres from "../../apis/postgres";
 import { GlobalContext } from "../../App";
 import ProcessIconButton from "../../components/ProgressIconButton";
 import SVGIcon from "../../components/SVGIcon";
+import {
+  Dbtype,
+  useCommitConsoleMutation,
+  useRollbackConsoleMutation,
+  useSetAutocommitMutation,
+} from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import {
   changeTransactionMode,
@@ -58,14 +62,28 @@ const TransactionControlToolBar = React.memo(
 
     const classes = useStyles();
     const dispatch = useDispatch();
+    const [setDbAutocommit] = useSetAutocommitMutation();
+
+    const [commitConsole] = useCommitConsoleMutation();
+    const [rollbackConsole] = useRollbackConsoleMutation();
 
     const setAutocommit = useCallback(
       async (autocommit) => {
         try {
-          await Postgres.setAutocommit(autocommit);
+          await setDbAutocommit({
+            variables: {
+              dbType: Dbtype.Oracle,
+              dbAutocommit: autocommit,
+            },
+          });
         } catch {}
         try {
-          await Oracle.setAutocommit(autocommit);
+          await setDbAutocommit({
+            variables: {
+              dbType: Dbtype.Postgres,
+              dbAutocommit: autocommit,
+            },
+          });
         } catch {}
 
         dispatch(changeUncommitCount(0));
@@ -87,10 +105,10 @@ const TransactionControlToolBar = React.memo(
 
     const handleClickCommit = React.useCallback(async () => {
       try {
-        await Postgres.commit();
+        await commitConsole({ variables: { dbType: Dbtype.Oracle } });
       } catch (e) {}
       try {
-        await Oracle.commit();
+        await commitConsole({ variables: { dbType: Dbtype.Postgres } });
       } catch (e) {}
 
       dispatch(changeUncommitCount(0));
@@ -98,10 +116,10 @@ const TransactionControlToolBar = React.memo(
 
     const handleClickRollback = React.useCallback(async () => {
       try {
-        await Postgres.rollback();
+        await rollbackConsole({ variables: { dbType: Dbtype.Oracle } });
       } catch (e) {}
       try {
-        await Oracle.rollback();
+        await rollbackConsole({ variables: { dbType: Dbtype.Postgres } });
       } catch (e) {}
 
       dispatch(changeUncommitCount(0));

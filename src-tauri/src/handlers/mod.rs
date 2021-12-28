@@ -3,16 +3,14 @@ use std::time::{Duration, Instant};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{proxies, state::AppState};
+use crate::state::AppState;
 
-pub mod formatter;
 pub mod fs;
 pub mod graphql;
 pub mod java_props;
 pub mod log;
 pub mod query_runner;
 pub mod rocksdb;
-pub mod sql;
 
 #[derive(Deserialize, Debug)]
 pub struct Endpoint<A, P> {
@@ -23,12 +21,9 @@ pub struct Endpoint<A, P> {
 #[derive(Deserialize, Debug)]
 #[serde(tag = "name", rename_all = "camelCase")]
 pub enum Handler {
-    Oracle(Endpoint<sql::Action, sql::Payload>),
-    Postgres(Endpoint<sql::Action, sql::Payload>),
     QueryRunner(Endpoint<query_runner::Action, query_runner::Payload>),
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
     File(Endpoint<fs::Action, fs::Payload>),
-    Formatter(Endpoint<formatter::Action, formatter::Payload>),
     Log(Endpoint<log::Action, log::Payload>),
     JavaProps(Endpoint<java_props::Action, java_props::Payload>),
     GraphQL(Endpoint<graphql::Action, graphql::Payload>),
@@ -129,14 +124,6 @@ pub fn invoke_handler(
 ) -> Result<String, CommandError> {
     let now = Instant::now();
     let result = match handler {
-        Handler::Oracle(e) => generate_response(
-            sql::handle_command(e.action, e.payload, proxies::oracle::get_proxy()),
-            now.elapsed(),
-        ),
-        Handler::Postgres(e) => generate_response(
-            sql::handle_command(e.action, e.payload, proxies::postgres::get_proxy()),
-            now.elapsed(),
-        ),
         Handler::RocksDB(e) => match rocksdb::handle_command(e.action, e.payload) {
             Ok(rsp) => seralize_response(rsp),
             Err(e) => Err(e),
@@ -148,8 +135,7 @@ pub fn invoke_handler(
             query_runner::handle_command(window, e.action, e.payload),
             now.elapsed(),
         ),
-        Handler::Formatter(e) => seralize_response(formatter::handle_command(e)),
         Handler::GraphQL(e) => generate_response(graphql::handle_command(e, state), now.elapsed()),
     };
-    result.or_else(|e| Err(CommandError::new(e.to_string()).into()))
+    result.or_else(|e| Err(CommandError::new(e.to_string())))
 }

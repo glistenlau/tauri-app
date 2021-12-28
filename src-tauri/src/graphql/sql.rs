@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use crate::proxies::oracle;
 use crate::proxies::postgres::{self};
 use crate::proxies::sql_common::{get_schema_stmt, Config, DBType, SQLClient, SQLResult};
@@ -18,7 +16,7 @@ impl SqlQuery {
         params: Vec<Json<serde_json::Value>>,
         with_statistics: bool,
     ) -> Result<Json<SQLResult>> {
-        let task_fn = |proxy: Arc<Mutex<dyn SQLClient>>| -> anyhow::Result<SQLResult> {
+        let task_fn = |proxy: &'static dyn SQLClient| -> anyhow::Result<SQLResult> {
             let params_json: Vec<serde_json::Value> = params
                 .iter()
                 .map(|param| {
@@ -28,8 +26,7 @@ impl SqlQuery {
                 })
                 .collect();
 
-            let mut proxy_lock = proxy.lock().unwrap();
-            proxy_lock.execute_stmt(
+            proxy.execute_stmt(
                 &get_schema_stmt(&schema, &stmt),
                 &params_json,
                 with_statistics,
@@ -47,10 +44,9 @@ impl SqlQuery {
         db_type: DBType,
         stmts: Vec<String>,
     ) -> Result<Json<Vec<SQLResult>>> {
-        let task_fn = |proxy: Arc<Mutex<dyn SQLClient>>| -> Vec<SQLResult> {
-            let mut proxy_lock = proxy.lock().unwrap();
+        let task_fn = |proxy: &'static dyn SQLClient| -> Vec<SQLResult> {
             let stmts_ref: Vec<&str> = stmts.iter().map(|stmt| stmt.as_ref()).collect();
-            proxy_lock.validate_stmts(&stmts_ref).unwrap()
+            proxy.validate_stmts(&stmts_ref).unwrap()
         };
         Ok(Json::from(run_sql_task(db_type, task_fn)))
     }
@@ -62,23 +58,54 @@ pub struct SqlMutation;
 #[Object]
 impl SqlMutation {
     async fn db_config(&self, db_type: DBType, db_config: Config) -> Result<Json<SQLResult>> {
-        let task_fn = |proxy: Arc<Mutex<dyn SQLClient>>| -> anyhow::Result<SQLResult> {
-            let mut proxy_lock = proxy.lock().unwrap();
-            proxy_lock.set_config(db_config)
+        let task_fn = |proxy: &'static dyn SQLClient| -> anyhow::Result<SQLResult> {
+            proxy.set_config(db_config)
         };
         match run_sql_task(db_type, task_fn) {
             Ok(res) => Ok(Json(res)),
             Err(e) => Err(Error::from(e)),
         }
     }
+
+    async fn db_autocommit(&self, db_type: DBType, db_autocommit: bool) -> Result<Json<SQLResult>> {
+        let task_fn = |proxy: &'static dyn SQLClient| -> anyhow::Result<SQLResult> {
+            proxy.set_autocommit(db_autocommit)
+        };
+        match run_sql_task(db_type, task_fn) {
+            Ok(res) => Ok(Json(res)),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    async fn commit_console(&self, db_type: DBType) -> Result<Json<SQLResult>> {
+        let task_fn =
+            |proxy: &'static dyn SQLClient| -> anyhow::Result<SQLResult> { proxy.commit_console() };
+
+        match_json_results(run_sql_task(db_type, task_fn))
+    }
+
+    async fn rollback_console(&self, db_type: DBType) -> Result<Json<SQLResult>> {
+        let task_fn = |proxy: &'static dyn SQLClient| -> anyhow::Result<SQLResult> {
+            proxy.rollback_console()
+        };
+
+        match_json_results(run_sql_task(db_type, task_fn))
+    }
 }
 
 fn run_sql_task<F, R>(db_type: DBType, task_fn: F) -> R
 where
-    F: FnOnce(Arc<Mutex<dyn SQLClient>>) -> R,
+    F: FnOnce(&'static dyn SQLClient) -> R,
 {
     match db_type {
         DBType::Oracle => task_fn(oracle::get_proxy()),
         DBType::Postgres => task_fn(postgres::get_proxy()),
+    }
+}
+
+fn match_json_results<R>(res: anyhow::Result<R>) -> Result<Json<R>> {
+    match res {
+        Ok(res) => Ok(Json(res)),
+        Err(e) => Err(e.into()),
     }
 }
