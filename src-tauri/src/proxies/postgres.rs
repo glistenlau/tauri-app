@@ -93,10 +93,10 @@ impl PostgresProxy {
     }
 
     pub fn validate_stmts(stmts: Vec<&str>) -> Result<Vec<QueryVlidationResult>, Error> {
-        let handle = Handle::current();
+        let rt = Runtime::new().unwrap();
         crossbeam::thread::scope(|s| {
             s.spawn(|_| {
-                handle.block_on(async {
+                rt.block_on(async {
                     // use a new connection to do the query validation
                     let manager = get_proxy().get_console_manager().await.unwrap();
                     let client = Self::connect(&manager.config).await?;

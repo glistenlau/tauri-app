@@ -3,11 +3,11 @@ import { useSnackbar } from "notistack";
 import React, { RefObject, useCallback, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import FormatterApi from "../../apis/formatter";
 import JavaPropsApi from "../../apis/javaProps";
 import SaveDialog from "../../components/SaveDialog";
 import { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
+import { useFormatSqlLazyQuery } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
@@ -57,17 +57,24 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
     (rootState: RootState) => rootState.propsEditor.selectedPropName
   );
 
+  const [formatSql] = useFormatSqlLazyQuery();
+
   const handleClickFormat = useCallback(async () => {
     const values = splitEditorRef.current?.getEditorValues();
     if (!values) {
       return;
     }
 
-    const formatedValues = (await FormatterApi.formatSql(values)) as [
-      string,
-      string
-    ];
-    dispatch(updateParamValuePair(formatedValues));
+    const formatRst = await formatSql({
+    variables: {sqlStmts: values}
+    });
+    if (!formatRst.data) {
+    	return;
+    }
+
+    const formated = formatRst.data.formatSql as [string, string];
+
+    dispatch(updateParamValuePair(formated));
   }, [dispatch]);
 
   const handleClickRun = useCallback(async () => {

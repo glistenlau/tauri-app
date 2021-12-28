@@ -15,7 +15,8 @@ use log::warn;
 use oracle::sql_type::ToSql as OracleToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tauri::async_runtime::Handle;
+
+use tokio::runtime::Runtime;
 use tokio_postgres::types::ToSql as PgToSql;
 
 use crate::{
@@ -185,9 +186,9 @@ pub fn scan_schema_queries(
         let stop = Arc::clone(&stop);
         let schema_clone = schema.clone();
         let query_clone = Arc::clone(query);
-        let handle = Handle::current();
+        let rt = Runtime::new().unwrap();
         thread::spawn(move || {
-            handle.block_on(async {
+            rt.block_on(async {
                 log::debug!("start scan query: {:#?}", query_clone);
                 let mode = query_clone.mode();
                 let oracle_seeds: Vec<Vec<Box<dyn OracleToSql>>>;
