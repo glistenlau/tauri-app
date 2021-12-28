@@ -66,10 +66,10 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
     }
 
     const formatRst = await formatSql({
-    variables: {sqlStmts: values}
+      variables: { sqlStmts: values },
     });
     if (!formatRst.data) {
-    	return;
+      return;
     }
 
     const formated = formatRst.data.formatSql as [string, string];
