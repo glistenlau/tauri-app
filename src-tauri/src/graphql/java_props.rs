@@ -5,7 +5,7 @@ pub struct JavaPropsQuery;
 
 #[Object]
 impl JavaPropsQuery {
-    async fn searchJavaProps(&self, path: String, classname: String) -> Result<i32> {
+    async fn searchJavaProps(&self, _path: String, _classname: String) -> Result<i32> {
         todo!()
     }
 }

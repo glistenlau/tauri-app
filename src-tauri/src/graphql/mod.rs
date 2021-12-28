@@ -1,9 +1,9 @@
 mod app_state;
 mod db_schema;
+mod java_props;
 mod sql;
 mod sql_explain;
 mod sql_formatter;
-mod java_props;
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::Schema;
