@@ -12,6 +12,23 @@ enum AppStateKey {
     PostgresConfig,
 }
 
+#[derive(InputObject)]
+struct JavaProp {
+    class_name: String,
+}
+
+#[Object]
+impl JavaProp {
+   pub async fn state_key_str(&self) -> String {
+       self.class_name.clone()
+   } 
+}
+
+#[derive(Union)]
+enum AppStateKeyTest {
+    JavaProp(JavaProp)
+}
+
 static APP_STATE_CF: &str = "APP_STATE";
 
 #[derive(Default)]
@@ -22,7 +39,7 @@ impl AppStateQuery {
     async fn app_state(
         &self,
         _ctx: &Context<'_>,
-        mut state_keys: Vec<AppStateKey>,
+        mut state_keys: Vec<AppStateKeyTest>,
     ) -> Result<Vec<Option<String>>> {
         let db = rocksdb::get_conn();
         let key_strs: Vec<String> = state_keys
