@@ -113,8 +113,44 @@ impl RocksDataStore {
             .collect())
     }
 
-    pub fn delete(key: &str, db: &DB) -> Result<(), rocksdb::Error> {
-        db.delete(key.as_bytes())
+    pub fn delete(cf: Option<&str>, key: &str, db: &DB) -> Result<(), rocksdb::Error> {
+        match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
+            Some(cf_handle) => db.delete_cf(cf_handle, key.as_bytes()),
+            None => db.delete(key.as_bytes()),
+        }
+    }
+
+    pub fn delete_batch(cf: Option<&str>, key: &[&str], db: &DB) -> Result<(), rocksdb::Error> {
+        let mut write_batch = WriteBatch::default();
+        match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
+            Some(cf_handle) => {
+                key.iter()
+                    .for_each(|key_str| write_batch.delete_cf(cf_handle, key_str.as_bytes()));
+            }
+            None => {
+                key.iter()
+                    .for_each(|key_str| write_batch.delete(key_str.as_bytes()));
+            }
+        };
+
+        db.write(write_batch)
+    }
+
+    pub fn delete_range(
+        cf: Option<&str>,
+        from: &str,
+        to: &str,
+        db: &DB,
+    ) -> Result<(), rocksdb::Error> {
+        let mut write_batch = WriteBatch::default();
+        match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
+            Some(cf_handle) => {
+                write_batch.delete_range_cf(cf_handle, from.as_bytes(), to.as_bytes())
+            }
+            None => write_batch.delete_range(from.as_bytes(), to.as_bytes()),
+        };
+
+        db.write(write_batch)
     }
 
     pub fn write_batch(
@@ -157,22 +193,146 @@ pub fn get_conn() -> MutexGuard<'static, DB> {
 #[cfg(test)]
 mod tests {
 
+    use std::fmt::format;
+
     use rocksdb::{MergeOperands, Options};
     use serde_json::{json, Value};
 
     use super::*;
+
+    static TEST_CF: &str = "test_cf";
+
+    fn run_rocksdb_test<F>(test_fn: F)
+    where
+        F: FnOnce(&mut DB),
+    {
+        let mut conn = get_conn();
+        let cf_handle = match conn.cf_handle(TEST_CF) {
+            Some(ch) => ch,
+            None => {
+                println!("test_cf not exists, create it...");
+                conn.create_cf(TEST_CF, &Options::default()).unwrap();
+                conn.cf_handle(TEST_CF).unwrap()
+            }
+        };
+
+        test_fn(&mut conn);
+
+        conn.drop_cf(TEST_CF).unwrap();
+    }
+
+    #[test]
+    fn test_delete_batch() {
+        run_rocksdb_test(move |mut conn| {
+            let test_tuple1 = ("Test_key1", "Test_val");
+            let test_tuple2 = ("Test_key2", "Test_val2");
+
+            RocksDataStore::write_batch(TEST_CF, &[test_tuple1, test_tuple2], &mut conn).unwrap();
+            let get_rst =
+                RocksDataStore::multi_get(Some(TEST_CF), &[test_tuple1.0, test_tuple2.0], conn)
+                    .unwrap();
+            assert_eq!(
+                Some(test_tuple1.1.to_string()),
+                get_rst[0],
+                "The first key value shoule be inserted."
+            );
+            assert_eq!(
+                Some(test_tuple2.1.to_string()),
+                get_rst[1],
+                "The second key value shoule be inserted."
+            );
+
+            RocksDataStore::delete_batch(Some(TEST_CF), &[test_tuple1.0, test_tuple2.0], conn)
+                .unwrap();
+
+            let get_rst =
+                RocksDataStore::multi_get(Some(TEST_CF), &[test_tuple1.0, test_tuple2.0], conn)
+                    .unwrap();
+            assert_eq!(None, get_rst[0], "The first key value shoule be deleted.");
+            assert_eq!(None, get_rst[1], "The second key value shoule be deleted.");
+        })
+    }
+
+    #[test]
+    fn test_delete_range() {
+        run_rocksdb_test(move |mut conn| {
+            let test_key_val = vec![
+                ("Test_key1", "Test_val1"),
+                ("Test_key11", "Test_val11"),
+                ("Test_key2", "Test_val2"),
+                ("Test_key21", "Test_val21"),
+                ("Test_key211", "Test_val21"),
+            ];
+
+            RocksDataStore::write_batch(TEST_CF, &test_key_val, &mut conn).unwrap();
+            let mut get_rst = RocksDataStore::multi_get(
+                Some(TEST_CF),
+                test_key_val
+                    .iter()
+                    .map(|t| t.0)
+                    .collect::<Vec<&str>>()
+                    .as_ref(),
+                conn,
+            )
+            .unwrap();
+
+            test_key_val
+                .iter()
+                .enumerate()
+                .for_each(|(i, t)| assert_eq!(get_rst[i], Some(t.1.to_string())));
+
+            RocksDataStore::delete_range(Some(TEST_CF), test_key_val[0].0, test_key_val[1].0, conn)
+                .unwrap();
+
+            get_rst = RocksDataStore::multi_get(
+                Some(TEST_CF),
+                test_key_val
+                    .iter()
+                    .map(|t| t.0)
+                    .collect::<Vec<&str>>()
+                    .as_ref(),
+                conn,
+            )
+            .unwrap();
+
+            test_key_val.iter().enumerate().for_each(|(i, t)| {
+                if i > 0 {
+                    assert_eq!(get_rst[i], Some(t.1.to_string()));
+                } else {
+                    assert_eq!(get_rst[i], None);
+                }
+            });
+
+            RocksDataStore::delete_range(Some(TEST_CF), test_key_val[0].0, "Test_key2~", conn)
+                .unwrap();
+            get_rst = RocksDataStore::multi_get(
+                Some(TEST_CF),
+                test_key_val
+                    .iter()
+                    .map(|t| t.0)
+                    .collect::<Vec<&str>>()
+                    .as_ref(),
+                conn,
+            )
+            .unwrap();
+
+            test_key_val.iter().enumerate().for_each(|(i, t)| {
+                assert_eq!(get_rst[i], None);
+            });
+        })
+    }
 
     #[test]
     fn test_cf() {
         let mut data_store = DATA_STORE.lock().unwrap();
         let conn = data_store.get_conn().unwrap();
         let mut conn_lock = conn.lock().unwrap();
-        let cf_handle = match conn_lock.cf_handle("test_cf") {
+        let cf_handle = match conn_lock.cf_handle(TEST_CF) {
             Some(ch) => ch,
             None => {
                 println!("test_cf not exists, create it...");
-                conn_lock.create_cf("test_cf", &Options::default()).unwrap();
-                conn_lock.cf_handle("test_cf").unwrap()
+                conn_lock.create_cf(TEST_CF, &Options::default()).unwrap();
+                conn_lock.cf_handle(TEST_CF).unwrap()
             }
         };
         let mut write_batch = WriteBatch::default();
@@ -192,7 +352,7 @@ mod tests {
             b"test_val2",
             "test_key2 should be write successfully."
         );
-        conn_lock.drop_cf("test_cf").unwrap();
+        conn_lock.drop_cf(TEST_CF).unwrap();
     }
 
     fn merge(a: &mut Value, b: &Value) {

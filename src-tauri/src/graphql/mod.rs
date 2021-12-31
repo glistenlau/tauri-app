@@ -17,6 +17,7 @@ use tokio_stream::StreamExt;
 use db_schema::DbSchemaQuery;
 use sql_formatter::SqlFormatterQuery;
 
+use self::java_props::{JavaPropsMutation, JavaPropsQuery};
 use self::sql::SqlMutation;
 use self::{
     app_state::{AppStateMutation, AppStateQuery},
@@ -28,13 +29,14 @@ use warp::{http::Response as HttpResponse, Filter};
 pub struct Query(
     AppStateQuery,
     DbSchemaQuery,
+    JavaPropsQuery,
     SqlQuery,
     SqlExplainQuery,
     SqlFormatterQuery,
 );
 
 #[derive(MergedObject, Default)]
-pub struct Mutation(AppStateMutation, SqlMutation);
+pub struct Mutation(AppStateMutation, SqlMutation, JavaPropsMutation);
 
 pub struct Subscription;
 

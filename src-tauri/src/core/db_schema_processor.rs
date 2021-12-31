@@ -159,10 +159,10 @@ fn identify_db_type(node: &XmlTag) -> Option<DbFamily> {
     let node_db_family = node.attrs().get("family");
     if let Some(db_family_str) = node_db_family {
         let db_family_str_lower = db_family_str.to_lowercase();
-        if db_family_str_lower.find("oracle").is_some() {
+        if db_family_str_lower.contains("oracle") {
             return Some(DbFamily::Oracle);
         }
-        if db_family_str_lower.find("postgres").is_some() {
+        if db_family_str_lower.contains("postgres") {
             return Some(DbFamily::Postgres);
         }
 

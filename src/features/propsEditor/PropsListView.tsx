@@ -2,6 +2,7 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useSearchJavaPropsMutation } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import ClassSelectView from "./ClassSelectView";
 import PropNameListView from "./PropNameListView";
@@ -25,6 +26,9 @@ const PropsListView = React.memo(() => {
   const panelWidth = useSelector(
     (rootState: RootState) => rootState.propsEditor.panelWidth
   );
+
+  const [searchJavaProps] = useSearchJavaPropsMutation();
+
   const handlePanelResize = useCallback(
     (e: any, direction: any, ref: any, d: any) => {
       const width = panelWidth + d.width;
@@ -32,6 +36,17 @@ const PropsListView = React.memo(() => {
     },
     [dispatch, panelWidth]
   );
+
+  const handleSearch = useCallback(async (filePath: string, fileName: string) => {
+    await searchJavaProps({
+      variables: {
+        filepath: filePath,
+        classPattern: fileName,
+        validatePgQueries: true,
+      }
+    });
+  }, [searchJavaProps]);
+
 
   return (
     <Resizable

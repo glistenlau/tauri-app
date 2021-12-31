@@ -60,6 +60,20 @@ pub fn save_java_prop(filepath: &str, prop_key: &str, prop_value: &str) -> Resul
     Ok(())
 }
 
+#[derive(Eq, PartialEq, Hash)]
+pub enum PropValStatus {
+    OracleOnly,
+    PostgresOnly,
+    Both,
+    Neither,
+}
+
+#[derive(Eq, PartialEq, Hash)]
+pub struct PropKey {
+    name: String,
+    val_status: PropValStatus,
+}
+
 pub fn load_props(
     search_path: &str,
     classname: &str,
@@ -101,6 +115,21 @@ pub fn load_props(
                     pg_val = Some(prop_val.clone());
                 }
             }
+
+            let val_status = if ora_val.is_some() && pg_val.is_some() {
+                PropValStatus::Both
+            } else if ora_val.is_some() {
+                PropValStatus::OracleOnly
+            } else if pg_val.is_some() {
+                PropValStatus::PostgresOnly
+            } else {
+                PropValStatus::Neither
+            };
+
+            let prop_key_obj = PropKey {
+                name: prop_key.clone(),
+                val_status,
+            };
 
             file_combiled_map.insert(prop_key.clone(), (ora_val, pg_val));
         }

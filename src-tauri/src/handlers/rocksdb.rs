@@ -65,7 +65,7 @@ fn execte_put(key: String, val: Option<String>) -> Result<()> {
 fn execute_delete(key: String) -> Result<()> {
     let conn_lock = get_conn();
 
-    match RocksDataStore::delete(key.as_str(), &conn_lock) {
+    match RocksDataStore::delete(None, key.as_str(), &conn_lock) {
         Ok(()) => Ok(()),
         Err(e) => Err(anyhow!("RocksDB delete error: {}", e)),
     }

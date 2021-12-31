@@ -1,40 +1,59 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AppStateKey,
-  useGetStateKeyValuesQuery,
-  useSetStateKeyValuesMutation,
+	AppStateKey,
+	GetStateKeyValuesQuery,
+	useGetStateKeyValuesQuery,
+	useSetStateKeyValuesMutation,
 } from "../generated/graphql";
 
+
+export function useAppState<T>(appStateKey: AppStateKey, initialValue: T): [T, (appState: T) => void, () => Promise<void>];
+export function useAppState<T>(appStateKey: AppStateKey): [T | undefined, (appState: T) => void, () => Promise<void>];
 export function useAppState<T>(
-  appStateKey: AppStateKey,
-  initialValue?: T
-): [T | undefined, (appState: T) => void] {
-  const [state, setState] = useState<T | undefined>(initialValue);
+	appStateKey: AppStateKey,
+	initialValue?: T,
+): [T | undefined, (appState: T) => void, () => Promise<void>] {
+	const initialValueRef = useRef(initialValue);
+	const [state, setState] = useState<T>();
+	const setStateFromData = useCallback((data: GetStateKeyValuesQuery | undefined) => {
+		if (data?.appState && data.appState.length > 0 && data.appState[0]) {
+			setState(JSON.parse(data.appState[0]));
+		}
+	}, []);
 
-  const { data } = useGetStateKeyValuesQuery({
-    variables: { stateKeys: [appStateKey] },
-  });
+	useEffect(() => {
+		if (initialValueRef.current != null) {
+			setState(initialValueRef.current);
+		}
+	}, []);
 
-  useEffect(() => {
-    if (data?.appState && data.appState.length > 0 && data.appState[0]) {
-      setState(JSON.parse(data.appState[0]));
-    }
-  }, [data]);
+	const { data, refetch } = useGetStateKeyValuesQuery({
+		variables: { stateKeys: [appStateKey] },
+	});
 
-  const [setStateKeyValuesMutation] = useSetStateKeyValuesMutation();
+	useEffect(() => {
+		setStateFromData(data);
+	}, [data, setStateFromData]);
 
-  const setAppState = useCallback(
-    (state: T) => {
-      setState(state);
-      setStateKeyValuesMutation({
-        variables: {
-          stateKeys: [appStateKey],
-          stateVals: [JSON.stringify(state)],
-        },
-      });
-    },
-    [appStateKey, setStateKeyValuesMutation]
-  );
+	const [setStateKeyValuesMutation] = useSetStateKeyValuesMutation();
 
-  return [state, setAppState];
+	const setAppState = useCallback(
+		(state: T) => {
+			setState(state);
+			setStateKeyValuesMutation({
+				variables: {
+					stateKeys: [appStateKey],
+					stateVals: [JSON.stringify(state)],
+				},
+			});
+		},
+		[appStateKey, setStateKeyValuesMutation]
+	);
+
+	const refetchState = useCallback(async () => {
+		const { data } = await refetch({ stateKeys: [appStateKey] });
+		setStateFromData(data);
+	}, [appStateKey, refetch, setStateFromData])
+
+	return [state, setAppState, refetchState];
 }

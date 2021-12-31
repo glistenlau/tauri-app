@@ -1,44 +1,32 @@
 import React, { useCallback } from "react";
 import SearchBar from "../../components/SearchBar";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../reducers";
-import { setClassName, setFilePath, searchProps } from "./propsEditorSlice";
+import { AppStateKey, useSearchJavaPropsMutation } from "../../generated/graphql";
+import { useAppState } from "../../hooks/useAppState";
 
 const PropsSearchView = React.memo(() => {
-  const filePath = useSelector(
-    (state: RootState) => state.propsEditor.searchFilePath
-  );
-  const className = useSelector(
-    (state: RootState) => state.propsEditor.searchClassName
-  );
-  const dispatch = useDispatch();
+  const [filepath, setFilepath] = useAppState(AppStateKey.PropsSearchFilepath, "");
+  const [classPattern, setClassPattern] = useAppState(AppStateKey.PropsSearchClassPattern, "");
 
-  const handleFilePathChange = useCallback(
-    (filePath: string) => {
-      dispatch(setFilePath(filePath));
-    },
-    [dispatch]
-  );
+  const [searchJavaProps] = useSearchJavaPropsMutation();
 
-  const handleClassNameChange = useCallback(
-    (className: string) => {
-      dispatch(setClassName(className));
-    },
-    [dispatch]
-  );
-
-  const handleSearch = useCallback(async () => {
-    await dispatch(searchProps({ filePath, className }));
-  }, [className, dispatch, filePath]);
+  const handleSearch = useCallback(async (filePath: string, fileName: string) => {
+    await searchJavaProps({
+      variables: {
+        filepath: filePath,
+        classPattern: fileName,
+        validatePgQueries: true,
+      }
+    })
+  }, [searchJavaProps]);
 
   return (
     <SearchBar
       searchFolderLabel="Search Folder"
       searchFileLabel="Java Class"
-      filePathValue={filePath}
-      fileNameValue={className}
-      onFilePathChange={handleFilePathChange}
-      onFileNameChange={handleClassNameChange}
+      filePathValue={filepath}
+      fileNameValue={classPattern}
+      onFilePathChange={setFilepath}
+      onFileNameChange={setClassPattern}
       onSearch={handleSearch}
     />
   );

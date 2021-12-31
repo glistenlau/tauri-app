@@ -1,0 +1,44 @@
+query getCurrentJavaPropsState {
+  currentJavaPropsState {
+    classList
+    selectedClass
+    selectedPropKey
+    propKeyList
+    propVals
+  }
+}
+
+mutation searchJavaProps(
+  $filepath: String!
+  $classPattern: String!
+  $validatePgQueries: Boolean!
+) {
+  searchJavaProps(
+    filepath: $filepath
+    classPattern: $classPattern
+    validatePgQueries: $validatePgQueries
+  ) {
+    classList
+    selectedClass
+    selectedPropKey
+    propKeyList
+    propVals
+  }
+}
+
+mutation selectClass($className: String!) {
+  selectClass(className: $className) {
+    propKeyList  
+    propVals    
+  }
+}
+
+mutation selectPropKey($className: String!, $propKey: String!) {
+  selectPropKey(className: $className, propKey: $propKey) {
+    propVals
+  }
+}
+
+mutation savePropVals($className: String!, $propKey: String!, $propVals: [String]!) {
+  propVals(className: $className, propKey: $propKey, propVals: $propVals)
+}
