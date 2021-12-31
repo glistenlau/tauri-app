@@ -60,15 +60,21 @@ interface PropNameListProps {
 }
 
 interface PropNameProps {
-  prop: PropKey,
-  selectedProp: string,
-  onClick: (selectedProp: string) => void,
-  validateResults?: any,
-  searchText: string,
+  prop: PropKey;
+  selectedProp: string;
+  onClick: (selectedProp: string) => void;
+  validateResults?: any;
+  searchText: string;
 }
 
 const PropName = React.memo(
-  ({ prop, selectedProp, onClick, validateResults, searchText }: PropNameProps) => {
+  ({
+    prop,
+    selectedProp,
+    onClick,
+    validateResults,
+    searchText,
+  }: PropNameProps) => {
     const classes = useStyles();
     const propValidateResult = React.useMemo(
       () => validateResults && validateResults[prop.name],
@@ -126,7 +132,9 @@ const PropName = React.memo(
                 >
                   <MatchText text={prop.name} highlightText={searchText} />
                 </span>
-                {[PropValStatus.Both, PropValStatus.OracleOnly].includes(prop.valStatus) && (
+                {[PropValStatus.Both, PropValStatus.OracleOnly].includes(
+                  prop.valStatus
+                ) && (
                   <SVGIcon
                     style={{ flexShrink: 0, marginRight: 3 }}
                     name="database"
@@ -134,7 +142,9 @@ const PropName = React.memo(
                     height={20}
                   />
                 )}
-                {[PropValStatus.Both, PropValStatus.PostgresOnly].includes(prop.valStatus) && (
+                {[PropValStatus.Both, PropValStatus.PostgresOnly].includes(
+                  prop.valStatus
+                ) && (
                   <SVGIcon
                     style={{ flexShrink: 0, marginRight: 3 }}
                     name="postgres"

@@ -9,7 +9,14 @@ import { PropsListContext } from "./PropsListView";
 const ClassSelectView = React.memo(() => {
   const [selectClass] = useSelectClassMutation();
 
-  const { classList, selectedClass, setPropKeyList, setPropValues, setSelectedClass, setSelectedPropKey } = useContext(PropsListContext);
+  const {
+    classList,
+    selectedClass,
+    setPropKeyList,
+    setPropValues,
+    setSelectedClass,
+    setSelectedPropKey,
+  } = useContext(PropsListContext);
 
   const handleChange = useCallback(
     async (path: string) => {
@@ -19,12 +26,21 @@ const ClassSelectView = React.memo(() => {
         return;
       }
       const { propKeyList, propVals } = data.selectClass;
-      const selectedPropKey = propKeyList == null || propKeyList.length === 0 ? "" : propKeyList[0].name;
+      const selectedPropKey =
+        propKeyList == null || propKeyList.length === 0
+          ? ""
+          : propKeyList[0].name;
       setPropKeyList(propKeyList || []);
       setSelectedPropKey(selectedPropKey);
       setPropValues((propVals as [string, string] | undefined) || ["", ""]);
     },
-    [selectClass, setPropKeyList, setPropValues, setSelectedClass, setSelectedPropKey]
+    [
+      selectClass,
+      setPropKeyList,
+      setPropValues,
+      setSelectedClass,
+      setSelectedPropKey,
+    ]
   );
 
   return (

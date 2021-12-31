@@ -2,7 +2,11 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PropKey, useGetCurrentJavaPropsStateQuery, useSearchJavaPropsMutation } from "../../generated/graphql";
+import {
+  PropKey,
+  useGetCurrentJavaPropsStateQuery,
+  useSearchJavaPropsMutation,
+} from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import ClassSelectView from "./ClassSelectView";
 import PropNameListView from "./PropNameListView";
@@ -33,18 +37,17 @@ interface IPropsListContext {
   setPropValues: (propValues: [string, string]) => void;
 }
 
-
 export const PropsListContext = React.createContext<IPropsListContext>({
   classList: [],
-  setClassList: (classList: Array<string>) => { },
+  setClassList: (classList: Array<string>) => {},
   selectedClass: "",
-  setSelectedClass: (selectedClass: string) => { },
+  setSelectedClass: (selectedClass: string) => {},
   selectedPropKey: "",
-  setSelectedPropKey: (selectedPropKey: string) => { },
+  setSelectedPropKey: (selectedPropKey: string) => {},
   propKeyList: [],
-  setPropKeyList: (propKeyList: Array<PropKey>) => { },
+  setPropKeyList: (propKeyList: Array<PropKey>) => {},
   propValues: ["", ""],
-  setPropValues: (propValues: [string, string]) => { },
+  setPropValues: (propValues: [string, string]) => {},
 });
 
 const PropsListView = React.memo(() => {
@@ -59,12 +62,13 @@ const PropsListView = React.memo(() => {
     if (!data) {
       return;
     }
-    const { classList, selectedClass, selectedPropKey, propKeyList, propVals } = data?.currentJavaPropsState;
+    const { classList, selectedClass, selectedPropKey, propKeyList, propVals } =
+      data?.currentJavaPropsState;
     setClassList(classList || []);
     setSelectedClass(selectedClass || "");
     setSelectedPropKey(selectedPropKey || "");
     setPropKeyList(propKeyList || []);
-    setPropValues((propVals as [string, string] | undefined) || ["", ""])
+    setPropValues((propVals as [string, string] | undefined) || ["", ""]);
   }, [data]);
 
   const classes = useStyles();
@@ -72,8 +76,6 @@ const PropsListView = React.memo(() => {
   const panelWidth = useSelector(
     (rootState: RootState) => rootState.propsEditor.panelWidth
   );
-
-
 
   const handlePanelResize = useCallback(
     (e: any, direction: any, ref: any, d: any) => {
@@ -104,24 +106,26 @@ const PropsListView = React.memo(() => {
         topLeft: false,
       }}
     >
-      <PropsListContext.Provider value={{
-        classList,
-        setClassList,
-        selectedClass,
-        setSelectedClass,
-        selectedPropKey,
-        setSelectedPropKey,
-        propKeyList,
-        setPropKeyList,
-        propValues,
-        setPropValues,
-      }}>
+      <PropsListContext.Provider
+        value={{
+          classList,
+          setClassList,
+          selectedClass,
+          setSelectedClass,
+          selectedPropKey,
+          setSelectedPropKey,
+          propKeyList,
+          setPropKeyList,
+          propValues,
+          setPropValues,
+        }}
+      >
         <PropsSearchView />
         <ClassSelectView />
         <Divider />
         <PropNameListView />
       </PropsListContext.Provider>
-    </Resizable >
+    </Resizable>
   );
 });
 

@@ -5,8 +5,8 @@ use log::info;
 
 use crate::proxies::{
     app_state::{get_state, set_state, AppStateKey},
-    java_props::{load_props, PropKey, PropValStatus},
-    rocksdb::{self, get_conn, RocksDataStore},
+    java_props::{load_props, PropKey},
+    rocksdb::{get_conn, RocksDataStore},
 };
 
 #[derive(Default, SimpleObject)]
@@ -60,10 +60,7 @@ fn get_current_state() -> Result<JavaPropsResponse> {
 
     let rst = RocksDataStore::multi_get(
         Some(JAVA_PROPS_CR),
-        &[
-            &prop_keys_save_key,
-            &prop_vals_save_key,
-        ],
+        &[&prop_keys_save_key, &prop_vals_save_key],
         &db,
     )?;
     let prop_key_list: Vec<PropKey> = match &rst[0] {
@@ -91,7 +88,7 @@ impl JavaPropsMutation {
         &self,
         filepath: String,
         class_pattern: String,
-        validate_pg_queries: bool,
+        _validate_pg_queries: bool,
     ) -> Result<JavaPropsResponse> {
         let file_props_map = load_props(&filepath, &class_pattern)?;
         save_java_props(&file_props_map)?;
@@ -265,7 +262,8 @@ fn load_java_porops_state(
         serde_json::to_string(&class_list)?,
         selected_class,
         selected_prop_key_opt
-            .map(|spk| spk.name.to_string()).unwrap_or_default(),
+            .map(|spk| spk.name.to_string())
+            .unwrap_or_default(),
     ];
 
     set_state(state_keys, state_vals)?;

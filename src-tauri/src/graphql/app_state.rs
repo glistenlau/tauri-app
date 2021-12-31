@@ -1,7 +1,4 @@
-use crate::proxies::{
-    app_state::{delete_state, get_state, set_state, AppStateKey},
-    rocksdb::{self, RocksDataStore},
-};
+use crate::proxies::app_state::{delete_state, get_state, set_state, AppStateKey};
 use async_graphql::*;
 
 #[derive(Default)]

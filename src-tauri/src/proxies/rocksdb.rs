@@ -193,8 +193,6 @@ pub fn get_conn() -> MutexGuard<'static, DB> {
 #[cfg(test)]
 mod tests {
 
-    use std::fmt::format;
-
     use rocksdb::{MergeOperands, Options};
     use serde_json::{json, Value};
 
@@ -207,7 +205,7 @@ mod tests {
         F: FnOnce(&mut DB),
     {
         let mut conn = get_conn();
-        let cf_handle = match conn.cf_handle(TEST_CF) {
+        let _cf_handle = match conn.cf_handle(TEST_CF) {
             Some(ch) => ch,
             None => {
                 println!("test_cf not exists, create it...");
@@ -316,7 +314,7 @@ mod tests {
             )
             .unwrap();
 
-            test_key_val.iter().enumerate().for_each(|(i, t)| {
+            test_key_val.iter().enumerate().for_each(|(i, _t)| {
                 assert_eq!(get_rst[i], None);
             });
         })

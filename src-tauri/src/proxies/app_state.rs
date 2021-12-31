@@ -51,4 +51,3 @@ pub fn delete_state(state_keys: Vec<AppStateKey>) -> Result<()> {
 
     RocksDataStore::delete_batch(Some(APP_STATE_CF), &keys_ref, &db).map_err(|e| e.into())
 }
-

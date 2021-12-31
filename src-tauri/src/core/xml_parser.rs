@@ -242,9 +242,8 @@ pub fn parse_xml(text: &str) -> Result<XmlTag> {
         if process_special_tags(&text_char_vec, &mut index)? {
             index += 1;
             continue;
-        } 
-        if process_comment_tag(&text_char_vec, &mut index, &mut pending_comment_start_index)?
-        {
+        }
+        if process_comment_tag(&text_char_vec, &mut index, &mut pending_comment_start_index)? {
             index += 1;
             continue;
         }
