@@ -69,7 +69,7 @@ type JavaPropsResponse {
 	classList: [String!]
 	selectedClass: String
 	selectedPropKey: String
-	propKeyList: [String!]
+	propKeyList: [PropKey!]
 	propVals: [String]
 }
 type Mutation {
@@ -88,6 +88,16 @@ type NodeValue {
 	start: Int!
 	end: Int!
 	dbFamily: DbFamily
+}
+type PropKey {
+	name: String!
+	valStatus: PropValStatus!
+}
+enum PropValStatus {
+	ORACLE_ONLY
+	POSTGRES_ONLY
+	BOTH
+	NEITHER
 }
 type Query {
 	appState(stateKeys: [AppStateKey!]!): [String]!

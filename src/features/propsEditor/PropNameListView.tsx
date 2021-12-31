@@ -1,38 +1,30 @@
-import React, { useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useCallback, useContext } from "react";
 import PropNameList from "../../components/PropNameList";
-import { RootState } from "../../reducers";
-import { setPropName } from "./propsEditorSlice";
+import { useSelectPropKeyMutation } from "../../generated/graphql";
+import { PropsListContext } from "./PropsListView";
 
 const ClassSelectView = React.memo(() => {
-  const dispatch = useDispatch();
-  const selectedPropName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedPropName
-  );
-  const propNameList = useSelector(
-    (rootState: RootState) => rootState.propsEditor.propNameList
-  );
-  const propsValidateMap = useSelector((rootState: RootState) => {
-    if (rootState?.propsEditor?.propsValidateMap) {
-      return rootState?.propsEditor?.propsValidateMap[
-        rootState.propsEditor?.listSelectedClassName
-      ];
-    }
-  });
 
+  const { propKeyList, selectedClass, selectedPropKey, setSelectedPropKey, setPropValues } = useContext(PropsListContext);
+  const [selectPropKey] = useSelectPropKeyMutation();
   const handleClickPropName = useCallback(
-    (propName: string) => {
-      dispatch(setPropName(propName));
+    async (propName: string) => {
+      setSelectedPropKey(propName);
+      const { data } = await selectPropKey({ variables: { className: selectedClass, propKey: propName } });
+      if (!data) {
+        return;
+      }
+      const { propVals } = data.selectPropKey;
+      setPropValues(propVals || ["", ""]);
     },
-    [dispatch]
+    [selectPropKey, selectedClass, setPropValues, setSelectedPropKey]
   );
 
   return (
     <PropNameList
-      propNameList={propNameList}
-      selectedProp={selectedPropName}
+      propNameList={propKeyList}
+      selectedProp={selectedPropKey}
       onListItemClick={handleClickPropName}
-      validateResults={propsValidateMap}
     />
   );
 });

@@ -1,7 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{anyhow, Result};
+use async_graphql::{SimpleObject, Enum};
 use glob::{glob_with, MatchOptions, Paths};
+use serde::{Serialize, Deserialize};
 
 use crate::core::java_props::{parse_prop_file, save_prop};
 
@@ -60,7 +62,7 @@ pub fn save_java_prop(filepath: &str, prop_key: &str, prop_value: &str) -> Resul
     Ok(())
 }
 
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Enum, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum PropValStatus {
     OracleOnly,
     PostgresOnly,
@@ -68,20 +70,20 @@ pub enum PropValStatus {
     Neither,
 }
 
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, SimpleObject, Serialize, Deserialize)]
 pub struct PropKey {
-    name: String,
-    val_status: PropValStatus,
+    pub name: String,
+    pub val_status: PropValStatus,
 }
 
 pub fn load_props(
     search_path: &str,
     classname: &str,
-) -> Result<HashMap<String, HashMap<String, (Option<String>, Option<String>)>>> {
+) -> Result<HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>>> {
     let oracle_props = search_load_db_props(search_path, classname, ".oracle.properties")?;
     let postgres_props = search_load_db_props(search_path, classname, ".pg.properties")?;
 
-    let mut combined: HashMap<String, HashMap<String, (Option<String>, Option<String>)>> =
+    let mut combined: HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>> =
         HashMap::with_capacity(oracle_props.len());
     let mut filename_key_set = HashSet::with_capacity(oracle_props.len());
     filename_key_set.extend(oracle_props.keys());
@@ -131,7 +133,7 @@ pub fn load_props(
                 val_status,
             };
 
-            file_combiled_map.insert(prop_key.clone(), (ora_val, pg_val));
+            file_combiled_map.insert(prop_key_obj, (ora_val, pg_val));
         }
 
         combined.insert(String::from(filename_key), file_combiled_map);

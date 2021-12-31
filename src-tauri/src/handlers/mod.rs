@@ -7,7 +7,6 @@ use crate::state::AppState;
 
 pub mod fs;
 pub mod graphql;
-pub mod java_props;
 pub mod log;
 pub mod query_runner;
 pub mod rocksdb;
@@ -25,7 +24,6 @@ pub enum Handler {
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
     File(Endpoint<fs::Action, fs::Payload>),
     Log(Endpoint<log::Action, log::Payload>),
-    JavaProps(Endpoint<java_props::Action, java_props::Payload>),
     GraphQL(Endpoint<graphql::Action, graphql::Payload>),
 }
 
@@ -130,7 +128,6 @@ pub fn invoke_handler(
         },
         Handler::File(e) => seralize_response(fs::handle_command(e)),
         Handler::Log(e) => seralize_response(log::handle_command(e)),
-        Handler::JavaProps(e) => generate_response(java_props::handle_command(e), now.elapsed()),
         Handler::QueryRunner(e) => generate_response(
             query_runner::handle_command(window, e.action, e.payload),
             now.elapsed(),

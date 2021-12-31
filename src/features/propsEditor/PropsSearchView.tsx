@@ -1,23 +1,35 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import SearchBar from "../../components/SearchBar";
 import { AppStateKey, useSearchJavaPropsMutation } from "../../generated/graphql";
 import { useAppState } from "../../hooks/useAppState";
+import { PropsListContext } from "./PropsListView";
 
 const PropsSearchView = React.memo(() => {
   const [filepath, setFilepath] = useAppState(AppStateKey.PropsSearchFilepath, "");
   const [classPattern, setClassPattern] = useAppState(AppStateKey.PropsSearchClassPattern, "");
 
   const [searchJavaProps] = useSearchJavaPropsMutation();
-
+  const { setClassList, setSelectedClass, setSelectedPropKey, setPropKeyList, setPropValues } = useContext(PropsListContext);
   const handleSearch = useCallback(async (filePath: string, fileName: string) => {
-    await searchJavaProps({
+    const { data } = await searchJavaProps({
       variables: {
         filepath: filePath,
         classPattern: fileName,
         validatePgQueries: true,
       }
-    })
-  }, [searchJavaProps]);
+    });
+    if (!data) {
+      return;
+    }
+
+    const { classList, selectedClass, selectedPropKey, propKeyList, propVals } = data.searchJavaProps;
+
+    setClassList(classList || []);
+    setSelectedClass(selectedClass || "");
+    setSelectedPropKey(selectedPropKey || "");
+    setPropKeyList(propKeyList || []);
+    setPropValues(propVals || ["", ""]);
+  }, [searchJavaProps, setClassList, setPropKeyList, setPropValues, setSelectedClass, setSelectedPropKey]);
 
   return (
     <SearchBar

@@ -3,7 +3,10 @@ query getCurrentJavaPropsState {
     classList
     selectedClass
     selectedPropKey
-    propKeyList
+    propKeyList {
+      name
+      valStatus
+    }
     propVals
   }
 }
@@ -21,14 +24,20 @@ mutation searchJavaProps(
     classList
     selectedClass
     selectedPropKey
-    propKeyList
+    propKeyList { 
+      name 
+      valStatus
+    }
     propVals
   }
 }
 
 mutation selectClass($className: String!) {
   selectClass(className: $className) {
-    propKeyList  
+    propKeyList {
+      name
+      valStatus
+    }  
     propVals    
   }
 }

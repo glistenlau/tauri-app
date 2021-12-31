@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
 use async_graphql::*;
+use log::info;
 
 use crate::proxies::{
     app_state::{get_state, set_state, AppStateKey},
-    java_props::load_props,
+    java_props::{load_props, PropKey, PropValStatus},
     rocksdb::{self, get_conn, RocksDataStore},
 };
 
@@ -13,7 +14,7 @@ pub struct JavaPropsResponse {
     class_list: Option<Vec<String>>,
     selected_class: Option<String>,
     selected_prop_key: Option<String>,
-    prop_key_list: Option<Vec<String>>,
+    prop_key_list: Option<Vec<PropKey>>,
     prop_vals: Option<Vec<Option<String>>>,
 }
 
@@ -59,16 +60,24 @@ fn get_current_state() -> Result<JavaPropsResponse> {
 
     let rst = RocksDataStore::multi_get(
         Some(JAVA_PROPS_CR),
-        &[&prop_keys_save_key, &prop_vals_save_key],
+        &[
+            &prop_keys_save_key,
+            &prop_vals_save_key,
+        ],
         &db,
     )?;
-    let prop_key_list: Vec<String> = match &rst[0] {
+    let prop_key_list: Vec<PropKey> = match &rst[0] {
         Some(prop_key_list_str) => serde_json::from_str(prop_key_list_str)?,
         None => Vec::new(),
     };
     let prop_vals: Vec<Option<String>> = match &rst[1] {
         Some(prop_vals_str) => serde_json::from_str(prop_vals_str)?,
         None => vec![None, None],
+    };
+
+    let prop_key_val_status_list: Vec<PropValStatus> = match &rst[2] {
+        Some(prop_key_val_status_str) => serde_json::from_str(prop_key_val_status_str)?,
+        None => Vec::new(),
     };
 
     Ok(JavaPropsResponse {
@@ -97,7 +106,7 @@ impl JavaPropsMutation {
     async fn select_class(&self, class_name: String) -> Result<JavaPropsResponse> {
         let prop_keys = select_class(&class_name)?;
         let prop_key = if !prop_keys.is_empty() {
-            prop_keys[0].to_string()
+            prop_keys[0].name.to_string()
         } else {
             String::new()
         };
@@ -167,7 +176,7 @@ fn select_prop_key(class_name: &str, prop_key: &str) -> Result<Vec<Option<String
     Ok(prop_val)
 }
 
-fn select_class(class_name: &str) -> Result<Vec<String>> {
+fn select_class(class_name: &str) -> Result<Vec<PropKey>> {
     let state_keys = vec![AppStateKey::PropsSelectedClass];
     let state_vals = vec![class_name.to_string()];
     set_state(state_keys, state_vals)?;
@@ -175,7 +184,7 @@ fn select_class(class_name: &str) -> Result<Vec<String>> {
     let prop_keys_save_key = class_name.to_string();
     let db = get_conn();
     let get_res = RocksDataStore::multi_get(Some(JAVA_PROPS_CR), &[&prop_keys_save_key], &db)?;
-    let prop_val: Vec<String> = match &get_res[0] {
+    let prop_val: Vec<PropKey> = match &get_res[0] {
         Some(r) => serde_json::from_str(r)?,
         None => Vec::new(),
     };
@@ -184,7 +193,7 @@ fn select_class(class_name: &str) -> Result<Vec<String>> {
 }
 
 fn save_java_props(
-    file_props_map: &HashMap<String, HashMap<String, (Option<String>, Option<String>)>>,
+    file_props_map: &HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>>,
 ) -> Result<()> {
     let mut key_vals = Vec::with_capacity(file_props_map.len());
     for (class_name, prop_key_vals_map) in file_props_map {
@@ -192,13 +201,13 @@ fn save_java_props(
         let save_val = serde_json::to_string(
             &prop_key_vals_map
                 .keys()
-                .map(|k| k.to_string())
-                .collect::<Vec<String>>(),
+                .map(|pk| pk)
+                .collect::<Vec<&PropKey>>(),
         )?;
         key_vals.push((save_key, save_val));
 
         for (prop_key, prop_key_vals) in prop_key_vals_map {
-            let save_key = format!("{}#{}", &class_name, &prop_key);
+            let save_key = format!("{}#{}", &class_name, &prop_key.name);
             let save_val = serde_json::to_string(&prop_key_vals)?;
             key_vals.push((save_key, save_val));
         }
@@ -209,13 +218,16 @@ fn save_java_props(
         key_vals_ref.push((&key_vals[i].0, &key_vals[i].1));
     }
 
-    db.drop_cf(JAVA_PROPS_CR);
+    match db.drop_cf(JAVA_PROPS_CR) {
+        Ok(_) => info!("Dropped the CF for Java Props"),
+        Err(e) => info!("Failed to drop the CF for Java Props {}", e),
+    }
 
     RocksDataStore::write_batch(JAVA_PROPS_CR, &key_vals_ref, &mut db).map_err(|e| e.into())
 }
 
 fn load_java_porops_state(
-    file_props_map: &HashMap<String, HashMap<String, (Option<String>, Option<String>)>>,
+    file_props_map: &HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>>,
 ) -> Result<JavaPropsResponse> {
     let mut class_list: Vec<String> = file_props_map.keys().map(|k| k.to_string()).collect();
     class_list.sort();
@@ -225,21 +237,21 @@ fn load_java_porops_state(
         String::new()
     };
 
-    let mut prop_keys: Vec<String> = match file_props_map.get(&selected_class) {
-        Some(val) => val.keys().map(|k| k.to_string()).collect(),
+    let mut prop_keys: Vec<PropKey> = match file_props_map.get(&selected_class) {
+        Some(val) => val.keys().map(|k| k.clone()).collect(),
         None => Vec::new(),
     };
-    prop_keys.sort();
-    let selected_porp_key = if prop_keys.len() > 0 {
-        prop_keys[0].clone()
+    prop_keys.sort_by_key(|pk| pk.name.to_string());
+    let selected_prop_key_opt = if prop_keys.len() > 0 {
+        Some(&prop_keys[0])
     } else {
-        String::new()
+        None
     };
 
-    let selected_prop_vals = if selected_porp_key.len() > 0 {
+    let selected_prop_vals = if let Some(selected_prop_key) = selected_prop_key_opt {
         match file_props_map
             .get(&selected_class)
-            .and_then(|key_val_map| key_val_map.get(&selected_porp_key))
+            .and_then(|key_val_map| key_val_map.get(&selected_prop_key))
         {
             Some(vals) => vec![vals.0.clone(), vals.1.clone()],
             None => vec![None, None],
@@ -257,7 +269,8 @@ fn load_java_porops_state(
     let state_vals = vec![
         serde_json::to_string(&class_list)?,
         selected_class,
-        selected_porp_key,
+        selected_prop_key_opt
+            .map(|spk| spk.name.to_string()).unwrap_or_default(),
     ];
 
     set_state(state_keys, state_vals)?;

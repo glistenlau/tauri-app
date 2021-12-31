@@ -1,18 +1,19 @@
-import React from "react";
-import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
-import { green, red, orange } from "@material-ui/core/colors";
-import TextField from "@material-ui/core/TextField";
+import { green, orange, red } from "@material-ui/core/colors";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import ErrorIcon from "@material-ui/icons/Error";
 import WarningIcon from "@material-ui/icons/Warning";
-import Tooltip from "./Tooltip";
+import React from "react";
+import { PropsValidMap } from "../apis/javaProps";
+import { PropKey, PropValStatus } from "../generated/graphql";
 import MatchText from "./MatchText";
 import SVGIcon from "./SVGIcon";
-import { PropsValidMap } from "../apis/javaProps";
+import Tooltip from "./Tooltip";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -52,14 +53,22 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface PropNameListProps {
-  propNameList: Array<any>;
+  propNameList: Array<PropKey>;
   selectedProp: string;
-  onListItemClick: Function;
+  onListItemClick: (selectedProp: string) => void;
   validateResults?: PropsValidMap;
 }
 
+interface PropNameProps {
+  prop: PropKey,
+  selectedProp: string,
+  onClick: (selectedProp: string) => void,
+  validateResults?: any,
+  searchText: string,
+}
+
 const PropName = React.memo(
-  ({ prop, selectedProp, onClick, validateResults, searchText }: any) => {
+  ({ prop, selectedProp, onClick, validateResults, searchText }: PropNameProps) => {
     const classes = useStyles();
     const propValidateResult = React.useMemo(
       () => validateResults && validateResults[prop.name],
@@ -117,7 +126,7 @@ const PropName = React.memo(
                 >
                   <MatchText text={prop.name} highlightText={searchText} />
                 </span>
-                {prop.oracle && (
+                {[PropValStatus.Both, PropValStatus.OracleOnly].includes(prop.valStatus) && (
                   <SVGIcon
                     style={{ flexShrink: 0, marginRight: 3 }}
                     name="database"
@@ -125,7 +134,7 @@ const PropName = React.memo(
                     height={20}
                   />
                 )}
-                {prop.postgres && (
+                {[PropValStatus.Both, PropValStatus.PostgresOnly].includes(prop.valStatus) && (
                   <SVGIcon
                     style={{ flexShrink: 0, marginRight: 3 }}
                     name="postgres"
