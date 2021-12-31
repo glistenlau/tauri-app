@@ -79,11 +79,11 @@ pub struct PropKey {
 pub fn load_props(
     search_path: &str,
     classname: &str,
-) -> Result<HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>>> {
+) -> Result<HashMap<String, HashMap<PropKey, (String, String)>>> {
     let oracle_props = search_load_db_props(search_path, classname, ".oracle.properties")?;
     let postgres_props = search_load_db_props(search_path, classname, ".pg.properties")?;
 
-    let mut combined: HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>> =
+    let mut combined: HashMap<String, HashMap<PropKey, (String, String)>> =
         HashMap::with_capacity(oracle_props.len());
     let mut filename_key_set = HashSet::with_capacity(oracle_props.len());
     filename_key_set.extend(oracle_props.keys());
@@ -104,25 +104,25 @@ pub fn load_props(
         let mut file_combiled_map = HashMap::new();
 
         for prop_key in props_key_set {
-            let (mut ora_val, mut pg_val) = (None, None);
+            let (mut ora_val, mut pg_val) = (String::new(), String::new());
 
             if let Some(m) = ora_props_map {
                 if let Some(prop_val) = m.get(prop_key) {
-                    ora_val = Some(prop_val.clone());
+                    ora_val = prop_val.clone();
                 }
             }
 
             if let Some(m) = pg_props_map {
                 if let Some(prop_val) = m.get(prop_key) {
-                    pg_val = Some(prop_val.clone());
+                    pg_val = prop_val.clone();
                 }
             }
 
-            let val_status = if ora_val.is_some() && pg_val.is_some() {
+            let val_status = if !ora_val.is_empty() && !pg_val.is_empty() {
                 PropValStatus::Both
-            } else if ora_val.is_some() {
+            } else if !ora_val.is_empty() {
                 PropValStatus::OracleOnly
-            } else if pg_val.is_some() {
+            } else if !pg_val.is_empty() {
                 PropValStatus::PostgresOnly
             } else {
                 PropValStatus::Neither

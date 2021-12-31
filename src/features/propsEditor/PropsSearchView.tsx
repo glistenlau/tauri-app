@@ -28,7 +28,7 @@ const PropsSearchView = React.memo(() => {
     setSelectedClass(selectedClass || "");
     setSelectedPropKey(selectedPropKey || "");
     setPropKeyList(propKeyList || []);
-    setPropValues(propVals || ["", ""]);
+    setPropValues((propVals as [string, string] | undefined) || ["", ""]);
   }, [searchJavaProps, setClassList, setPropKeyList, setPropValues, setSelectedClass, setSelectedPropKey]);
 
   return (

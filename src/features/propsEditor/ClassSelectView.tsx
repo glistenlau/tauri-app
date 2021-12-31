@@ -22,7 +22,7 @@ const ClassSelectView = React.memo(() => {
       const selectedPropKey = propKeyList == null || propKeyList.length === 0 ? "" : propKeyList[0].name;
       setPropKeyList(propKeyList || []);
       setSelectedPropKey(selectedPropKey);
-      setPropValues(propVals || ["", ""]);
+      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
     },
     [selectClass, setPropKeyList, setPropValues, setSelectedClass, setSelectedPropKey]
   );

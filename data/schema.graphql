@@ -70,7 +70,7 @@ type JavaPropsResponse {
 	selectedClass: String
 	selectedPropKey: String
 	propKeyList: [PropKey!]
-	propVals: [String]
+	propVals: [String!]
 }
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!

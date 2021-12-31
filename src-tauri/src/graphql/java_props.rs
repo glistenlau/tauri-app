@@ -15,7 +15,7 @@ pub struct JavaPropsResponse {
     selected_class: Option<String>,
     selected_prop_key: Option<String>,
     prop_key_list: Option<Vec<PropKey>>,
-    prop_vals: Option<Vec<Option<String>>>,
+    prop_vals: Option<Vec<String>>,
 }
 
 #[derive(Default)]
@@ -70,14 +70,9 @@ fn get_current_state() -> Result<JavaPropsResponse> {
         Some(prop_key_list_str) => serde_json::from_str(prop_key_list_str)?,
         None => Vec::new(),
     };
-    let prop_vals: Vec<Option<String>> = match &rst[1] {
+    let prop_vals: Vec<String> = match &rst[1] {
         Some(prop_vals_str) => serde_json::from_str(prop_vals_str)?,
-        None => vec![None, None],
-    };
-
-    let prop_key_val_status_list: Vec<PropValStatus> = match &rst[2] {
-        Some(prop_key_val_status_str) => serde_json::from_str(prop_key_val_status_str)?,
-        None => Vec::new(),
+        None => vec![String::new(), String::new()],
     };
 
     Ok(JavaPropsResponse {
@@ -160,7 +155,7 @@ fn save_prop_vals(
         .map_err(|e| e.into())
 }
 
-fn select_prop_key(class_name: &str, prop_key: &str) -> Result<Vec<Option<String>>> {
+fn select_prop_key(class_name: &str, prop_key: &str) -> Result<Vec<String>> {
     let state_keys = vec![AppStateKey::PropsSelectedPropKey];
     let state_vals = vec![prop_key.to_string()];
     set_state(state_keys, state_vals)?;
@@ -168,9 +163,9 @@ fn select_prop_key(class_name: &str, prop_key: &str) -> Result<Vec<Option<String
     let prop_val_save_key = format!("{}#{}", class_name, prop_key);
     let db = &get_conn();
     let get_res = RocksDataStore::multi_get(Some(JAVA_PROPS_CR), &[&prop_val_save_key], db)?;
-    let prop_val: Vec<Option<String>> = match &get_res[0] {
+    let prop_val: Vec<String> = match &get_res[0] {
         Some(r) => serde_json::from_str(r)?,
-        None => vec![None, None],
+        None => vec![String::new(), String::new()],
     };
 
     Ok(prop_val)
@@ -193,7 +188,7 @@ fn select_class(class_name: &str) -> Result<Vec<PropKey>> {
 }
 
 fn save_java_props(
-    file_props_map: &HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>>,
+    file_props_map: &HashMap<String, HashMap<PropKey, (String, String)>>,
 ) -> Result<()> {
     let mut key_vals = Vec::with_capacity(file_props_map.len());
     for (class_name, prop_key_vals_map) in file_props_map {
@@ -227,7 +222,7 @@ fn save_java_props(
 }
 
 fn load_java_porops_state(
-    file_props_map: &HashMap<String, HashMap<PropKey, (Option<String>, Option<String>)>>,
+    file_props_map: &HashMap<String, HashMap<PropKey, (String, String)>>,
 ) -> Result<JavaPropsResponse> {
     let mut class_list: Vec<String> = file_props_map.keys().map(|k| k.to_string()).collect();
     class_list.sort();
@@ -254,10 +249,10 @@ fn load_java_porops_state(
             .and_then(|key_val_map| key_val_map.get(&selected_prop_key))
         {
             Some(vals) => vec![vals.0.clone(), vals.1.clone()],
-            None => vec![None, None],
+            None => vec![String::new(), String::new()],
         }
     } else {
-        vec![None, None]
+        vec![String::new(), String::new()]
     };
 
     let state_keys = vec![

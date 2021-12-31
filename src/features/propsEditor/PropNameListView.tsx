@@ -15,7 +15,7 @@ const ClassSelectView = React.memo(() => {
         return;
       }
       const { propVals } = data.selectPropKey;
-      setPropValues(propVals || ["", ""]);
+      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
     },
     [selectPropKey, selectedClass, setPropValues, setSelectedPropKey]
   );

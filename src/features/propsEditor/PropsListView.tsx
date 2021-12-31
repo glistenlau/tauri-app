@@ -64,7 +64,7 @@ const PropsListView = React.memo(() => {
     setSelectedClass(selectedClass || "");
     setSelectedPropKey(selectedPropKey || "");
     setPropKeyList(propKeyList || []);
-    setPropValues(propVals || ["", ""])
+    setPropValues((propVals as [string, string] | undefined) || ["", ""])
   }, [data]);
 
   const classes = useStyles();
