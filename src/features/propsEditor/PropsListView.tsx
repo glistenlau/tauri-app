@@ -1,12 +1,8 @@
 import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  PropKey,
-  useGetCurrentJavaPropsStateQuery,
-  useSearchJavaPropsMutation,
-} from "../../generated/graphql";
+import { PropKey } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import ClassSelectView from "./ClassSelectView";
 import PropNameListView from "./PropNameListView";
@@ -51,26 +47,6 @@ export const PropsListContext = React.createContext<IPropsListContext>({
 });
 
 const PropsListView = React.memo(() => {
-  const [classList, setClassList] = useState<Array<string>>([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedPropKey, setSelectedPropKey] = useState("");
-  const [propKeyList, setPropKeyList] = useState<Array<PropKey>>([]);
-  const [propValues, setPropValues] = useState<[string, string]>(["", ""]);
-  const { data } = useGetCurrentJavaPropsStateQuery();
-
-  useEffect(() => {
-    if (!data) {
-      return;
-    }
-    const { classList, selectedClass, selectedPropKey, propKeyList, propVals } =
-      data?.currentJavaPropsState;
-    setClassList(classList || []);
-    setSelectedClass(selectedClass || "");
-    setSelectedPropKey(selectedPropKey || "");
-    setPropKeyList(propKeyList || []);
-    setPropValues((propVals as [string, string] | undefined) || ["", ""]);
-  }, [data]);
-
   const classes = useStyles();
   const dispatch = useDispatch();
   const panelWidth = useSelector(
@@ -106,25 +82,10 @@ const PropsListView = React.memo(() => {
         topLeft: false,
       }}
     >
-      <PropsListContext.Provider
-        value={{
-          classList,
-          setClassList,
-          selectedClass,
-          setSelectedClass,
-          selectedPropKey,
-          setSelectedPropKey,
-          propKeyList,
-          setPropKeyList,
-          propValues,
-          setPropValues,
-        }}
-      >
-        <PropsSearchView />
-        <ClassSelectView />
-        <Divider />
-        <PropNameListView />
-      </PropsListContext.Provider>
+      <PropsSearchView />
+      <ClassSelectView />
+      <Divider />
+      <PropNameListView />
     </Resizable>
   );
 });

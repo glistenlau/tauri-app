@@ -90,8 +90,8 @@ const SearchBar = React.memo(
           label={searchFolderLabel}
           size="small"
           variant="outlined"
-          onBlur={handleFilePathChange}
-          defaultValue={filePathValue}
+          onChange={handleFilePathChange}
+          value={filePathValue}
           margin="dense"
         />
         <div className={classes.classNameContainer}>
@@ -102,8 +102,8 @@ const SearchBar = React.memo(
             label={searchFileLabel}
             size="small"
             variant="outlined"
-            onBlur={handleClassNameChange}
-            defaultValue={fileNameValue}
+            onChange={handleClassNameChange}
+            value={fileNameValue}
             margin="dense"
           />
           <ProcessIconButton loading={isLoading} onClick={handleSearch}>

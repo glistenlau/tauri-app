@@ -1,19 +1,29 @@
 import Divider from "@material-ui/core/Divider";
 import { useSnackbar } from "notistack";
-import React, { RefObject, useCallback, useRef, useState } from "react";
+import React, {
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import JavaPropsApi from "../../apis/javaProps";
 import SaveDialog from "../../components/SaveDialog";
 import { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
-import { useFormatSqlLazyQuery } from "../../generated/graphql";
+import {
+  PropKey,
+  useFormatSqlLazyQuery,
+  useGetCurrentJavaPropsStateQuery,
+} from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
 import PathBarView from "./PathBarView";
 import { updateParamValuePair } from "./propsEditorSlice";
-import PropsListView from "./PropsListView";
+import PropsListView, { PropsListContext } from "./PropsListView";
 import SplitEditorView from "./SplitEditorView";
 
 const Container = styled(TabContent)`
@@ -48,7 +58,25 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
   const [openSaveDialog, setOptionSaveDialog] = useState(false);
   const snackbar = useSnackbar();
   const dispatch = useDispatch();
+  const [classList, setClassList] = useState<Array<string>>([]);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedPropKey, setSelectedPropKey] = useState("");
+  const [propKeyList, setPropKeyList] = useState<Array<PropKey>>([]);
+  const [propValues, setPropValues] = useState<[string, string]>(["", ""]);
+  const { data } = useGetCurrentJavaPropsStateQuery();
 
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    const { classList, selectedClass, selectedPropKey, propKeyList, propVals } =
+      data?.currentJavaPropsState;
+    setClassList(classList || []);
+    setSelectedClass(selectedClass || "");
+    setSelectedPropKey(selectedPropKey || "");
+    setPropKeyList(propKeyList || []);
+    setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+  }, [data]);
   const selectedClassName = useSelector(
     (rootState: RootState) => rootState.propsEditor.selectedClassName
   );
@@ -144,20 +172,35 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
   return (
     <Container active={active}>
       <EditorContainer>
-        <PropsListView />
-        <Divider orientation="vertical" flexItem />
+        <PropsListContext.Provider
+          value={{
+            classList,
+            setClassList,
+            selectedClass,
+            setSelectedClass,
+            selectedPropKey,
+            setSelectedPropKey,
+            propKeyList,
+            setPropKeyList,
+            propValues,
+            setPropValues,
+          }}
+        >
+          <PropsListView />
+          <Divider orientation="vertical" flexItem />
 
-        <RightContainer>
-          <EditorToolBarView
-            onClickFormat={handleClickFormat}
-            onClickSave={handleClickSave}
-            onClickRun={handleClickRun}
-          />
-          <Divider />
-          <PathBarView />
-          <Divider />
-          <SplitEditorView ref={splitEditorRef} />
-        </RightContainer>
+          <RightContainer>
+            <EditorToolBarView
+              onClickFormat={handleClickFormat}
+              onClickSave={handleClickSave}
+              onClickRun={handleClickRun}
+            />
+            <Divider />
+            <PathBarView />
+            <Divider />
+            <SplitEditorView ref={splitEditorRef} />
+          </RightContainer>
+        </PropsListContext.Provider>
       </EditorContainer>
       <SaveDialog
         id="save_dialog"

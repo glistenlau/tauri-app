@@ -234,10 +234,10 @@ fn load_java_porops_state(
         None => Vec::new(),
     };
     prop_keys.sort_by_key(|pk| pk.name.to_string());
-    let selected_prop_key_opt = if prop_keys.len() > 0 {
-        Some(&prop_keys[0])
+    let (selected_prop_key_opt, selected_prop_key) = if prop_keys.len() > 0 {
+        (Some(&prop_keys[0]), prop_keys[0].name.to_string())
     } else {
-        None
+        (None, String::new())
     };
 
     let selected_prop_vals = if let Some(selected_prop_key) = selected_prop_key_opt {
@@ -260,7 +260,7 @@ fn load_java_porops_state(
 
     let state_vals = vec![
         serde_json::to_string(&class_list)?,
-        selected_class,
+        selected_class.clone(),
         selected_prop_key_opt
             .map(|spk| spk.name.to_string())
             .unwrap_or_default(),
@@ -269,8 +269,11 @@ fn load_java_porops_state(
     set_state(state_keys, state_vals)?;
 
     Ok(JavaPropsResponse {
+        class_list: Some(class_list),
         prop_key_list: Some(prop_keys),
         prop_vals: Some(selected_prop_vals),
+        selected_class: Some(selected_class),
+        selected_prop_key: Some(selected_prop_key),
         ..Default::default()
     })
 }
