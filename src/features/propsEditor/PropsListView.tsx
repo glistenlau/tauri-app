@@ -29,6 +29,7 @@ interface IPropsListContext {
   selectPropKey: (selectedPropKey: string) => Promise<void>;
   propKeyList: Array<PropKey>;
   propValues: [string, string];
+  setPropValues: (propVals: [string, string]) => void;
   setPropsEditorState: (
     classList?: Maybe<string[]>,
     selectedClass?: Maybe<string>,
@@ -47,6 +48,7 @@ export const PropsListContext = React.createContext<IPropsListContext>({
   selectPropKey: async (selectedPropKey: string) => {},
   propKeyList: [],
   propValues: ["", ""],
+  setPropValues: (propVals: [string, string]) => {},
   setPropsEditorState: (
     classList?: Maybe<string[]>,
     selectedClass?: Maybe<string>,

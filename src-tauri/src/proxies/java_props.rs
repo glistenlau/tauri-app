@@ -98,7 +98,7 @@ pub fn load_props(
         }
 
         if let Some(m) = pg_props_map {
-            props_key_set.extend(m.keys());
+            props_key_set.extend(m.keys().filter(|pk|!pk.to_lowercase().ends_with(".md5")));
         }
 
         let mut file_combiled_map = HashMap::new();

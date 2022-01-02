@@ -5,9 +5,9 @@ import React, {
   useCallback,
   useEffect,
   useRef,
-  useState,
+  useState
 } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import JavaPropsApi from "../../apis/javaProps";
 import SaveDialog from "../../components/SaveDialog";
@@ -19,9 +19,8 @@ import {
   useFormatSqlLazyQuery,
   useGetCurrentJavaPropsStateQuery,
   useSelectClassMutation,
-  useSelectPropKeyMutation,
+  useSelectPropKeyMutation
 } from "../../generated/graphql";
-import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
 import PathBarView from "./PathBarView";
@@ -236,6 +235,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
             selectPropKey,
             propKeyList,
             propValues,
+            setPropValues,
             setPropsEditorState,
           }}
         >
