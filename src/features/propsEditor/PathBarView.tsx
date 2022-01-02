@@ -1,10 +1,11 @@
 import { Tooltip } from "@material-ui/core";
-import React from "react";
+import React, { useCallback, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import PathBreadcrumbs from "../../components/PathBreadcrumbs";
 import { RootState } from "../../reducers";
 import { setClassPath } from "./propsEditorSlice";
+import { PropsListContext } from "./PropsListView";
 
 const Container = styled.div`
   display: flex;
@@ -32,27 +33,12 @@ const TextSpan = styled.span`
 `;
 
 const PathBarView = React.memo(() => {
-  const dispatch = useDispatch();
-  const selectedClassName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedClassName
-  );
-  const selectedPropName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedPropName
-  );
-
-  const handleClickPath = React.useCallback(
-    (id) => {
-      if (id === "className") {
-        dispatch(setClassPath(selectedClassName));
-      }
-    },
-    [dispatch, selectedClassName]
-  );
+  const { selectedClass, selectedPropKey } = useContext(PropsListContext);
 
   const pathBreadcrumbs = React.useMemo(() => {
     let classDisplayEllipseName = "";
-    const classDisplayFullName = selectedClassName
-      .substring(selectedClassName.indexOf("com"))
+    const classDisplayFullName = selectedClass
+      .substring(selectedClass.indexOf("com"))
       .replaceAll("/", ".");
 
     classDisplayEllipseName = classDisplayFullName
@@ -85,26 +71,23 @@ const PathBarView = React.memo(() => {
       {
         id: "propName",
         value: () => (
-          <Tooltip key="propName" title={selectedPropName}>
+          <Tooltip key="propName" title={selectedPropKey}>
             <Ellipsis>
-              <TextSpan>{selectedPropName}</TextSpan>
+              <TextSpan>{selectedPropKey}</TextSpan>
             </Ellipsis>
           </Tooltip>
         ),
       },
     ];
-  }, [selectedClassName, selectedPropName]);
+  }, [selectedClass, selectedPropKey]);
 
-  if (!selectedClassName || !selectedPropName) {
+  if (!selectedClass || !selectedPropKey) {
     return null;
   }
 
   return (
     <Container>
-      <StyledPathBreadcrumbs
-        onClick={handleClickPath}
-        paths={pathBreadcrumbs}
-      />
+      <StyledPathBreadcrumbs paths={pathBreadcrumbs} />
     </Container>
   );
 });

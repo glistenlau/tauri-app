@@ -2,7 +2,7 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PropKey } from "../../generated/graphql";
+import { Maybe, PropKey } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import ClassSelectView from "./ClassSelectView";
 import PropNameListView from "./PropNameListView";
@@ -24,26 +24,36 @@ interface IPropsListContext {
   classList: Array<string>;
   setClassList: (classList: Array<string>) => void;
   selectedClass: string;
-  setSelectedClass: (selectedClass: string) => void;
+  selectClass: (selectedClass: string) => Promise<void>;
   selectedPropKey: string;
-  setSelectedPropKey: (selectedPropKey: string) => void;
+  selectPropKey: (selectedPropKey: string) => Promise<void>;
   propKeyList: Array<PropKey>;
-  setPropKeyList: (propKeyList: Array<PropKey>) => void;
   propValues: [string, string];
-  setPropValues: (propValues: [string, string]) => void;
+  setPropsEditorState: (
+    classList?: Maybe<string[]>,
+    selectedClass?: Maybe<string>,
+    selectedPropKey?: Maybe<string>,
+    propKeyList?: Maybe<Array<PropKey>>,
+    propVals?: Maybe<[string, string]>
+  ) => void;
 }
 
 export const PropsListContext = React.createContext<IPropsListContext>({
   classList: [],
   setClassList: (classList: Array<string>) => {},
   selectedClass: "",
-  setSelectedClass: (selectedClass: string) => {},
+  selectClass: async (selectedClass: string) => {},
   selectedPropKey: "",
-  setSelectedPropKey: (selectedPropKey: string) => {},
+  selectPropKey: async (selectedPropKey: string) => {},
   propKeyList: [],
-  setPropKeyList: (propKeyList: Array<PropKey>) => {},
   propValues: ["", ""],
-  setPropValues: (propValues: [string, string]) => {},
+  setPropsEditorState: (
+    classList?: Maybe<string[]>,
+    selectedClass?: Maybe<string>,
+    selectedPropKey?: Maybe<string>,
+    propKeyList?: Maybe<Array<PropKey>>,
+    propVals?: Maybe<[string, string]>
+  ) => {},
 });
 
 const PropsListView = React.memo(() => {

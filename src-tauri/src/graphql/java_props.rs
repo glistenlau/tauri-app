@@ -190,12 +190,9 @@ fn save_java_props(
     let mut key_vals = Vec::with_capacity(file_props_map.len());
     for (class_name, prop_key_vals_map) in file_props_map {
         let save_key = class_name.to_string();
-        let save_val = serde_json::to_string(
-            &prop_key_vals_map
-                .keys()
-                .map(|pk| pk)
-                .collect::<Vec<&PropKey>>(),
-        )?;
+        let mut prop_key_list_ref = prop_key_vals_map.keys().collect::<Vec<&PropKey>>();
+        prop_key_list_ref.sort_by_key(|pk| &pk.name);
+        let save_val = serde_json::to_string(&prop_key_list_ref)?;
         key_vals.push((save_key, save_val));
 
         for (prop_key, prop_key_vals) in prop_key_vals_map {

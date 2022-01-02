@@ -14,9 +14,12 @@ import SaveDialog from "../../components/SaveDialog";
 import { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
 import {
+  Maybe,
   PropKey,
   useFormatSqlLazyQuery,
   useGetCurrentJavaPropsStateQuery,
+  useSelectClassMutation,
+  useSelectPropKeyMutation,
 } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
@@ -65,24 +68,75 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
   const [propValues, setPropValues] = useState<[string, string]>(["", ""]);
   const { data } = useGetCurrentJavaPropsStateQuery();
 
+  const setPropsEditorState = useCallback(
+    (
+      classList?: Maybe<string[]>,
+      selectedClass?: Maybe<string>,
+      selectedPropKey?: Maybe<string>,
+      propKeyList?: Maybe<Array<PropKey>>,
+      propVals?: Maybe<[string, string]>
+    ) => {
+      setClassList(classList || []);
+      setSelectedClass(selectedClass || "");
+      setSelectedPropKey(selectedPropKey || "");
+      setPropKeyList(propKeyList || []);
+      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+    },
+    []
+  );
+
   useEffect(() => {
     if (!data) {
       return;
     }
     const { classList, selectedClass, selectedPropKey, propKeyList, propVals } =
-      data?.currentJavaPropsState;
-    setClassList(classList || []);
-    setSelectedClass(selectedClass || "");
-    setSelectedPropKey(selectedPropKey || "");
-    setPropKeyList(propKeyList || []);
-    setPropValues((propVals as [string, string] | undefined) || ["", ""]);
-  }, [data]);
-  const selectedClassName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedClassName
+      data.currentJavaPropsState;
+
+    setPropsEditorState(
+      classList,
+      selectedClass,
+      selectedPropKey,
+      propKeyList,
+      propVals as Maybe<[string, string]>
+    );
+  }, [data, setPropsEditorState]);
+
+  const [selectClassMutation] = useSelectClassMutation();
+  const selectClass = useCallback(
+    async (path: string) => {
+      setSelectedClass(path);
+      const { data } = await selectClassMutation({
+        variables: { className: path },
+      });
+      if (!data) {
+        return;
+      }
+      const { propKeyList, propVals } = data.selectClass;
+      const selectedPropKey =
+        propKeyList == null || propKeyList.length === 0
+          ? ""
+          : propKeyList[0].name;
+      setPropKeyList(propKeyList || []);
+      setSelectedPropKey(selectedPropKey);
+      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+    },
+    [selectClassMutation]
   );
 
-  const selectedPropName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedPropName
+  const [selectPropKeyMutation] = useSelectPropKeyMutation();
+  const selectPropKey = useCallback(
+    async (propName: string) => {
+      setSelectedPropKey(propName);
+      const { data } = await selectPropKeyMutation({
+        variables: { className: selectedClass, propKey: propName },
+      });
+      if (!data) {
+        return;
+      }
+      const { propVals } = data.selectPropKey;
+      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+    },
+    [selectPropKeyMutation, selectedClass]
   );
 
   const [formatSql] = useFormatSqlLazyQuery();
@@ -103,7 +157,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
     const formated = formatRst.data.formatSql as [string, string];
 
     dispatch(updateParamValuePair(formated));
-  }, [dispatch]);
+  }, [dispatch, formatSql]);
 
   const handleClickRun = useCallback(async () => {
     const values = splitEditorRef.current?.getEffectiveValue();
@@ -135,11 +189,11 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
 
       if (value === 0 || value === 2) {
         try {
-          const filepath = `${selectedClassName}.pg.properties`;
+          const filepath = `${selectedClass}.pg.properties`;
           const prop_value = valuePair[1];
-          await JavaPropsApi.saveProp(filepath, selectedPropName, prop_value);
+          await JavaPropsApi.saveProp(filepath, selectedPropKey, prop_value);
           snackbar.enqueueSnackbar(
-            `Save Postgres property ${selectedPropName} successfully.`,
+            `Save Postgres property ${selectedPropKey} successfully.`,
             { variant: "success" }
           );
         } catch (e) {
@@ -150,11 +204,11 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
       }
       if (value === 1 || value === 2) {
         try {
-          const filepath = `${selectedClassName}.oracle.properties`;
+          const filepath = `${selectedClass}.oracle.properties`;
           const prop_value = valuePair[0];
-          await JavaPropsApi.saveProp(filepath, selectedPropName, prop_value);
+          await JavaPropsApi.saveProp(filepath, selectedPropKey, prop_value);
           snackbar.enqueueSnackbar(
-            `Save Oracle property ${selectedPropName} successfully.`,
+            `Save Oracle property ${selectedPropKey} successfully.`,
             { variant: "success" }
           );
         } catch (e) {
@@ -166,7 +220,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
 
       setOptionSaveDialog(false);
     },
-    [selectedClassName, selectedPropName, snackbar]
+    [selectedClass, selectedPropKey, snackbar]
   );
 
   return (
@@ -177,13 +231,12 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
             classList,
             setClassList,
             selectedClass,
-            setSelectedClass,
+            selectClass,
             selectedPropKey,
-            setSelectedPropKey,
+            selectPropKey,
             propKeyList,
-            setPropKeyList,
             propValues,
-            setPropValues,
+            setPropsEditorState,
           }}
         >
           <PropsListView />
@@ -209,7 +262,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
         open={openSaveDialog}
         onClose={handleSaveDialogClose}
         error={null}
-        propName={selectedPropName}
+        propName={selectedPropKey}
       />
     </Container>
   );

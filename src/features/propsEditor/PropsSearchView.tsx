@@ -2,6 +2,7 @@ import React, { useCallback, useContext } from "react";
 import SearchBar from "../../components/SearchBar";
 import {
   AppStateKey,
+  Maybe,
   useSearchJavaPropsMutation,
 } from "../../generated/graphql";
 import { useAppState } from "../../hooks/useAppState";
@@ -18,13 +19,8 @@ const PropsSearchView = React.memo(() => {
   );
 
   const [searchJavaProps] = useSearchJavaPropsMutation();
-  const {
-    setClassList,
-    setSelectedClass,
-    setSelectedPropKey,
-    setPropKeyList,
-    setPropValues,
-  } = useContext(PropsListContext);
+  const { setPropsEditorState } = useContext(PropsListContext);
+
   const handleSearch = useCallback(
     async (filePath: string, fileName: string) => {
       const { data } = await searchJavaProps({
@@ -46,20 +42,15 @@ const PropsSearchView = React.memo(() => {
         propVals,
       } = data.searchJavaProps;
 
-      setClassList(classList || []);
-      setSelectedClass(selectedClass || "");
-      setSelectedPropKey(selectedPropKey || "");
-      setPropKeyList(propKeyList || []);
-      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+      setPropsEditorState(
+        classList,
+        selectedClass,
+        selectedPropKey,
+        propKeyList,
+        propVals as Maybe<[string, string]>
+      );
     },
-    [
-      searchJavaProps,
-      setClassList,
-      setPropKeyList,
-      setPropValues,
-      setSelectedClass,
-      setSelectedPropKey,
-    ]
+    [searchJavaProps, setPropsEditorState]
   );
 
   return (

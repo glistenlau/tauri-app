@@ -7,45 +7,12 @@ import { setClassPath } from "./propsEditorSlice";
 import { PropsListContext } from "./PropsListView";
 
 const ClassSelectView = React.memo(() => {
-  const [selectClass] = useSelectClassMutation();
-
-  const {
-    classList,
-    selectedClass,
-    setPropKeyList,
-    setPropValues,
-    setSelectedClass,
-    setSelectedPropKey,
-  } = useContext(PropsListContext);
-
-  const handleChange = useCallback(
-    async (path: string) => {
-      setSelectedClass(path);
-      const { data } = await selectClass({ variables: { className: path } });
-      if (!data) {
-        return;
-      }
-      const { propKeyList, propVals } = data.selectClass;
-      const selectedPropKey =
-        propKeyList == null || propKeyList.length === 0
-          ? ""
-          : propKeyList[0].name;
-      setPropKeyList(propKeyList || []);
-      setSelectedPropKey(selectedPropKey);
-      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
-    },
-    [
-      selectClass,
-      setPropKeyList,
-      setPropValues,
-      setSelectedClass,
-      setSelectedPropKey,
-    ]
-  );
+  const { classList, selectedClass, selectClass } =
+    useContext(PropsListContext);
 
   return (
     <ClassSelect
-      onChange={handleChange}
+      onChange={selectClass}
       selected={selectedClass}
       values={classList}
     />
