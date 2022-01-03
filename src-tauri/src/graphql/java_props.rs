@@ -6,7 +6,7 @@ use log::info;
 use crate::proxies::{
     app_state::{get_state, set_state, AppStateKey},
     java_props::{load_props, PropKey},
-    rocksdb::{get_conn, RocksDataStore},
+    rocksdb::{get_conn, RocksDataStore}, oracle::{OracleClient, get_proxy}, sql_common::SQLClient,
 };
 
 #[derive(Default, SimpleObject)]
@@ -88,9 +88,12 @@ impl JavaPropsMutation {
         &self,
         filepath: String,
         class_pattern: String,
-        _validate_pg_queries: bool,
+        validate_queries: bool,
     ) -> Result<JavaPropsResponse> {
         let file_props_map = load_props(&filepath, &class_pattern)?;
+        if validate_queries {
+            validate_sql_queries(&file_props_map);
+        }
         save_java_props(&file_props_map)?;
         load_java_porops_state(&file_props_map)
     }
@@ -273,4 +276,23 @@ fn load_java_porops_state(
         selected_prop_key: Some(selected_prop_key),
         ..Default::default()
     })
+}
+
+async fn validate_sql_queries(file_props_map: &HashMap<String, HashMap<PropKey, (String, String)>>) {
+    let ora_proxy: &dyn SQLClient = crate::proxies::oracle::get_proxy();
+    let pg_proxy: &dyn SQLClient = crate::proxies::postgres::get_proxy();
+
+    for prop_key_val_map in file_props_map.values() {
+        let mut oraQueries = Vec::with_capacity(prop_key_val_map.len());
+        let mut pgQueries = Vec::with_capacity(prop_key_val_map.len());
+        for (oraQuery, pgQuery) in prop_key_val_map.values() {
+            if !oraQuery.is_empty() {
+                oraQueries.push(oraQuery);
+            }
+            if !pgQuery.is_empty() {
+                pgQueries.push(pgQuery);
+            }
+        }
+    }
+    todo!()
 }
