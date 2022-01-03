@@ -3,7 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
 } from "react";
 import { SizeMeProps, withSize } from "react-sizeme";
 import styled from "styled-components";

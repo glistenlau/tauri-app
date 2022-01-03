@@ -7,19 +7,22 @@ query getCurrentJavaPropsState {
       name
       valStatus
     }
-    propVals
+    propVals {
+      valuePair
+      validationError
+    }
   }
 }
 
 mutation searchJavaProps(
   $filepath: String!
   $classPattern: String!
-  $validatePgQueries: Boolean!
+  $validateQueries: Boolean!
 ) {
   searchJavaProps(
     filepath: $filepath
     classPattern: $classPattern
-    validatePgQueries: $validatePgQueries
+    validateQueries: $validateQueries
   ) {
     classList
     selectedClass
@@ -28,7 +31,10 @@ mutation searchJavaProps(
       name 
       valStatus
     }
-    propVals
+    propVals {
+      valuePair
+      validationError
+    }
   }
 }
 
@@ -38,13 +44,19 @@ mutation selectClass($className: String!) {
       name
       valStatus
     }  
-    propVals    
+    propVals {
+      valuePair
+      validationError
+    }
   }
 }
 
 mutation selectPropKey($className: String!, $propKey: String!) {
   selectPropKey(className: $className, propKey: $propKey) {
-    propVals
+    propVals {
+      valuePair
+      validationError
+    }
   }
 }
 

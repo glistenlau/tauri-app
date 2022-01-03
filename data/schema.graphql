@@ -70,7 +70,7 @@ type JavaPropsResponse {
 	selectedClass: String
 	selectedPropKey: String
 	propKeyList: [PropKey!]
-	propVals: [String!]
+	propVals: PropVal
 }
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
@@ -79,7 +79,7 @@ type Mutation {
 	dbAutocommit(dbType: Dbtype!, dbAutocommit: Boolean!): JSON!
 	commitConsole(dbType: Dbtype!): JSON!
 	rollbackConsole(dbType: Dbtype!): JSON!
-	searchJavaProps(filepath: String!, classPattern: String!, validatePgQueries: Boolean!): JavaPropsResponse!
+	searchJavaProps(filepath: String!, classPattern: String!, validateQueries: Boolean!): JavaPropsResponse!
 	selectClass(className: String!): JavaPropsResponse!
 	selectPropKey(className: String!, propKey: String!): JavaPropsResponse!
 	propVals(className: String!, propKey: String!, propVals: [String]!): Boolean!
@@ -92,6 +92,11 @@ type NodeValue {
 type PropKey {
 	name: String!
 	valStatus: PropValStatus!
+	validationStatus: ValidationStatus
+}
+type PropVal {
+	valuePair: [String!]!
+	validationError: [JSON!]!
 }
 enum PropValStatus {
 	ORACLE_ONLY
@@ -127,6 +132,11 @@ type TreeNode {
 	values: [NodeValue!]!
 	children: [TreeNode!]!
 	dbFamily: DbFamily
+}
+enum ValidationStatus {
+	PASS
+	ERROR
+	WARNING
 }
 schema {
 	query: Query

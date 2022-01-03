@@ -1,11 +1,13 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{anyhow, Result};
-use async_graphql::{Enum, SimpleObject};
+use async_graphql::{Enum, Json, SimpleObject};
 use glob::{glob_with, MatchOptions, Paths};
 use serde::{Deserialize, Serialize};
 
 use crate::core::java_props::{parse_prop_file, save_prop};
+
+use super::sql_common::SQLError;
 
 pub fn search_files(search_path: &str, filename: &str) -> Result<Paths> {
     let search_pattern = format!("{}/**/{}", search_path, filename);
@@ -70,20 +72,43 @@ pub enum PropValStatus {
     Neither,
 }
 
+#[derive(Clone, Copy, Enum, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum ValidationStatus {
+    Pass,
+    Error,
+    Warning,
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, SimpleObject, Serialize, Deserialize)]
 pub struct PropKey {
     pub name: String,
     pub val_status: PropValStatus,
+    pub validation_status: Option<ValidationStatus>,
+}
+
+#[derive(Clone, SimpleObject, Serialize, Deserialize)]
+pub struct PropVal {
+    pub value_pair: Vec<String>,
+    pub validation_error: Vec<Json<Option<SQLError>>>,
+}
+
+impl PropVal {
+    pub fn new() -> Self {
+        Self {
+            value_pair: vec![String::new(), String::new()],
+            validation_error: vec![],
+        }
+    }
 }
 
 pub fn load_props(
     search_path: &str,
     classname: &str,
-) -> Result<HashMap<String, HashMap<PropKey, (String, String)>>> {
+) -> Result<HashMap<String, HashMap<PropKey, PropVal>>> {
     let oracle_props = search_load_db_props(search_path, classname, ".oracle.properties")?;
     let postgres_props = search_load_db_props(search_path, classname, ".pg.properties")?;
 
-    let mut combined: HashMap<String, HashMap<PropKey, (String, String)>> =
+    let mut combined: HashMap<String, HashMap<PropKey, PropVal>> =
         HashMap::with_capacity(oracle_props.len());
     let mut filename_key_set = HashSet::with_capacity(oracle_props.len());
     filename_key_set.extend(oracle_props.keys());
@@ -98,7 +123,7 @@ pub fn load_props(
         }
 
         if let Some(m) = pg_props_map {
-            props_key_set.extend(m.keys().filter(|pk|!pk.to_lowercase().ends_with(".md5")));
+            props_key_set.extend(m.keys().filter(|pk| !pk.to_lowercase().ends_with(".md5")));
         }
 
         let mut file_combiled_map = HashMap::new();
@@ -131,9 +156,14 @@ pub fn load_props(
             let prop_key_obj = PropKey {
                 name: prop_key.clone(),
                 val_status,
+                validation_status: None,
+            };
+            let prop_val_obj = PropVal {
+                value_pair: vec![ora_val, pg_val],
+                validation_error: vec![],
             };
 
-            file_combiled_map.insert(prop_key_obj, (ora_val, pg_val));
+            file_combiled_map.insert(prop_key_obj, prop_val_obj);
         }
 
         combined.insert(String::from(filename_key), file_combiled_map);

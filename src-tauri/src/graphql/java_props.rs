@@ -5,8 +5,9 @@ use log::info;
 
 use crate::proxies::{
     app_state::{get_state, set_state, AppStateKey},
-    java_props::{load_props, PropKey},
-    rocksdb::{get_conn, RocksDataStore}, oracle::{OracleClient, get_proxy}, sql_common::SQLClient,
+    java_props::{load_props, PropKey, PropVal, ValidationStatus},
+    rocksdb::{get_conn, RocksDataStore},
+    sql_common::{get_schema_stmt, SQLClient, SQLResult},
 };
 
 #[derive(Default, SimpleObject)]
@@ -15,7 +16,7 @@ pub struct JavaPropsResponse {
     selected_class: Option<String>,
     selected_prop_key: Option<String>,
     prop_key_list: Option<Vec<PropKey>>,
-    prop_vals: Option<Vec<String>>,
+    prop_vals: Option<PropVal>,
 }
 
 #[derive(Default)]
@@ -67,9 +68,9 @@ fn get_current_state() -> Result<JavaPropsResponse> {
         Some(prop_key_list_str) => serde_json::from_str(prop_key_list_str)?,
         None => Vec::new(),
     };
-    let prop_vals: Vec<String> = match &rst[1] {
+    let prop_vals: PropVal = match &rst[1] {
         Some(prop_vals_str) => serde_json::from_str(prop_vals_str)?,
-        None => vec![String::new(), String::new()],
+        None => PropVal::new(),
     };
 
     Ok(JavaPropsResponse {
@@ -90,9 +91,9 @@ impl JavaPropsMutation {
         class_pattern: String,
         validate_queries: bool,
     ) -> Result<JavaPropsResponse> {
-        let file_props_map = load_props(&filepath, &class_pattern)?;
+        let mut file_props_map = load_props(&filepath, &class_pattern)?;
         if validate_queries {
-            validate_sql_queries(&file_props_map);
+            file_props_map = validate_sql_queries(&mut file_props_map).await?;
         }
         save_java_props(&file_props_map)?;
         load_java_porops_state(&file_props_map)
@@ -155,7 +156,7 @@ fn save_prop_vals(
         .map_err(|e| e.into())
 }
 
-fn select_prop_key(class_name: &str, prop_key: &str) -> Result<Vec<String>> {
+fn select_prop_key(class_name: &str, prop_key: &str) -> Result<PropVal> {
     let state_keys = vec![AppStateKey::PropsSelectedPropKey];
     let state_vals = vec![prop_key.to_string()];
     set_state(state_keys, state_vals)?;
@@ -163,9 +164,9 @@ fn select_prop_key(class_name: &str, prop_key: &str) -> Result<Vec<String>> {
     let prop_val_save_key = format!("{}#{}", class_name, prop_key);
     let db = &get_conn();
     let get_res = RocksDataStore::multi_get(Some(JAVA_PROPS_CR), &[&prop_val_save_key], db)?;
-    let prop_val: Vec<String> = match &get_res[0] {
+    let prop_val: PropVal = match &get_res[0] {
         Some(r) => serde_json::from_str(r)?,
-        None => vec![String::new(), String::new()],
+        None => PropVal::new(),
     };
 
     Ok(prop_val)
@@ -187,9 +188,7 @@ fn select_class(class_name: &str) -> Result<Vec<PropKey>> {
     Ok(prop_val)
 }
 
-fn save_java_props(
-    file_props_map: &HashMap<String, HashMap<PropKey, (String, String)>>,
-) -> Result<()> {
+fn save_java_props(file_props_map: &HashMap<String, HashMap<PropKey, PropVal>>) -> Result<()> {
     let mut key_vals = Vec::with_capacity(file_props_map.len());
     for (class_name, prop_key_vals_map) in file_props_map {
         let save_key = class_name.to_string();
@@ -219,7 +218,7 @@ fn save_java_props(
 }
 
 fn load_java_porops_state(
-    file_props_map: &HashMap<String, HashMap<PropKey, (String, String)>>,
+    file_props_map: &HashMap<String, HashMap<PropKey, PropVal>>,
 ) -> Result<JavaPropsResponse> {
     let mut class_list: Vec<String> = file_props_map.keys().map(|k| k.to_string()).collect();
     class_list.sort();
@@ -245,11 +244,11 @@ fn load_java_porops_state(
             .get(&selected_class)
             .and_then(|key_val_map| key_val_map.get(&selected_prop_key))
         {
-            Some(vals) => vec![vals.0.clone(), vals.1.clone()],
-            None => vec![String::new(), String::new()],
+            Some(vals) => vals.clone(),
+            None => PropVal::new(),
         }
     } else {
-        vec![String::new(), String::new()]
+        PropVal::new()
     };
 
     let state_keys = vec![
@@ -278,21 +277,81 @@ fn load_java_porops_state(
     })
 }
 
-async fn validate_sql_queries(file_props_map: &HashMap<String, HashMap<PropKey, (String, String)>>) {
+async fn validate_sql_queries(
+    file_props_map: &mut HashMap<String, HashMap<PropKey, PropVal>>,
+) -> Result<HashMap<String, HashMap<PropKey, PropVal>>> {
     let ora_proxy: &dyn SQLClient = crate::proxies::oracle::get_proxy();
     let pg_proxy: &dyn SQLClient = crate::proxies::postgres::get_proxy();
+    let mut new_file_props_map = HashMap::new();
 
-    for prop_key_val_map in file_props_map.values() {
-        let mut oraQueries = Vec::with_capacity(prop_key_val_map.len());
-        let mut pgQueries = Vec::with_capacity(prop_key_val_map.len());
-        for (oraQuery, pgQuery) in prop_key_val_map.values() {
-            if !oraQuery.is_empty() {
-                oraQueries.push(oraQuery);
+    for (java_class, mut prop_key_val_map) in file_props_map.drain() {
+        let mut ora_queries = Vec::with_capacity(prop_key_val_map.len());
+        let mut pg_queries = Vec::with_capacity(prop_key_val_map.len());
+        let mut validate_results = Vec::with_capacity(prop_key_val_map.len());
+        for prop_val in prop_key_val_map.values_mut() {
+            let ora_query = &prop_val.value_pair[0];
+            let pg_query = &prop_val.value_pair[1];
+            validate_results.push(&mut prop_val.validation_error);
+
+            if !ora_query.is_empty() {
+                ora_queries.push(get_schema_stmt("GREENCO", ora_query));
+            } else {
+                ora_queries.push(String::new());
             }
-            if !pgQuery.is_empty() {
-                pgQueries.push(pgQuery);
+            if !pg_query.is_empty() {
+                pg_queries.push(get_schema_stmt("GREENCO", pg_query));
+            } else if !ora_query.is_empty() {
+                pg_queries.push(get_schema_stmt("GREENCO", ora_query));
+            } else {
+                pg_queries.push(String::new());
             }
         }
+
+        let ora_query_refs: Vec<&str> = ora_queries
+            .iter()
+            .map(|ora_query| ora_query.as_ref())
+            .collect();
+        let pg_query_refs: Vec<&str> = pg_queries
+            .iter()
+            .map(|ora_query| ora_query.as_ref())
+            .collect();
+        let mut ora_rsts = ora_proxy.validate_stmts(&ora_query_refs)?;
+        let mut pg_rsts = pg_proxy.validate_stmts(&pg_query_refs)?;
+        for i in 0..ora_queries.len() {
+            let vr = validate_results.pop().unwrap();
+            let or = if !ora_queries[i].is_empty() {
+                match ora_rsts.pop().unwrap() {
+                    SQLResult::Error(e) => Some(e),
+                    _ => None,
+                }
+            } else {
+                None
+            };
+            let pr = if !pg_queries[i].is_empty() {
+                match pg_rsts.pop().unwrap() {
+                    SQLResult::Error(e) => Some(e),
+                    _ => None,
+                }
+            } else {
+                None
+            };
+
+            vr.push(Json::from(or));
+            vr.push(Json::from(pr));
+        }
+        let mut new_prop_key_val_map = HashMap::new();
+        for (mut prop_key, prop_val) in prop_key_val_map.drain() {
+            let vs = if prop_val.validation_error[0].is_some()
+                || prop_val.validation_error[1].is_some()
+            {
+                ValidationStatus::Error
+            } else {
+                ValidationStatus::Pass
+            };
+            prop_key.validation_status = Some(vs);
+            new_prop_key_val_map.insert(prop_key, prop_val);
+        }
+        new_file_props_map.insert(java_class, new_prop_key_val_map);
     }
-    todo!()
+    Ok(new_file_props_map)
 }

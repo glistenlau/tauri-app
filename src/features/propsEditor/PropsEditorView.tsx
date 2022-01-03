@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useEffect,
   useRef,
-  useState
+  useState,
 } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
@@ -19,7 +19,7 @@ import {
   useFormatSqlLazyQuery,
   useGetCurrentJavaPropsStateQuery,
   useSelectClassMutation,
-  useSelectPropKeyMutation
+  useSelectPropKeyMutation,
 } from "../../generated/graphql";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
