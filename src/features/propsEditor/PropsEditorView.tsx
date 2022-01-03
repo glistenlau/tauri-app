@@ -16,6 +16,7 @@ import TabContent from "../../components/TabContent";
 import {
   Maybe,
   PropKey,
+  PropVal,
   useFormatSqlLazyQuery,
   useGetCurrentJavaPropsStateQuery,
   useSelectClassMutation,
@@ -64,7 +65,10 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedPropKey, setSelectedPropKey] = useState("");
   const [propKeyList, setPropKeyList] = useState<Array<PropKey>>([]);
-  const [propValues, setPropValues] = useState<[string, string]>(["", ""]);
+  const [propValues, setPropValues] = useState<PropVal>({
+    valuePair: ["", ""],
+    validationError: [null, null],
+  });
   const { data } = useGetCurrentJavaPropsStateQuery();
 
   const setPropsEditorState = useCallback(
@@ -73,13 +77,15 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
       selectedClass?: Maybe<string>,
       selectedPropKey?: Maybe<string>,
       propKeyList?: Maybe<Array<PropKey>>,
-      propVals?: Maybe<[string, string]>
+      propVals?: Maybe<PropVal>
     ) => {
       setClassList(classList || []);
       setSelectedClass(selectedClass || "");
       setSelectedPropKey(selectedPropKey || "");
       setPropKeyList(propKeyList || []);
-      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+      setPropValues(
+        propVals || { valuePair: ["", ""], validationError: [null, null] }
+      );
     },
     []
   );
@@ -96,7 +102,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
       selectedClass,
       selectedPropKey,
       propKeyList,
-      propVals as Maybe<[string, string]>
+      propVals
     );
   }, [data, setPropsEditorState]);
 
@@ -117,7 +123,9 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
           : propKeyList[0].name;
       setPropKeyList(propKeyList || []);
       setSelectedPropKey(selectedPropKey);
-      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+      setPropValues(
+        propVals || { valuePair: ["", ""], validationError: [null, null] }
+      );
     },
     [selectClassMutation]
   );
@@ -133,7 +141,9 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
         return;
       }
       const { propVals } = data.selectPropKey;
-      setPropValues((propVals as [string, string] | undefined) || ["", ""]);
+      setPropValues(
+        propVals || { valuePair: ["", ""], validationError: [null, null] }
+      );
     },
     [selectPropKeyMutation, selectedClass]
   );

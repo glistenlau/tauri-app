@@ -2,7 +2,7 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Maybe, PropKey } from "../../generated/graphql";
+import { Maybe, PropKey, PropVal } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import ClassSelectView from "./ClassSelectView";
 import PropNameListView from "./PropNameListView";
@@ -28,14 +28,14 @@ interface IPropsListContext {
   selectedPropKey: string;
   selectPropKey: (selectedPropKey: string) => Promise<void>;
   propKeyList: Array<PropKey>;
-  propValues: [string, string];
-  setPropValues: (propVals: [string, string]) => void;
+  propValues: PropVal;
+  setPropValues: (propVals: PropVal) => void;
   setPropsEditorState: (
     classList?: Maybe<string[]>,
     selectedClass?: Maybe<string>,
     selectedPropKey?: Maybe<string>,
     propKeyList?: Maybe<Array<PropKey>>,
-    propVals?: Maybe<[string, string]>
+    propVals?: Maybe<PropVal>
   ) => void;
 }
 
@@ -47,14 +47,14 @@ export const PropsListContext = React.createContext<IPropsListContext>({
   selectedPropKey: "",
   selectPropKey: async (selectedPropKey: string) => {},
   propKeyList: [],
-  propValues: ["", ""],
-  setPropValues: (propVals: [string, string]) => {},
+  propValues: { valuePair: ["", ""], validationError: [null, null] },
+  setPropValues: (propVals: PropVal) => {},
   setPropsEditorState: (
     classList?: Maybe<string[]>,
     selectedClass?: Maybe<string>,
     selectedPropKey?: Maybe<string>,
     propKeyList?: Maybe<Array<PropKey>>,
-    propVals?: Maybe<[string, string]>
+    propVals?: Maybe<PropVal>
   ) => {},
 });
 

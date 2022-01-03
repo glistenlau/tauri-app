@@ -4,7 +4,6 @@ import React, {
   memo,
   useCallback,
   useContext,
-  useRef,
 } from "react";
 import { useSelector } from "react-redux";
 import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
@@ -22,18 +21,17 @@ const SplitEditorView: ForwardRefRenderFunction<SplitEditorHandle, {}> = (
   const activePair = useSelector(
     (rootState: RootState) => rootState.propsEditor.activePair
   );
-
   const [savePropValues] = useSavePropValsMutation();
   const { selectedClass, selectedPropKey, propValues, setPropValues } =
     useContext(PropsListContext);
-  const valuePairRef = useRef(propValues);
-
   const handleChange = useCallback(
     (valuePair: [string, string]) => {
-      setPropValues(valuePair);
-      valuePairRef.current = valuePair;
+      setPropValues({
+        valuePair,
+        validationError: propValues.validationError,
+      });
     },
-    [setPropValues]
+    [propValues.validationError, setPropValues]
   );
 
   const handleBlur = useCallback(async () => {
@@ -41,16 +39,16 @@ const SplitEditorView: ForwardRefRenderFunction<SplitEditorHandle, {}> = (
       variables: {
         className: selectedClass,
         propKey: selectedPropKey,
-        propVals: valuePairRef.current,
+        propVals: propValues.valuePair,
       },
     });
-  }, [savePropValues, selectedClass, selectedPropKey]);
+  }, [propValues.valuePair, savePropValues, selectedClass, selectedPropKey]);
 
   return (
     <SplitEditor
       activePair={activePair}
       ref={ref}
-      valuePair={propValues}
+      valuePair={propValues.valuePair as [string, string]}
       onBlur={handleBlur}
       onChange={handleChange}
       diff={diffMode}

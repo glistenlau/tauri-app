@@ -148,7 +148,7 @@ const DBExplainTreeView: React.FC<DBExplainTreeViewProps & SizeMeProps> = ({
     //     {DBExplainTreeNode}
     //   </Tree>
     // );
-  }, [explainText, loadNode, onToggle, root, size.height, treeWalker]);
+  }, [root, size.height]);
 
   return <Container>{content}</Container>;
 };

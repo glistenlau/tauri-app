@@ -7,7 +7,7 @@ use crate::proxies::{
     app_state::{get_state, set_state, AppStateKey},
     java_props::{load_props, PropKey, PropVal, ValidationStatus},
     rocksdb::{get_conn, RocksDataStore},
-    sql_common::{get_schema_stmt, SQLClient, SQLResult},
+    sql_common::{get_schema_stmt, SQLClient, SQLError, SQLResult},
 };
 
 #[derive(Default, SimpleObject)]
@@ -26,6 +26,7 @@ pub struct JavaPropsQuery;
 pub struct JavaPropsMutation;
 
 static JAVA_PROPS_CR: &str = "JAVA_PROPS_CR";
+static VALIDATION_RESULTS_KEY: &str = "VALIDATION_RESULTS";
 
 #[Object]
 impl JavaPropsQuery {
@@ -58,19 +59,36 @@ fn get_current_state() -> Result<JavaPropsResponse> {
 
     let prop_keys_save_key = format!("{}", selected_class);
     let prop_vals_save_key = format!("{}#{}", selected_class, selected_prop_key);
+    let prop_vals_validation_results_save_key = format!(
+        "{}#{}#{}",
+        selected_class, selected_prop_key, VALIDATION_RESULTS_KEY
+    );
 
     let rst = RocksDataStore::multi_get(
         Some(JAVA_PROPS_CR),
-        &[&prop_keys_save_key, &prop_vals_save_key],
+        &[
+            &prop_keys_save_key,
+            &prop_vals_save_key,
+            &prop_vals_validation_results_save_key,
+        ],
         &db,
     )?;
     let prop_key_list: Vec<PropKey> = match &rst[0] {
         Some(prop_key_list_str) => serde_json::from_str(prop_key_list_str)?,
         None => Vec::new(),
     };
-    let prop_vals: PropVal = match &rst[1] {
+    let prop_vals: Vec<String> = match &rst[1] {
         Some(prop_vals_str) => serde_json::from_str(prop_vals_str)?,
-        None => PropVal::new(),
+        None => vec![String::new(), String::new()],
+    };
+    let prop_vals_validation_results: Vec<Json<Option<SQLError>>> = match &rst[2] {
+        Some(prop_vals_vr_str) => serde_json::from_str(prop_vals_vr_str)?,
+        None => vec![Json::from(None), Json::from(None)],
+    };
+
+    let prop_vals = PropVal {
+        value_pair: prop_vals,
+        validation_error: prop_vals_validation_results,
     };
 
     Ok(JavaPropsResponse {
@@ -162,14 +180,28 @@ fn select_prop_key(class_name: &str, prop_key: &str) -> Result<PropVal> {
     set_state(state_keys, state_vals)?;
 
     let prop_val_save_key = format!("{}#{}", class_name, prop_key);
+    let prop_val_vr_save_key = format!("{}#{}#{}", class_name, prop_key, VALIDATION_RESULTS_KEY);
     let db = &get_conn();
-    let get_res = RocksDataStore::multi_get(Some(JAVA_PROPS_CR), &[&prop_val_save_key], db)?;
-    let prop_val: PropVal = match &get_res[0] {
+    let get_res = RocksDataStore::multi_get(
+        Some(JAVA_PROPS_CR),
+        &[&prop_val_save_key, &prop_val_vr_save_key],
+        db,
+    )?;
+    let prop_val: Vec<String> = match &get_res[0] {
         Some(r) => serde_json::from_str(r)?,
-        None => PropVal::new(),
+        None => vec![String::new(), String::new()],
+    };
+    let prop_val_vr: Vec<Json<Option<SQLError>>> = match &get_res[1] {
+        Some(vr) => serde_json::from_str(vr)?,
+        None => vec![Json::from(None), Json::from(None)],
     };
 
-    Ok(prop_val)
+    let prop_vals = PropVal {
+        value_pair: prop_val,
+        validation_error: prop_val_vr,
+    };
+
+    Ok(prop_vals)
 }
 
 fn select_class(class_name: &str) -> Result<Vec<PropKey>> {
@@ -199,8 +231,15 @@ fn save_java_props(file_props_map: &HashMap<String, HashMap<PropKey, PropVal>>) 
 
         for (prop_key, prop_key_vals) in prop_key_vals_map {
             let save_key = format!("{}#{}", &class_name, &prop_key.name);
-            let save_val = serde_json::to_string(&prop_key_vals)?;
+            let save_val = serde_json::to_string(&prop_key_vals.value_pair)?;
             key_vals.push((save_key, save_val));
+            let save_validation_results_key = format!(
+                "{}#{}#{}",
+                &class_name, &prop_key.name, VALIDATION_RESULTS_KEY
+            );
+            let save_validation_results_val =
+                serde_json::to_string(&prop_key_vals.validation_error)?;
+            key_vals.push((save_validation_results_key, save_validation_results_val));
         }
     }
     let mut db = get_conn();

@@ -15,6 +15,7 @@ import FileCopyIcon from "@material-ui/icons/FileCopy";
 import SaveIcon from "@material-ui/icons/Save";
 import React, { useMemo } from "react";
 import { ValidateResult } from "../apis/javaProps";
+import { SQLError } from "../apis/sqlCommon";
 import RunnerControlToolBar from "../features/runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../features/transactionControl/TransactionControlToolBar";
 import { stringifySqlError } from "../util";
@@ -103,7 +104,7 @@ export interface EditorToolBarPropsType {
   onClickRun: any;
   onClickSave: any;
   showEditorIcons: boolean;
-  validateResult?: ValidateResult;
+  validateResult?: [SQLError, SQLError];
 }
 
 const EditorToolBar: React.FC<EditorToolBarPropsType> = ({
@@ -120,15 +121,11 @@ const EditorToolBar: React.FC<EditorToolBarPropsType> = ({
 }) => {
   const classes = useStyles();
   const validateMessage = useMemo(() => {
-    if (
-      !validateResult ||
-      validateResult.status === "pass" ||
-      !validateResult.error
-    ) {
+    if (!validateResult || validateResult.length != 2 || !validateResult[1]) {
       return null;
     }
 
-    return stringifySqlError(validateResult.error);
+    return stringifySqlError(validateResult[1]);
   }, [validateResult]);
 
   return (

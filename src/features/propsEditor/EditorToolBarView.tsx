@@ -1,8 +1,10 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { SQLError } from "../../apis/sqlCommon";
 import EditorToolBar from "../../components/EditorToolBar";
 import { RootState } from "../../reducers";
 import { setActivePair, setDiffMode } from "./propsEditorSlice";
+import { PropsListContext } from "./PropsListView";
 
 interface EditorToolBarViewProps {
   onClickFormat: () => void;
@@ -16,30 +18,14 @@ const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
   onClickSave,
 }) => {
   const dispatch = useDispatch();
-  const propsValidateMap = useSelector(
-    (rootState: RootState) => rootState.propsEditor.propsValidateMap
-  );
-  const selectedClassName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedClassName
-  );
-  const selectedPropName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedPropName
-  );
   const diffMode = useSelector(
     (rootState: RootState) => rootState.propsEditor.diffMode
   );
   const activePair = useSelector(
     (rootState: RootState) => rootState.propsEditor.activePair
   );
-
-  const propValidateResult = useMemo(() => {
-    if (!propsValidateMap || !selectedClassName || !selectedPropName) {
-      return;
-    }
-
-    const selectedProps = propsValidateMap[selectedClassName] ?? {};
-    return selectedProps[selectedPropName];
-  }, [propsValidateMap, selectedClassName, selectedPropName]);
+  const { propValues, selectClass, selectPropKey } =
+    useContext(PropsListContext);
 
   const handleClickDiff = useCallback(
     (e, checked) => {
@@ -65,10 +51,8 @@ const EditorToolBarView: React.FC<EditorToolBarViewProps> = ({
       onClickDiff={handleClickDiff}
       onClickRun={onClickRun}
       onClickSave={onClickSave}
-      showEditorIcons={
-        selectedClassName.length > 0 && selectedPropName.length > 0
-      }
-      validateResult={propValidateResult}
+      showEditorIcons={selectClass.length > 0 && selectPropKey.length > 0}
+      validateResult={propValues.validationError as [SQLError, SQLError]}
     />
   );
 };

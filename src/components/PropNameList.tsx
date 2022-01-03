@@ -10,7 +10,7 @@ import ErrorIcon from "@material-ui/icons/Error";
 import WarningIcon from "@material-ui/icons/Warning";
 import React from "react";
 import { PropsValidMap } from "../apis/javaProps";
-import { PropKey, PropValStatus } from "../generated/graphql";
+import { PropKey, PropValStatus, ValidationStatus } from "../generated/graphql";
 import MatchText from "./MatchText";
 import SVGIcon from "./SVGIcon";
 import Tooltip from "./Tooltip";
@@ -98,21 +98,24 @@ const PropName = React.memo(
           selected={selectedProp === prop.name}
           onClick={handleClick}
         >
-          {propValidateResult && propValidateResult.status === "pass" && (
-            <ListItemIcon className={classes.iconContainer}>
-              <CheckBoxIcon className={classes.greenIcon} />
-            </ListItemIcon>
-          )}
-          {propValidateResult && propValidateResult.status === "error" && (
-            <ListItemIcon className={classes.iconContainer}>
-              <ErrorIcon className={classes.redIcon} />
-            </ListItemIcon>
-          )}
-          {propValidateResult && propValidateResult.status === "warn" && (
-            <ListItemIcon className={classes.iconContainer}>
-              <WarningIcon className={classes.yellowIcon} />
-            </ListItemIcon>
-          )}
+          {prop.validationStatus &&
+            prop.validationStatus === ValidationStatus.Pass && (
+              <ListItemIcon className={classes.iconContainer}>
+                <CheckBoxIcon className={classes.greenIcon} />
+              </ListItemIcon>
+            )}
+          {prop.validationStatus &&
+            prop.validationStatus === ValidationStatus.Error && (
+              <ListItemIcon className={classes.iconContainer}>
+                <ErrorIcon className={classes.redIcon} />
+              </ListItemIcon>
+            )}
+          {prop.validationStatus &&
+            prop.validationStatus === ValidationStatus.Warning && (
+              <ListItemIcon className={classes.iconContainer}>
+                <WarningIcon className={classes.yellowIcon} />
+              </ListItemIcon>
+            )}
           <ListItemText
             primary={
               <span

@@ -6,6 +6,7 @@ query getCurrentJavaPropsState {
     propKeyList {
       name
       valStatus
+      validationStatus
     }
     propVals {
       valuePair
@@ -30,6 +31,7 @@ mutation searchJavaProps(
     propKeyList { 
       name 
       valStatus
+      validationStatus
     }
     propVals {
       valuePair
@@ -43,6 +45,7 @@ mutation selectClass($className: String!) {
     propKeyList {
       name
       valStatus
+      validationStatus
     }  
     propVals {
       valuePair

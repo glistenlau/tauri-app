@@ -2,7 +2,6 @@ import React, { useCallback, useContext } from "react";
 import SearchBar from "../../components/SearchBar";
 import {
   AppStateKey,
-  Maybe,
   useSearchJavaPropsMutation,
 } from "../../generated/graphql";
 import { useAppState } from "../../hooks/useAppState";
@@ -27,7 +26,7 @@ const PropsSearchView = React.memo(() => {
         variables: {
           filepath: filePath,
           classPattern: fileName,
-          validatePgQueries: true,
+          validateQueries: true,
         },
       });
       if (!data) {
@@ -47,7 +46,7 @@ const PropsSearchView = React.memo(() => {
         selectedClass,
         selectedPropKey,
         propKeyList,
-        propVals as Maybe<[string, string]>
+        propVals
       );
     },
     [searchJavaProps, setPropsEditorState]
