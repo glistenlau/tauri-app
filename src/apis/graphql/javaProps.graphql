@@ -66,3 +66,7 @@ mutation selectPropKey($className: String!, $propKey: String!) {
 mutation savePropVals($className: String!, $propKey: String!, $propVals: [String]!) {
   propVals(className: $className, propKey: $propKey, propVals: $propVals)
 }
+
+mutation savePropValToFile($filepath: String!, $propKey: String!, $propVal: String!) {
+  savePropVal(filepath: $filepath, propKey: $propKey, propVal: $propVal)
+}

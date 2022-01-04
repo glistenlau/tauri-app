@@ -83,6 +83,7 @@ type Mutation {
 	selectClass(className: String!): JavaPropsResponse!
 	selectPropKey(className: String!, propKey: String!): JavaPropsResponse!
 	propVals(className: String!, propKey: String!, propVals: [String]!): Boolean!
+	savePropVal(filepath: String!, propKey: String!, propVal: String!): Boolean!
 }
 type NodeValue {
 	start: Int!

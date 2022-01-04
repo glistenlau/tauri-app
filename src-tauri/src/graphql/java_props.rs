@@ -5,7 +5,7 @@ use log::info;
 
 use crate::proxies::{
     app_state::{get_state, set_state, AppStateKey},
-    java_props::{load_props, PropKey, PropVal, ValidationStatus},
+    java_props::{load_props, save_java_prop, PropKey, PropVal, ValidationStatus},
     rocksdb::{get_conn, RocksDataStore},
     sql_common::{get_schema_stmt, SQLClient, SQLError, SQLResult},
 };
@@ -154,6 +154,16 @@ impl JavaPropsMutation {
         prop_vals: Vec<Option<String>>,
     ) -> Result<bool> {
         save_prop_vals(&class_name, &prop_key, prop_vals)
+    }
+
+    async fn save_prop_val(
+        &self,
+        filepath: String,
+        prop_key: String,
+        prop_val: String,
+    ) -> Result<bool> {
+        save_java_prop(&filepath, &prop_key, &prop_val)?;
+        Ok(true)
     }
 }
 

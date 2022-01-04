@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
-import JavaPropsApi from "../../apis/javaProps";
 import SaveDialog from "../../components/SaveDialog";
 import { SplitEditorHandle } from "../../components/SplitEditor";
 import TabContent from "../../components/TabContent";
@@ -19,13 +18,13 @@ import {
   PropVal,
   useFormatSqlLazyQuery,
   useGetCurrentJavaPropsStateQuery,
+  useSavePropValToFileMutation,
   useSelectClassMutation,
   useSelectPropKeyMutation,
 } from "../../generated/graphql";
 import { loadQueryScan } from "../queryScan/queryScanSlice";
 import EditorToolBarView from "./EditorToolBarView";
 import PathBarView from "./PathBarView";
-import { updateParamValuePair } from "./propsEditorSlice";
 import PropsListView, { PropsListContext } from "./PropsListView";
 import SplitEditorView from "./SplitEditorView";
 
@@ -106,6 +105,8 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
     );
   }, [data, setPropsEditorState]);
 
+  const [savePropValToFile] = useSavePropValToFileMutation();
+
   const [selectClassMutation] = useSelectClassMutation();
   const selectClass = useCallback(
     async (path: string) => {
@@ -165,8 +166,8 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
 
     const formated = formatRst.data.formatSql as [string, string];
 
-    dispatch(updateParamValuePair(formated));
-  }, [dispatch, formatSql]);
+    setPropValues(Object.assign({}, propValues, { valuePair: formated }));
+  }, [formatSql, propValues]);
 
   const handleClickRun = useCallback(async () => {
     const values = splitEditorRef.current?.getEffectiveValue();
@@ -200,7 +201,13 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
         try {
           const filepath = `${selectedClass}.pg.properties`;
           const prop_value = valuePair[1];
-          await JavaPropsApi.saveProp(filepath, selectedPropKey, prop_value);
+          await savePropValToFile({
+            variables: {
+              filepath,
+              propKey: selectedPropKey,
+              propVal: prop_value,
+            },
+          });
           snackbar.enqueueSnackbar(
             `Save Postgres property ${selectedPropKey} successfully.`,
             { variant: "success" }
@@ -215,7 +222,13 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
         try {
           const filepath = `${selectedClass}.oracle.properties`;
           const prop_value = valuePair[0];
-          await JavaPropsApi.saveProp(filepath, selectedPropKey, prop_value);
+          await savePropValToFile({
+            variables: {
+              filepath,
+              propKey: selectedPropKey,
+              propVal: prop_value,
+            },
+          });
           snackbar.enqueueSnackbar(
             `Save Oracle property ${selectedPropKey} successfully.`,
             { variant: "success" }
@@ -229,7 +242,7 @@ const PropsEditorView: React.FC<PropsEditorViewProps> = ({ active }) => {
 
       setOptionSaveDialog(false);
     },
-    [selectedClass, selectedPropKey, snackbar]
+    [savePropValToFile, selectedClass, selectedPropKey, snackbar]
   );
 
   return (
