@@ -1,9 +1,13 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{anyhow, Result};
+use async_graphql::{Enum, Json, SimpleObject};
 use glob::{glob_with, MatchOptions, Paths};
+use serde::{Deserialize, Serialize};
 
 use crate::core::java_props::{parse_prop_file, save_prop};
+
+use super::sql_common::SQLError;
 
 pub fn search_files(search_path: &str, filename: &str) -> Result<Paths> {
     let search_pattern = format!("{}/**/{}", search_path, filename);
@@ -60,14 +64,51 @@ pub fn save_java_prop(filepath: &str, prop_key: &str, prop_value: &str) -> Resul
     Ok(())
 }
 
+#[derive(Clone, Copy, Enum, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum PropValStatus {
+    OracleOnly,
+    PostgresOnly,
+    Both,
+    Neither,
+}
+
+#[derive(Clone, Copy, Enum, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum ValidationStatus {
+    Pass,
+    Error,
+    Warning,
+}
+
+#[derive(Clone, Eq, PartialEq, Hash, SimpleObject, Serialize, Deserialize)]
+pub struct PropKey {
+    pub name: String,
+    pub val_status: PropValStatus,
+    pub validation_status: Option<ValidationStatus>,
+}
+
+#[derive(Clone, SimpleObject, Serialize, Deserialize)]
+pub struct PropVal {
+    pub value_pair: Vec<String>,
+    pub validation_error: Vec<Json<Option<SQLError>>>,
+}
+
+impl PropVal {
+    pub fn new() -> Self {
+        Self {
+            value_pair: vec![String::new(), String::new()],
+            validation_error: vec![],
+        }
+    }
+}
+
 pub fn load_props(
     search_path: &str,
     classname: &str,
-) -> Result<HashMap<String, HashMap<String, (Option<String>, Option<String>)>>> {
+) -> Result<HashMap<String, HashMap<PropKey, PropVal>>> {
     let oracle_props = search_load_db_props(search_path, classname, ".oracle.properties")?;
     let postgres_props = search_load_db_props(search_path, classname, ".pg.properties")?;
 
-    let mut combined: HashMap<String, HashMap<String, (Option<String>, Option<String>)>> =
+    let mut combined: HashMap<String, HashMap<PropKey, PropVal>> =
         HashMap::with_capacity(oracle_props.len());
     let mut filename_key_set = HashSet::with_capacity(oracle_props.len());
     filename_key_set.extend(oracle_props.keys());
@@ -82,27 +123,47 @@ pub fn load_props(
         }
 
         if let Some(m) = pg_props_map {
-            props_key_set.extend(m.keys());
+            props_key_set.extend(m.keys().filter(|pk| !pk.to_lowercase().ends_with(".md5")));
         }
 
         let mut file_combiled_map = HashMap::new();
 
         for prop_key in props_key_set {
-            let (mut ora_val, mut pg_val) = (None, None);
+            let (mut ora_val, mut pg_val) = (String::new(), String::new());
 
             if let Some(m) = ora_props_map {
                 if let Some(prop_val) = m.get(prop_key) {
-                    ora_val = Some(prop_val.clone());
+                    ora_val = prop_val.clone();
                 }
             }
 
             if let Some(m) = pg_props_map {
                 if let Some(prop_val) = m.get(prop_key) {
-                    pg_val = Some(prop_val.clone());
+                    pg_val = prop_val.clone();
                 }
             }
 
-            file_combiled_map.insert(prop_key.clone(), (ora_val, pg_val));
+            let val_status = if !ora_val.is_empty() && !pg_val.is_empty() {
+                PropValStatus::Both
+            } else if !ora_val.is_empty() {
+                PropValStatus::OracleOnly
+            } else if !pg_val.is_empty() {
+                PropValStatus::PostgresOnly
+            } else {
+                PropValStatus::Neither
+            };
+
+            let prop_key_obj = PropKey {
+                name: prop_key.clone(),
+                val_status,
+                validation_status: None,
+            };
+            let prop_val_obj = PropVal {
+                value_pair: vec![ora_val, pg_val],
+                validation_error: vec![],
+            };
+
+            file_combiled_map.insert(prop_key_obj, prop_val_obj);
         }
 
         combined.insert(String::from(filename_key), file_combiled_map);

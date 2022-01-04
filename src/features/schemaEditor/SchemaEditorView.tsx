@@ -74,11 +74,13 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     );
 
   const [selectedNode, setSelectedNode] = useAppState<FlatNode | undefined>(
-    AppStateKey.SchemaEditorSelectedNode
+    AppStateKey.SchemaEditorSelectedNode,
+    undefined
   );
-  const [selectedFilePath, setSelectedFilePath] = useAppState<
-    string | undefined
-  >(AppStateKey.SchemaEditorSelectedFilePath);
+  const [selectedFilePath, setSelectedFilePath] = useAppState<string>(
+    AppStateKey.SchemaEditorSelectedFilePath,
+    ""
+  );
 
   const contentRanges = useMemo<Range[]>(() => {
     if (!selectedNode) {
@@ -90,9 +92,9 @@ const SchemaEditorView = React.memo(({ active }: SchemaEditorViewProps) => {
     return values.map((val) => ({ start: val.start, end: val.end }));
   }, [selectedNode]);
 
-  const [treeNode, setTreeNode] = useAppState<Array<FlatSchemaFile>>(
-    AppStateKey.SchemaEditorTreeNode
-  );
+  const [treeNode, setTreeNode] = useAppState<
+    Array<FlatSchemaFile> | undefined
+  >(AppStateKey.SchemaEditorTreeNode, undefined);
 
   const { data: contentData } = useDbSchemaFileContetQuery({
     variables: { filePath: selectedFilePath || "", ranges: contentRanges },

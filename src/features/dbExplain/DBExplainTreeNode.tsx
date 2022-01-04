@@ -43,7 +43,7 @@ export const DBExplainTreeNode: React.FC<
       return;
     }
     setCanLoad(false);
-    onLoadNode(parseInt(id), data.dbExplain);
+    // onLoadNode(parseInt(id), data.dbExplain);
   }, [canLoad, data, id, onLoadNode]);
 
   const handleToggle = useCallback(

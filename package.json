@@ -56,9 +56,6 @@
     "dev": "yarn generate-schema && yarn generate && tauri dev",
     "pretty": "pushd src-tauri && cargo fix --broken-code --allow-dirty --allow-staged && cargo fmt && popd && prettier --write \"./src/**/*.{js,jsx,ts,tsx,json}\""
   },
-  "pre-commit": [
-    "pretty"
-  ],
   "eslintConfig": {
     "extends": "react-app"
   },
@@ -85,7 +82,6 @@
     "@types/redux-logger": "^3.0.8",
     "customize-cra": "^1.0.0",
     "graphql": "^15.5.0",
-    "pre-commit": "^1.2.2",
     "prettier": "^2.4.1",
     "react-app-rewired": "^2.1.8"
   },

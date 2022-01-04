@@ -2,6 +2,7 @@ import { createStyles, Divider, makeStyles } from "@material-ui/core";
 import { Resizable } from "re-resizable";
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Maybe, PropKey, PropVal } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import ClassSelectView from "./ClassSelectView";
 import PropNameListView from "./PropNameListView";
@@ -19,12 +20,51 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
+interface IPropsListContext {
+  classList: Array<string>;
+  setClassList: (classList: Array<string>) => void;
+  selectedClass: string;
+  selectClass: (selectedClass: string) => Promise<void>;
+  selectedPropKey: string;
+  selectPropKey: (selectedPropKey: string) => Promise<void>;
+  propKeyList: Array<PropKey>;
+  propValues: PropVal;
+  setPropValues: (propVals: PropVal) => void;
+  setPropsEditorState: (
+    classList?: Maybe<string[]>,
+    selectedClass?: Maybe<string>,
+    selectedPropKey?: Maybe<string>,
+    propKeyList?: Maybe<Array<PropKey>>,
+    propVals?: Maybe<PropVal>
+  ) => void;
+}
+
+export const PropsListContext = React.createContext<IPropsListContext>({
+  classList: [],
+  setClassList: (classList: Array<string>) => {},
+  selectedClass: "",
+  selectClass: async (selectedClass: string) => {},
+  selectedPropKey: "",
+  selectPropKey: async (selectedPropKey: string) => {},
+  propKeyList: [],
+  propValues: { valuePair: ["", ""], validationError: [null, null] },
+  setPropValues: (propVals: PropVal) => {},
+  setPropsEditorState: (
+    classList?: Maybe<string[]>,
+    selectedClass?: Maybe<string>,
+    selectedPropKey?: Maybe<string>,
+    propKeyList?: Maybe<Array<PropKey>>,
+    propVals?: Maybe<PropVal>
+  ) => {},
+});
+
 const PropsListView = React.memo(() => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const panelWidth = useSelector(
     (rootState: RootState) => rootState.propsEditor.panelWidth
   );
+
   const handlePanelResize = useCallback(
     (e: any, direction: any, ref: any, d: any) => {
       const width = panelWidth + d.width;

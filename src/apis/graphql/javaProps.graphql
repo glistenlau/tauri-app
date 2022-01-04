@@ -1,0 +1,68 @@
+query getCurrentJavaPropsState {
+  currentJavaPropsState {
+    classList
+    selectedClass
+    selectedPropKey
+    propKeyList {
+      name
+      valStatus
+      validationStatus
+    }
+    propVals {
+      valuePair
+      validationError
+    }
+  }
+}
+
+mutation searchJavaProps(
+  $filepath: String!
+  $classPattern: String!
+  $validateQueries: Boolean!
+) {
+  searchJavaProps(
+    filepath: $filepath
+    classPattern: $classPattern
+    validateQueries: $validateQueries
+  ) {
+    classList
+    selectedClass
+    selectedPropKey
+    propKeyList { 
+      name 
+      valStatus
+      validationStatus
+    }
+    propVals {
+      valuePair
+      validationError
+    }
+  }
+}
+
+mutation selectClass($className: String!) {
+  selectClass(className: $className) {
+    propKeyList {
+      name
+      valStatus
+      validationStatus
+    }  
+    propVals {
+      valuePair
+      validationError
+    }
+  }
+}
+
+mutation selectPropKey($className: String!, $propKey: String!) {
+  selectPropKey(className: $className, propKey: $propKey) {
+    propVals {
+      valuePair
+      validationError
+    }
+  }
+}
+
+mutation savePropVals($className: String!, $propKey: String!, $propVals: [String]!) {
+  propVals(className: $className, propKey: $propKey, propVals: $propVals)
+}

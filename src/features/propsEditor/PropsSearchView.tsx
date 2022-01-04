@@ -1,44 +1,65 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import SearchBar from "../../components/SearchBar";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../reducers";
-import { setClassName, setFilePath, searchProps } from "./propsEditorSlice";
+import {
+  AppStateKey,
+  useSearchJavaPropsMutation,
+} from "../../generated/graphql";
+import { useAppState } from "../../hooks/useAppState";
+import { PropsListContext } from "./PropsListView";
 
 const PropsSearchView = React.memo(() => {
-  const filePath = useSelector(
-    (state: RootState) => state.propsEditor.searchFilePath
+  const [filepath, setFilepath] = useAppState(
+    AppStateKey.PropsSearchFilepath,
+    ""
   );
-  const className = useSelector(
-    (state: RootState) => state.propsEditor.searchClassName
+  const [classPattern, setClassPattern] = useAppState(
+    AppStateKey.PropsSearchClassPattern,
+    ""
   );
-  const dispatch = useDispatch();
 
-  const handleFilePathChange = useCallback(
-    (filePath: string) => {
-      dispatch(setFilePath(filePath));
+  const [searchJavaProps] = useSearchJavaPropsMutation();
+  const { setPropsEditorState } = useContext(PropsListContext);
+
+  const handleSearch = useCallback(
+    async (filePath: string, fileName: string) => {
+      const { data } = await searchJavaProps({
+        variables: {
+          filepath: filePath,
+          classPattern: fileName,
+          validateQueries: true,
+        },
+      });
+      if (!data) {
+        return;
+      }
+
+      const {
+        classList,
+        selectedClass,
+        selectedPropKey,
+        propKeyList,
+        propVals,
+      } = data.searchJavaProps;
+
+      setPropsEditorState(
+        classList,
+        selectedClass,
+        selectedPropKey,
+        propKeyList,
+        propVals
+      );
     },
-    [dispatch]
+    [searchJavaProps, setPropsEditorState]
   );
-
-  const handleClassNameChange = useCallback(
-    (className: string) => {
-      dispatch(setClassName(className));
-    },
-    [dispatch]
-  );
-
-  const handleSearch = useCallback(async () => {
-    await dispatch(searchProps({ filePath, className }));
-  }, [className, dispatch, filePath]);
 
   return (
     <SearchBar
       searchFolderLabel="Search Folder"
       searchFileLabel="Java Class"
-      filePathValue={filePath}
-      fileNameValue={className}
-      onFilePathChange={handleFilePathChange}
-      onFileNameChange={handleClassNameChange}
+      filePathValue={filepath}
+      fileNameValue={classPattern}
+      onFilePathChange={setFilepath}
+      onFileNameChange={setClassPattern}
       onSearch={handleSearch}
     />
   );

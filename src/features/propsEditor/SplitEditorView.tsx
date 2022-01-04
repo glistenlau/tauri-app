@@ -3,62 +3,52 @@ import React, {
   ForwardRefRenderFunction,
   memo,
   useCallback,
-  useEffect,
-  useState,
+  useContext,
 } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import SplitEditor, { SplitEditorHandle } from "../../components/SplitEditor";
+import { useSavePropValsMutation } from "../../generated/graphql";
 import { RootState } from "../../reducers";
-import { updateParamValuePair } from "./propsEditorSlice";
+import { PropsListContext } from "./PropsListView";
 
 const SplitEditorView: ForwardRefRenderFunction<SplitEditorHandle, {}> = (
   {},
   ref
 ) => {
-  const dispatch = useDispatch();
-  const [valuePair, setValuePair] = useState(["", ""] as [string, string]);
-  const propsMap = useSelector(
-    (rootState: RootState) => rootState.propsEditor.propsMap
-  );
-  const selectedClassName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedClassName
-  );
-  const selectedPropName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedPropName
-  );
   const diffMode = useSelector(
     (rootState: RootState) => rootState.propsEditor.diffMode
   );
   const activePair = useSelector(
     (rootState: RootState) => rootState.propsEditor.activePair
   );
+  const [savePropValues] = useSavePropValsMutation();
+  const { selectedClass, selectedPropKey, propValues, setPropValues } =
+    useContext(PropsListContext);
+  const handleChange = useCallback(
+    (valuePair: [string, string]) => {
+      setPropValues({
+        valuePair,
+        validationError: propValues.validationError,
+      });
+    },
+    [propValues.validationError, setPropValues]
+  );
 
-  useEffect(() => {
-    if (!propsMap || !selectedClassName || !selectedPropName) {
-      return;
-    }
-
-    const propNameMap = propsMap[selectedClassName] ?? {};
-    if (!propNameMap[selectedPropName]) {
-      return;
-    }
-
-    setValuePair(propNameMap[selectedPropName]);
-  }, [propsMap, selectedClassName, selectedPropName]);
-
-  const handleChange = useCallback((valuePair: [string, string]) => {
-    setValuePair(valuePair);
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    dispatch(updateParamValuePair(valuePair));
-  }, [dispatch, valuePair]);
+  const handleBlur = useCallback(async () => {
+    savePropValues({
+      variables: {
+        className: selectedClass,
+        propKey: selectedPropKey,
+        propVals: propValues.valuePair,
+      },
+    });
+  }, [propValues.valuePair, savePropValues, selectedClass, selectedPropKey]);
 
   return (
     <SplitEditor
       activePair={activePair}
       ref={ref}
-      valuePair={valuePair}
+      valuePair={propValues.valuePair as [string, string]}
       onBlur={handleBlur}
       onChange={handleChange}
       diff={diffMode}

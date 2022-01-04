@@ -1,3 +1,4 @@
+pub mod app_state;
 pub mod db_explain_tree;
 pub mod db_schema;
 pub mod dirs;

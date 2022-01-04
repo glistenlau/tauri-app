@@ -6,6 +6,12 @@ enum AppStateKey {
 	SCHEMA_EDITOR_SEARCH_TERM
 	ORALCE_CONFIG
 	POSTGRES_CONFIG
+	PROPS_MATCHED_CLASS_LIST
+	PROPS_SEARCH_FILEPATH
+	PROPS_SEARCH_CLASS_PATTERN
+	PROPS_SELECTED_CLASS
+	PROPS_SELECTED_PROP_KEY
+	PROPS_SELECTED_PROP_VALUES
 }
 input Config {
 	host: String!
@@ -55,24 +61,55 @@ type FlatSchemaFile {
 	path: String!
 	nodes: [FlatNode!]!
 }
+"""
+A scalar that can represent any JSON value.
+"""
 scalar JSON
+type JavaPropsResponse {
+	classList: [String!]
+	selectedClass: String
+	selectedPropKey: String
+	propKeyList: [PropKey!]
+	propVals: PropVal
+}
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
+	deleteAppState(stateKeys: [AppStateKey!]!): Boolean!
 	dbConfig(dbType: Dbtype!, dbConfig: Config!): JSON!
 	dbAutocommit(dbType: Dbtype!, dbAutocommit: Boolean!): JSON!
 	commitConsole(dbType: Dbtype!): JSON!
 	rollbackConsole(dbType: Dbtype!): JSON!
+	searchJavaProps(filepath: String!, classPattern: String!, validateQueries: Boolean!): JavaPropsResponse!
+	selectClass(className: String!): JavaPropsResponse!
+	selectPropKey(className: String!, propKey: String!): JavaPropsResponse!
+	propVals(className: String!, propKey: String!, propVals: [String]!): Boolean!
 }
 type NodeValue {
 	start: Int!
 	end: Int!
 	dbFamily: DbFamily
 }
+type PropKey {
+	name: String!
+	valStatus: PropValStatus!
+	validationStatus: ValidationStatus
+}
+type PropVal {
+	valuePair: [String!]!
+	validationError: [JSON!]!
+}
+enum PropValStatus {
+	ORACLE_ONLY
+	POSTGRES_ONLY
+	BOTH
+	NEITHER
+}
 type Query {
 	appState(stateKeys: [AppStateKey!]!): [String]!
 	dbSchemas(searchFolder: String!, searchPattern: String!): [SchemaFile!]!
 	dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
 	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
+	currentJavaPropsState: JavaPropsResponse!
 	executeStmt(dbType: Dbtype!, schema: String!, stmt: String!, params: [JSON!]!, withStatistics: Boolean!): JSON!
 	validateStmts(dbType: Dbtype!, stmts: [String!]!): JSON!
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
@@ -95,6 +132,11 @@ type TreeNode {
 	values: [NodeValue!]!
 	children: [TreeNode!]!
 	dbFamily: DbFamily
+}
+enum ValidationStatus {
+	PASS
+	ERROR
+	WARNING
 }
 schema {
 	query: Query

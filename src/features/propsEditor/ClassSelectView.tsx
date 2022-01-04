@@ -1,30 +1,20 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ClassSelect from "../../components/ClassSelect";
+import { useSelectClassMutation } from "../../generated/graphql";
 import { RootState } from "../../reducers";
 import { setClassPath } from "./propsEditorSlice";
+import { PropsListContext } from "./PropsListView";
 
 const ClassSelectView = React.memo(() => {
-  const dispatch = useDispatch();
-  const selectedClassName = useSelector(
-    (rootState: RootState) => rootState.propsEditor.selectedClassName
-  );
-  const classNameList = useSelector(
-    (rootState: RootState) => rootState.propsEditor.classNameList
-  );
-
-  const handleChange = useCallback(
-    (path: string) => {
-      dispatch(setClassPath(path));
-    },
-    [dispatch]
-  );
+  const { classList, selectedClass, selectClass } =
+    useContext(PropsListContext);
 
   return (
     <ClassSelect
-      onChange={handleChange}
-      selected={selectedClassName}
-      values={classNameList}
+      onChange={selectClass}
+      selected={selectedClass}
+      values={classList}
     />
   );
 });

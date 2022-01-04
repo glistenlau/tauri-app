@@ -6,11 +6,9 @@ import React, {
   useState,
 } from "react";
 import { SizeMeProps, withSize } from "react-sizeme";
-import { FixedSizeTree as Tree } from "react-vtree";
 import styled from "styled-components";
 import { TreeNodeData } from "../../components/TreeNode";
 import { ExplainRow, useDbExplainQueryQuery } from "../../generated/graphql";
-import { DBExplainTreeNode } from "./DBExplainTreeNode";
 
 interface DBExplainTreeViewProps {
   explainText: string;
@@ -84,7 +82,7 @@ const DBExplainTreeView: React.FC<DBExplainTreeViewProps & SizeMeProps> = ({
     if (!data) {
       return;
     }
-    setRoot(data.dbExplain);
+    // setRoot(data.dbExplain);
   }, [data]);
 
   const loadNode = useCallback(
@@ -139,17 +137,18 @@ const DBExplainTreeView: React.FC<DBExplainTreeViewProps & SizeMeProps> = ({
 
     const height = size.height || 100;
 
-    return (
-      <Tree
-        treeWalker={treeWalker}
-        itemSize={24}
-        height={height}
-        itemData={{ onLoadNode: loadNode, explainText, onToggle }}
-      >
-        {DBExplainTreeNode}
-      </Tree>
-    );
-  }, [explainText, loadNode, onToggle, root, size.height, treeWalker]);
+    return null;
+    // return (
+    //   <Tree
+    //     treeWalker={treeWalker}
+    //     itemSize={24}
+    //     height={height}
+    //     itemData={{ onLoadNode: loadNode, explainText, onToggle }}
+    //   >
+    //     {DBExplainTreeNode}
+    //   </Tree>
+    // );
+  }, [root, size.height]);
 
   return <Container>{content}</Container>;
 };

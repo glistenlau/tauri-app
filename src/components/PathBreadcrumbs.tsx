@@ -23,7 +23,7 @@ interface Path {
 
 interface PathBreadcrumbsProps {
   paths: Array<Path>;
-  onClick: any;
+  onClick?: any;
   className?: string;
 }
 
@@ -34,7 +34,12 @@ const PathBreadcrumbs = ({
 }: PathBreadcrumbsProps) => {
   const classes = useStyles();
 
-  const handleClick = React.useCallback((id) => onClick(id), [onClick]);
+  const handleClick = React.useCallback(
+    (id) => {
+      if (onClick) onClick(id);
+    },
+    [onClick]
+  );
 
   const links = React.useMemo(
     () =>

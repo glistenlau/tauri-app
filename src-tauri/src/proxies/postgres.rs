@@ -392,9 +392,10 @@ impl<'a> SQLClient for PostgresProxy {
                 let client = console_manager.get_console_conn().await?;
 
                 client.execute("SET search_path TO anaconda", &[]).await?;
+                Self::rollback_transaction(client).await;
                 let pending_tasks = stmts_vec
                     .iter()
-                    .map(|s| Self::validate_statement(s.clone(), &client));
+                    .map(|s| Self::validate_statement(s.clone(), client));
                 match future::try_join_all(pending_tasks).await {
                     Ok(res) => Ok(res),
                     Err(e) => Err(e.into()),
