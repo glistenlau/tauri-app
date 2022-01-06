@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { initApp } from "../../actions";
-import oracle from "../../apis/oracle";
-import postgres from "../../apis/postgres";
 
 export interface settingsState {
   oracleSettings: OracleSettings;

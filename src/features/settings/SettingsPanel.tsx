@@ -1,10 +1,6 @@
 import { useSnackbar } from "notistack";
 import React, { useCallback, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import oracle, { Oracle } from "../../apis/oracle";
-import postgres, { Postgres } from "../../apis/postgres";
-import SqlCommon from "../../apis/sqlCommon";
 import Settings from "../../components/Settings";
 import TabContent from "../../components/TabContent";
 import {
@@ -14,7 +10,6 @@ import {
   useSetConfigMutation,
 } from "../../generated/graphql";
 import { useAppState } from "../../hooks/useAppState";
-import { RootState } from "../../reducers";
 import {} from "./settingsSlice";
 
 const Container = styled(TabContent)`

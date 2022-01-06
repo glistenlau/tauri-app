@@ -1,10 +1,7 @@
 import { Tooltip } from "@material-ui/core";
-import React, { useCallback, useContext } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import PathBreadcrumbs from "../../components/PathBreadcrumbs";
-import { RootState } from "../../reducers";
-import { setClassPath } from "./propsEditorSlice";
 import { PropsListContext } from "./PropsListView";
 
 const Container = styled.div`

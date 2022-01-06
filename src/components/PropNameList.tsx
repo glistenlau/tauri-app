@@ -9,7 +9,6 @@ import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import ErrorIcon from "@material-ui/icons/Error";
 import WarningIcon from "@material-ui/icons/Warning";
 import React from "react";
-import { PropsValidMap } from "../apis/javaProps";
 import { PropKey, PropValStatus, ValidationStatus } from "../generated/graphql";
 import MatchText from "./MatchText";
 import SVGIcon from "./SVGIcon";
@@ -56,7 +55,6 @@ interface PropNameListProps {
   propNameList: Array<PropKey>;
   selectedProp: string;
   onListItemClick: (selectedProp: string) => void;
-  validateResults?: PropsValidMap;
 }
 
 interface PropNameProps {
@@ -76,10 +74,6 @@ const PropName = React.memo(
     searchText,
   }: PropNameProps) => {
     const classes = useStyles();
-    const propValidateResult = React.useMemo(
-      () => validateResults && validateResults[prop.name],
-      [prop.name, validateResults]
-    );
 
     const handleClick = React.useCallback(() => {
       onClick(prop.name);
@@ -165,8 +159,7 @@ const PropName = React.memo(
 );
 
 const PropNameList = (props: PropNameListProps) => {
-  const { propNameList, selectedProp, onListItemClick, validateResults } =
-    props;
+  const { propNameList, selectedProp, onListItemClick } = props;
 
   const [searchText, setSearchText] = React.useState("");
   const classes = useStyles();
@@ -207,7 +200,6 @@ const PropNameList = (props: PropNameListProps) => {
             prop={prop}
             selectedProp={selectedProp}
             onClick={onListItemClick}
-            validateResults={validateResults}
             searchText={searchText}
           />
         ))}

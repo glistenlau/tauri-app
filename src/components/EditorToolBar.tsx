@@ -14,7 +14,6 @@ import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import SaveIcon from "@material-ui/icons/Save";
 import React, { useMemo } from "react";
-import { ValidateResult } from "../apis/javaProps";
 import { SQLError } from "../apis/sqlCommon";
 import RunnerControlToolBar from "../features/runnerControl/RunnerControlToolBar";
 import TransactionControlToolBar from "../features/transactionControl/TransactionControlToolBar";
