@@ -1,11 +1,10 @@
 import {
   Checkbox,
   Chip,
-  CircularProgress,
-  FormControl,
+  CircularProgress, FormControl,
   InputLabel,
   MenuItem,
-  Select,
+  Select
 } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import React, { useCallback, useMemo, useState } from "react";
@@ -69,6 +68,7 @@ const MenuProps = {
   },
 };
 
+const SELECT_ALL_VALUE = "__select_all__";
 const REFRESH_VALUE = "__refresh__";
 
 const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
@@ -121,11 +121,22 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
     }, [schemas]);
 
     const schemaMenuItems = useMemo(() => {
-      if (schemaMap == null) {
+      if (schemaMap == null || schemaMap.size === 0) {
         return null;
       }
 
-      return Array.from(schemaMap.values())
+      const selectAll = (
+        <MenuItem dense divider key={SELECT_ALL_VALUE} value={SELECT_ALL_VALUE}>
+          <Checkbox
+            checked={selectedSchemas.length === schemaMap.size}
+          />
+          <LabelWithDbIcons>
+            Select All
+          </LabelWithDbIcons>
+        </MenuItem>
+      )
+
+      return [selectAll, ...Array.from(schemaMap.values())
         .sort((a, b) => a.value.localeCompare(b.value))
         .map((mappedSchema) => {
           return (
@@ -141,7 +152,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
               </LabelWithDbIcons>
             </MenuItem>
           );
-        });
+        })];
     }, [schemaMap, selectedSchemas]);
 
     const handleChange = useCallback(
@@ -151,10 +162,23 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
         if (clickRefresh) {
           return;
         }
+        const checkSelectAll = value.indexOf(SELECT_ALL_VALUE) > -1;
+        if (checkSelectAll && schemaMap != null) {
+          if (selectedSchemas.length === schemaMap.size) {
+            onChange([]);
+          } else {
+            const allValues = Array.from(schemaMap.values())
+              .sort((a, b) => a.value.localeCompare(b.value))
+              .map((mappedSchema) => mappedSchema.value);
+            onChange(allValues);
+          }
+          return;
+
+        }
 
         onChange(value);
       },
-      [onChange]
+      [onChange, schemaMap, selectedSchemas.length]
     );
 
     const handleDeleteChip = useCallback(
@@ -233,6 +257,7 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
           >
             <MenuItem
               dense
+              divider
               disabled={refreshingSchema}
               key={REFRESH_VALUE}
               value={REFRESH_VALUE}
