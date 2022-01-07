@@ -21,6 +21,7 @@ use sql_formatter::SqlFormatterQuery;
 
 use self::java_props::{JavaPropsMutation, JavaPropsQuery};
 use self::log::LogMutation;
+use self::rocksdb::{RocksDbMutation, RocksDbQuery};
 use self::sql::SqlMutation;
 use self::{
     app_state::{AppStateMutation, AppStateQuery},
@@ -33,6 +34,7 @@ pub struct Query(
     AppStateQuery,
     DbSchemaQuery,
     JavaPropsQuery,
+    RocksDbQuery,
     SqlQuery,
     SqlExplainQuery,
     SqlFormatterQuery,
@@ -41,6 +43,7 @@ pub struct Query(
 #[derive(MergedObject, Default)]
 pub struct Mutation(
     AppStateMutation,
+    RocksDbMutation,
     SqlMutation,
     JavaPropsMutation,
     LogMutation,

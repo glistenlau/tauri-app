@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::state::AppState;
 
-pub mod graphql;
 pub mod query_runner;
-pub mod rocksdb;
 
 #[derive(Deserialize, Debug)]
 pub struct Endpoint<A, P> {
@@ -19,8 +17,6 @@ pub struct Endpoint<A, P> {
 #[serde(tag = "name", rename_all = "camelCase")]
 pub enum Handler {
     QueryRunner(Endpoint<query_runner::Action, query_runner::Payload>),
-    RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
-    GraphQL(Endpoint<graphql::Action, graphql::Payload>),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -113,20 +109,15 @@ impl std::error::Error for CommandError {}
 #[tauri::command]
 pub fn invoke_handler(
     window: tauri::Window,
-    state: tauri::State<AppState>,
+    _state: tauri::State<AppState>,
     handler: Handler,
 ) -> Result<String, CommandError> {
     let now = Instant::now();
     let result = match handler {
-        Handler::RocksDB(e) => match rocksdb::handle_command(e.action, e.payload) {
-            Ok(rsp) => seralize_response(rsp),
-            Err(e) => Err(e),
-        },
         Handler::QueryRunner(e) => generate_response(
             query_runner::handle_command(window, e.action, e.payload),
             now.elapsed(),
         ),
-        Handler::GraphQL(e) => generate_response(graphql::handle_command(e, state), now.elapsed()),
     };
     result.or_else(|e| Err(CommandError::new(e.to_string())))
 }

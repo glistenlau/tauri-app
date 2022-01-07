@@ -88,13 +88,12 @@ impl RocksDataStore {
         }
     }
 
-    pub fn multi_get<C, T, I>(cf: Option<C>, keys: I, db: &DB) -> Result<Vec<Option<String>>>
+    pub fn multi_get<T, I>(cf: Option<&str>, keys: I, db: &DB) -> Result<Vec<Option<String>>>
     where
-        C: AsRef<str>,
         T: AsRef<[u8]>,
         I: IntoIterator<Item = T>,
     {
-        let mut res_bytes = match cf.and_then(|cf_str| db.cf_handle(cf_str.as_ref())) {
+        let mut res_bytes = match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
             Some(cf_handle) => {
                 let multi_keys: Vec<(&ColumnFamily, T)> =
                     keys.into_iter().map(|key| (cf_handle, key)).collect();
@@ -125,34 +124,34 @@ impl RocksDataStore {
         }
     }
 
-    pub fn delete_batch(cf: Option<&str>, key: &[&str], db: &DB) -> Result<(), rocksdb::Error> {
+    pub fn delete_batch<K, I>(cf: Option<&str>, key: I, db: &DB) -> Result<(), rocksdb::Error>
+    where
+        K: AsRef<[u8]>,
+        I: IntoIterator<Item = K>,
+    {
         let mut write_batch = WriteBatch::default();
         match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
             Some(cf_handle) => {
-                key.iter()
-                    .for_each(|key_str| write_batch.delete_cf(cf_handle, key_str.as_bytes()));
+                key.into_iter()
+                    .for_each(|key_str| write_batch.delete_cf(cf_handle, key_str));
             }
             None => {
-                key.iter()
-                    .for_each(|key_str| write_batch.delete(key_str.as_bytes()));
+                key.into_iter()
+                    .for_each(|key_str| write_batch.delete(key_str));
             }
         };
 
         db.write(write_batch)
     }
 
-    pub fn delete_range(
-        cf: Option<&str>,
-        from: &str,
-        to: &str,
-        db: &DB,
-    ) -> Result<(), rocksdb::Error> {
+    pub fn delete_range<K>(cf: Option<&str>, from: K, to: K, db: &DB) -> Result<(), rocksdb::Error>
+    where
+        K: AsRef<[u8]>,
+    {
         let mut write_batch = WriteBatch::default();
         match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
-            Some(cf_handle) => {
-                write_batch.delete_range_cf(cf_handle, from.as_bytes(), to.as_bytes())
-            }
-            None => write_batch.delete_range(from.as_bytes(), to.as_bytes()),
+            Some(cf_handle) => write_batch.delete_range_cf(cf_handle, from, to),
+            None => write_batch.delete_range(from, to),
         };
 
         db.write(write_batch)
@@ -171,6 +170,33 @@ impl RocksDataStore {
         }
 
         db.write(write_batch)
+    }
+
+    pub fn set_batch<K, I>(cf: Option<&str>, keys: I, values: I, db: &mut DB) -> Result<()>
+    where
+        K: AsRef<[u8]>,
+        I: IntoIterator<Item = K>,
+    {
+        let mut write_batch = WriteBatch::default();
+        let mut keys_iter = keys.into_iter();
+        let mut vals_iter = values.into_iter();
+        if let Some(cf_str) = cf {
+            Self::create_cf_if_not(cf_str, db)?;
+        }
+        while let (Some(k), Some(v)) = (keys_iter.next(), vals_iter.next()) {
+            match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
+                Some(cf_handle) => {
+                    write_batch.put_cf(cf_handle, k, v);
+                }
+                None => write_batch.put(k, v),
+            }
+        }
+
+        if keys_iter.next().is_some() || keys_iter.next().is_some() {
+            return Err(anyhow!("The sizes of keys and values are not equal."));
+        }
+        db.write(write_batch)?;
+        Ok(())
     }
 
     fn create_cf_if_not(cf: &str, db: &mut DB) -> Result<(), rocksdb::Error> {

@@ -82,6 +82,8 @@ enum Level {
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
 	deleteAppState(stateKeys: [AppStateKey!]!): Boolean!
+	setRocksdbValues(keys: [String!]!, values: [String!]!): Boolean!
+	deleteRocksdbValues(keys: [String!]!): Boolean!
 	dbConfig(dbType: Dbtype!, dbConfig: Config!): JSON!
 	dbAutocommit(dbType: Dbtype!, dbAutocommit: Boolean!): JSON!
 	commitConsole(dbType: Dbtype!): JSON!
@@ -119,6 +121,7 @@ type Query {
 	dbSchemaFileContent(filePath: String!, ranges: [Range!]!): [String!]!
 	dbSchemasFlat(searchFolder: String!, searchPattern: String!): [FlatSchemaFile!]!
 	currentJavaPropsState: JavaPropsResponse!
+	getRocksdbValues(keys: [String!]!): [String]!
 	executeStmt(dbType: Dbtype!, schema: String!, stmt: String!, params: [JSON!]!, withStatistics: Boolean!): JSON!
 	validateStmts(dbType: Dbtype!, stmts: [String!]!): JSON!
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!

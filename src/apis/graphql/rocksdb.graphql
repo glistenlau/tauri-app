@@ -1,0 +1,11 @@
+query getRocksValues($keys: [String!]!) {
+        getRocksdbValues(keys: $keys)
+}
+
+mutation setRocksValues($keys: [String!]!, $values: [String!]!) {
+        setRocksdbValues(keys: $keys, values: $values)
+}
+
+mutation deleteRocksKeys($keys: [String!]!) {
+        deleteRocksdbValues(keys: $keys)
+}

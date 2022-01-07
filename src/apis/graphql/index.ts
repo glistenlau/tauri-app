@@ -1,15 +1,12 @@
 import {
   ApolloClient,
-  ApolloLink,
   HttpLink,
   InMemoryCache,
   NormalizedCacheObject,
-  Observable,
   split,
 } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { print } from "graphql";
 import { requestAsync } from "..";
 import { Response } from "../";
 
@@ -41,30 +38,11 @@ class Graphql {
   };
 
   getServerPort = async () => {
-    const rsp = await this.sendRequest(Action.ServerPort, {});
-    return rsp.serverPort;
+    return 8888;
   };
 }
 
 export default new Graphql();
-
-const rustLink = new ApolloLink((operation, forward) => {
-  return new Observable((observer) => {
-    fetchGraphql(print(operation.query), operation.variables)
-      .then((res) => {
-        console.log("fetch result: ", res);
-        observer.next(res);
-        observer.complete();
-      })
-      .catch((err) => {
-        observer.error(err);
-      });
-  });
-});
-
-const fetchGraphql = async (query: string, variables: Record<string, any>) => {
-  return requestAsync("graphQL", "query", { query, variables });
-};
 
 let instance: ApolloClient<NormalizedCacheObject>;
 

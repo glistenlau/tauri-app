@@ -1,48 +1,41 @@
-import { requestAsync } from ".";
-
-enum Action {
-  GET = "get",
-  PUT = "put",
-  DELETE = "delete",
-}
-
-interface Response {
-  success: boolean;
-  value?: string;
-}
+import {
+  DeleteRocksKeysDocument,
+  DeleteRocksKeysMutation,
+  DeleteRocksKeysMutationVariables,
+  GetRocksValuesDocument,
+  GetRocksValuesQuery,
+  GetRocksValuesQueryVariables,
+  SetRocksValuesDocument,
+  SetRocksValuesMutation,
+  SetRocksValuesMutationFn,
+  SetRocksValuesMutationVariables,
+} from "../generated/graphql";
+import GraghQL, { getClient } from "./graphql";
 
 class DataStore {
-  sendRequest = async (
-    action: Action,
-
-    key: string,
-
-    val?: string
-  ): Promise<string | undefined> => {
-    const payload: any = {
-      key,
-    };
-
-    if (val) {
-      payload.val = val;
-    }
-
-    const rsp = (await requestAsync("rocksDB", action, payload)) as Response;
-    if (rsp.success) {
-      return rsp.value;
-    }
-  };
-
   getItem = async (key: string): Promise<string | undefined> => {
-    return await this.sendRequest(Action.GET, key);
+    const conn = getClient(await GraghQL.getServerPort());
+    const result = await conn.query<
+      GetRocksValuesQuery,
+      GetRocksValuesQueryVariables
+    >({ variables: { keys: [key] }, query: GetRocksValuesDocument });
+    return result.data.getRocksdbValues[0] || undefined;
   };
 
   setItem = async (key: string, val: string) => {
-    return await this.sendRequest(Action.PUT, key, val);
+    const conn = getClient(await GraghQL.getServerPort());
+    await conn.mutate<SetRocksValuesMutation, SetRocksValuesMutationVariables>({
+      variables: { keys: [key], values: [val] },
+      mutation: SetRocksValuesDocument,
+    });
   };
 
   removeItem = async (key: string) => {
-    return await this.sendRequest(Action.DELETE, key);
+    const conn = getClient(await GraghQL.getServerPort());
+    await conn.mutate<
+      DeleteRocksKeysMutation,
+      DeleteRocksKeysMutationVariables
+    >({ variables: { keys: [key] }, mutation: DeleteRocksKeysDocument });
   };
 }
 
