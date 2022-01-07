@@ -72,6 +72,13 @@ type JavaPropsResponse {
 	propKeyList: [PropKey!]
 	propVals: PropVal
 }
+enum Level {
+	DEBUG
+	ERROR
+	INFO
+	TRACE
+	WARN
+}
 type Mutation {
 	appState(stateKeys: [AppStateKey!]!, stateVals: [String!]!): Boolean!
 	deleteAppState(stateKeys: [AppStateKey!]!): Boolean!
@@ -84,6 +91,7 @@ type Mutation {
 	selectPropKey(className: String!, propKey: String!): JavaPropsResponse!
 	propVals(className: String!, propKey: String!, propVals: [String]!): Boolean!
 	savePropVal(filepath: String!, propKey: String!, propVal: String!): Boolean!
+	log(target: String, level: Level!, message: String!): Boolean!
 }
 type NodeValue {
 	start: Int!

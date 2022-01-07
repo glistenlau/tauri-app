@@ -1,10 +1,11 @@
 import {
   Checkbox,
   Chip,
-  CircularProgress, FormControl,
+  CircularProgress,
+  FormControl,
   InputLabel,
   MenuItem,
-  Select
+  Select,
 } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import React, { useCallback, useMemo, useState } from "react";
@@ -127,32 +128,35 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
 
       const selectAll = (
         <MenuItem dense divider key={SELECT_ALL_VALUE} value={SELECT_ALL_VALUE}>
-          <Checkbox
-            checked={selectedSchemas.length === schemaMap.size}
-          />
-          <LabelWithDbIcons>
-            Select All
-          </LabelWithDbIcons>
+          <Checkbox checked={selectedSchemas.length === schemaMap.size} />
+          <LabelWithDbIcons>Select All</LabelWithDbIcons>
         </MenuItem>
-      )
+      );
 
-      return [selectAll, ...Array.from(schemaMap.values())
-        .sort((a, b) => a.value.localeCompare(b.value))
-        .map((mappedSchema) => {
-          return (
-            <MenuItem dense key={mappedSchema.value} value={mappedSchema.value}>
-              <Checkbox
-                checked={selectedSchemas.indexOf(mappedSchema.value) > -1}
-              />
-              <LabelWithDbIcons
-                showOracleIcon={mappedSchema.showOracleIcon}
-                showPostgresIcon={mappedSchema.showPostgresIcon}
+      return [
+        selectAll,
+        ...Array.from(schemaMap.values())
+          .sort((a, b) => a.value.localeCompare(b.value))
+          .map((mappedSchema) => {
+            return (
+              <MenuItem
+                dense
+                key={mappedSchema.value}
+                value={mappedSchema.value}
               >
-                {mappedSchema.value}
-              </LabelWithDbIcons>
-            </MenuItem>
-          );
-        })];
+                <Checkbox
+                  checked={selectedSchemas.indexOf(mappedSchema.value) > -1}
+                />
+                <LabelWithDbIcons
+                  showOracleIcon={mappedSchema.showOracleIcon}
+                  showPostgresIcon={mappedSchema.showPostgresIcon}
+                >
+                  {mappedSchema.value}
+                </LabelWithDbIcons>
+              </MenuItem>
+            );
+          }),
+      ];
     }, [schemaMap, selectedSchemas]);
 
     const handleChange = useCallback(
@@ -173,7 +177,6 @@ const SchemaDropdown: React.FC<SchemaDropdownProps> = React.memo(
             onChange(allValues);
           }
           return;
-
         }
 
         onChange(value);

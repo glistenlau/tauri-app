@@ -1,0 +1,3 @@
+mutation logMessage($target: String, $level: Level!, $message: String!) {
+    log(target:$target, level: $level, message: $message)
+}

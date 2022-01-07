@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::state::AppState;
 
-pub mod fs;
 pub mod graphql;
-pub mod log;
 pub mod query_runner;
 pub mod rocksdb;
 
@@ -22,8 +20,6 @@ pub struct Endpoint<A, P> {
 pub enum Handler {
     QueryRunner(Endpoint<query_runner::Action, query_runner::Payload>),
     RocksDB(Endpoint<rocksdb::Action, rocksdb::Payload>),
-    File(Endpoint<fs::Action, fs::Payload>),
-    Log(Endpoint<log::Action, log::Payload>),
     GraphQL(Endpoint<graphql::Action, graphql::Payload>),
 }
 
@@ -126,8 +122,6 @@ pub fn invoke_handler(
             Ok(rsp) => seralize_response(rsp),
             Err(e) => Err(e),
         },
-        Handler::File(e) => seralize_response(fs::handle_command(e)),
-        Handler::Log(e) => seralize_response(log::handle_command(e)),
         Handler::QueryRunner(e) => generate_response(
             query_runner::handle_command(window, e.action, e.payload),
             now.elapsed(),

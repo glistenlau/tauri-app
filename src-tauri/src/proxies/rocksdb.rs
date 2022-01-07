@@ -88,11 +88,16 @@ impl RocksDataStore {
         }
     }
 
-    pub fn multi_get(cf: Option<&str>, keys: &[&str], db: &DB) -> Result<Vec<Option<String>>> {
-        let mut res_bytes = match cf.and_then(|cf_str| db.cf_handle(cf_str)) {
+    pub fn multi_get<C, T, I>(cf: Option<C>, keys: I, db: &DB) -> Result<Vec<Option<String>>>
+    where
+        C: AsRef<str>,
+        T: AsRef<[u8]>,
+        I: IntoIterator<Item = T>,
+    {
+        let mut res_bytes = match cf.and_then(|cf_str| db.cf_handle(cf_str.as_ref())) {
             Some(cf_handle) => {
-                let multi_keys: Vec<(&ColumnFamily, &str)> =
-                    keys.iter().map(|&key| (cf_handle, key)).collect();
+                let multi_keys: Vec<(&ColumnFamily, T)> =
+                    keys.into_iter().map(|key| (cf_handle, key)).collect();
                 db.multi_get_cf(multi_keys)
             }
             None => db.multi_get(keys),
@@ -263,16 +268,9 @@ mod tests {
             ];
 
             RocksDataStore::write_batch(TEST_CF, &test_key_val, &mut conn).unwrap();
-            let mut get_rst = RocksDataStore::multi_get(
-                Some(TEST_CF),
-                test_key_val
-                    .iter()
-                    .map(|t| t.0)
-                    .collect::<Vec<&str>>()
-                    .as_ref(),
-                conn,
-            )
-            .unwrap();
+            let keys = test_key_val.iter().map(|t| t.0).collect::<Vec<&str>>();
+            let mut get_rst: Vec<Option<String>> =
+                RocksDataStore::multi_get(Some(TEST_CF), &keys, conn).unwrap();
 
             test_key_val
                 .iter()
@@ -282,16 +280,7 @@ mod tests {
             RocksDataStore::delete_range(Some(TEST_CF), test_key_val[0].0, test_key_val[1].0, conn)
                 .unwrap();
 
-            get_rst = RocksDataStore::multi_get(
-                Some(TEST_CF),
-                test_key_val
-                    .iter()
-                    .map(|t| t.0)
-                    .collect::<Vec<&str>>()
-                    .as_ref(),
-                conn,
-            )
-            .unwrap();
+            get_rst = RocksDataStore::multi_get(Some(TEST_CF), &keys, conn).unwrap();
 
             test_key_val.iter().enumerate().for_each(|(i, t)| {
                 if i > 0 {
@@ -303,16 +292,7 @@ mod tests {
 
             RocksDataStore::delete_range(Some(TEST_CF), test_key_val[0].0, "Test_key2~", conn)
                 .unwrap();
-            get_rst = RocksDataStore::multi_get(
-                Some(TEST_CF),
-                test_key_val
-                    .iter()
-                    .map(|t| t.0)
-                    .collect::<Vec<&str>>()
-                    .as_ref(),
-                conn,
-            )
-            .unwrap();
+            get_rst = RocksDataStore::multi_get(Some(TEST_CF), &keys, conn).unwrap();
 
             test_key_val.iter().enumerate().for_each(|(i, _t)| {
                 assert_eq!(get_rst[i], None);

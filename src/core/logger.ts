@@ -1,6 +1,12 @@
 import winston, { createLogger, format, Logger } from "winston";
 import Transport from "winston-transport";
-import LogApi from "../apis/log";
+import { getClient } from "../apis/graphql";
+import {
+  Level,
+  LogMessageDocument,
+  LogMessageMutation,
+  LogMessageMutationVariables,
+} from "../generated/graphql";
 
 declare global {
   interface Window {
@@ -13,27 +19,31 @@ class CustomTransport extends Transport {
     setImmediate(() => {
       this.emit("logged", info);
     });
-    let handler;
+    let level;
 
     switch (info.level) {
       case "info":
-        handler = LogApi.info;
+        level = Level.Info;
         break;
       case "error":
-        handler = LogApi.error;
+        level = Level.Error;
         break;
       case "warn":
-        handler = LogApi.warn;
+        level = Level.Warn;
         break;
       default:
+        level = Level.Debug;
         break;
     }
 
-    if (handler) {
-      handler(info.message);
-    }
+    let client = getClient(8888);
 
-    callback();
+    client
+      .mutate<LogMessageMutation, LogMessageMutationVariables>({
+        variables: { target: "UI", level, message: info.message },
+        mutation: LogMessageDocument,
+      })
+      .finally(callback);
   }
 }
 
