@@ -11,6 +11,7 @@ use std::{
 };
 
 use anyhow::Result;
+
 use log::warn;
 use oracle::sql_type::ToSql as OracleToSql;
 use serde::{Deserialize, Serialize};
@@ -212,14 +213,17 @@ pub fn scan_schema_queries(
                     Ok(ParamSeeds::Oracle(prepared_statement, seeds)) => {
                         oracle_seeds = seeds;
                         let params_iter =
-                            ParameterIterator::new(&oracle_seeds, &mode, prepared_statement);
+                            ParameterIterator::new(&oracle_seeds, mode.clone(), prepared_statement);
                         let db_param_iter = DBParamIter::Oracle(RefCell::new(params_iter));
                         QueryScanner::new(query_clone.as_ref(), db_param_iter)
                     }
                     Ok(ParamSeeds::Postgres(prepared_statement, seeds)) => {
                         postgres_seeds = seeds;
-                        let params_iter =
-                            ParameterIterator::new(&postgres_seeds, &mode, prepared_statement);
+                        let params_iter = ParameterIterator::new(
+                            &postgres_seeds,
+                            mode.clone(),
+                            prepared_statement,
+                        );
                         let db_param_iter = DBParamIter::Postgres(RefCell::new(params_iter));
                         QueryScanner::new(query_clone.as_ref(), db_param_iter)
                     }

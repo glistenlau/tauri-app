@@ -65,6 +65,10 @@ type FlatSchemaFile {
 A scalar that can represent any JSON value.
 """
 scalar JSON
+"""
+A scalar that can represent any JSON Object value.
+"""
+scalar JSONObject
 type JavaPropsResponse {
 	classList: [String!]
 	selectedClass: String
@@ -127,6 +131,14 @@ type Query {
 	dbExplain(text: String!, targetId: Int): [ExplainRow!]!
 	formatSql(sqlStmts: [String!]!): [String!]!
 }
+type QueryRunnerMessage {
+	schema: String!
+	index: Int!
+	parameters: [JSON!]
+	finished: Int!
+	pending: Int!
+	total: Int!
+}
 input Range {
 	start: Int!
 	end: Int!
@@ -136,7 +148,7 @@ type SchemaFile {
 	root: TreeNode!
 }
 type Subscription {
-	integers(step: Int! = 1): Int!
+	scanQuery(schemaQueries: JSONObject!, diffResuls: Boolean!): QueryRunnerMessage!
 }
 type TreeNode {
 	tagName: String!

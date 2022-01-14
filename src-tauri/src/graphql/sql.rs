@@ -1,5 +1,9 @@
+use std::collections::HashMap;
+
+use crate::handlers::query_runner::Query;
 use crate::proxies::oracle;
 use crate::proxies::postgres::{self};
+use crate::proxies::query_runner_stream::{scan_queries_stream, QueryRunnerMessage};
 use crate::proxies::sql_common::{get_schema_stmt, Config, DBType, SQLClient, SQLResult};
 use async_graphql::*;
 
@@ -90,6 +94,20 @@ impl SqlMutation {
         };
 
         match_json_results(run_sql_task(db_type, task_fn))
+    }
+}
+
+#[derive(Default)]
+pub struct SqlSubscription;
+
+#[Subscription]
+impl SqlSubscription {
+    async fn scan_query(
+        &self,
+        schema_queries: HashMap<String, Vec<Query>>,
+        diff_resuls: bool,
+    ) -> impl futures::stream::Stream<Item = QueryRunnerMessage> {
+        scan_queries_stream(schema_queries, diff_resuls).await
     }
 }
 

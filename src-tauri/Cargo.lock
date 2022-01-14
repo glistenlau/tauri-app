@@ -55,6 +55,7 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "async-graphql-warp",
+ "async-stream",
  "chrono",
  "crossbeam",
  "dirs 4.0.0",

@@ -26,7 +26,7 @@ pub struct ParameterIterator<'a, S: 'a, PS> {
     prepared_stmt: PS,
     current_parameter_index: usize,
     current_indexes: Vec<usize>,
-    mode: &'a ParameterGenerateStrategy,
+    mode: ParameterGenerateStrategy,
     terminal_parameter_index: usize,
     drained: bool,
     total: usize,
@@ -50,12 +50,8 @@ impl<'a, S, PS> Iterator for ParameterIterator<'a, S, PS> {
 }
 
 impl<'a, T, PS> ParameterIterator<'a, T, PS> {
-    pub fn new(
-        seeds: &'a [Vec<T>],
-        mode: &'a ParameterGenerateStrategy,
-        prepared_stmt: PS,
-    ) -> Self {
-        let terminal_parameter_index_opt = Self::find_terminal_parameter_index(seeds, mode);
+    pub fn new(seeds: &'a [Vec<T>], mode: ParameterGenerateStrategy, prepared_stmt: PS) -> Self {
+        let terminal_parameter_index_opt = Self::find_terminal_parameter_index(seeds, &mode);
         let (drained, terminal_parameter_index, total) = match terminal_parameter_index_opt {
             Some((tpi, t)) => (false, tpi, t),
             None => (false, 0, 1),

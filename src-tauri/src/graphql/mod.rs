@@ -11,9 +11,9 @@ use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::Schema;
 use async_graphql::*;
 use async_graphql_warp::{graphql_subscription, GraphQLResponse};
-use futures::Stream;
+
 use std::convert::Infallible;
-use std::time::Duration;
+
 use tokio_stream::StreamExt;
 
 use db_schema::DbSchemaQuery;
@@ -22,7 +22,7 @@ use sql_formatter::SqlFormatterQuery;
 use self::java_props::{JavaPropsMutation, JavaPropsQuery};
 use self::log::LogMutation;
 use self::rocksdb::{RocksDbMutation, RocksDbQuery};
-use self::sql::SqlMutation;
+use self::sql::{SqlMutation, SqlSubscription};
 use self::{
     app_state::{AppStateMutation, AppStateQuery},
     sql::SqlQuery,
@@ -49,23 +49,17 @@ pub struct Mutation(
     LogMutation,
 );
 
-pub struct Subscription;
-
-#[Subscription]
-impl Subscription {
-    async fn integers(&self, #[graphql(default = 1)] step: i32) -> impl Stream<Item = i32> {
-        let mut value = 0;
-        tokio_stream::wrappers::IntervalStream::new(tokio::time::interval(Duration::from_secs(1)))
-            .map(move |_| {
-                value += step;
-                value
-            })
-    }
-}
+#[derive(MergedSubscription, Default)]
+pub struct Subscription(SqlSubscription);
 
 #[tokio::main]
 pub async fn run_graphql_server(port: u16) {
-    let schema = Schema::build(Query::default(), Mutation::default(), Subscription).finish();
+    let schema = Schema::build(
+        Query::default(),
+        Mutation::default(),
+        Subscription::default(),
+    )
+    .finish();
 
     let graphql_post =
         warp::path("graphql").and(async_graphql_warp::graphql(schema.clone()).and_then(
