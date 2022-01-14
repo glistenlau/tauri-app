@@ -80,8 +80,7 @@ pub async fn scan_schema_queries(
     let _stop = Arc::new(AtomicBool::new(false));
     let _query_results: Vec<LinkedList<bool>> = vec![LinkedList::new(); queries.len()];
     let _final_results: Vec<Option<bool>> = vec![None; queries.len()];
-    let mut query_index = 0;
-    for query in queries.drain(..) {
+    for (query_index, query) in queries.drain(..).enumerate() {
         let schema_clone = schema.clone();
         let msg_tx_clone = msg_tx.clone();
         let scan_tx_clone = scan_tx.clone();
@@ -96,7 +95,6 @@ pub async fn scan_schema_queries(
             )
             .await;
         });
-        query_index += 1;
     }
 
     tokio::spawn(async move {
@@ -145,7 +143,7 @@ pub async fn scan_schema_query<'a>(
     schema: String,
     query: Query,
     _msg_tx: Sender<QueryRunnerMessage>,
-    scan_tx: Sender<ScanMessage>,
+    mut scan_tx: Sender<ScanMessage>,
 ) {
     let param_seeds_ret = match query.db_type() {
         DBType::Oracle => QueryScanner::map_oracle_param_seeds(schema.clone(), &query),
@@ -191,11 +189,8 @@ pub async fn scan_schema_query<'a>(
             params: cur_params.clone(),
             total: query_scanner.total(),
         };
-        let scan_tx_clone = scan_tx.clone();
-        tokio::spawn(async move {
-            log::debug!("start");
-            scan_tx_clone.send(start_msg).await;
-        });
+        scan_tx = send_scan_msg(scan_tx, start_msg);
+
         let execution_start = Instant::now();
 
         match query_scanner.next() {
@@ -206,13 +201,10 @@ pub async fn scan_schema_query<'a>(
                     params: cur_params,
                     total: query_scanner.total(),
                     result: rs,
-                    elapsed: elapsed,
+                    elapsed,
                 };
-                let scan_tx_clone = scan_tx.clone();
-                tokio::spawn(async move {
-                    log::debug!("finish");
-                    scan_tx_clone.send(finish_msg).await;
-                });
+                scan_tx = send_scan_msg(scan_tx, finish_msg);
+
             }
             None => {
                 log::debug!("Got nothing from query scanner, stop it");
@@ -220,4 +212,13 @@ pub async fn scan_schema_query<'a>(
             }
         }
     }
+}
+
+fn send_scan_msg(scan_tx: Sender<ScanMessage>, msg: ScanMessage) -> Sender<ScanMessage> {
+    let scan_tx_clone = scan_tx.clone();
+    tokio::spawn(async move {
+        log::debug!("Sending scan msg: {:?}", &msg);
+        scan_tx_clone.send(msg).await;
+    });
+    scan_tx
 }
