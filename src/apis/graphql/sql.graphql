@@ -17,3 +17,12 @@ mutation setConfig($dbType: Dbtype!, $dbConfig: Config!) {
 mutation setAutocommit($dbType: Dbtype!, $dbAutocommit: Boolean!) {
     dbAutocommit(dbType: $dbType, dbAutocommit: $dbAutocommit)
 }
+
+subscription scanQueies($schemaQueries:JSONObject!) {
+  scanQuery(schemaQueries:$schemaQueries, diffResuls: false) {
+    total
+    finished
+    pending
+    parameters
+  }
+}

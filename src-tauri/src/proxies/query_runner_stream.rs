@@ -23,6 +23,7 @@ use tokio_postgres::types::ToSql as PgToSql;
 
 use super::sql_common::{DBType, SQLError, SQLResultSet};
 
+#[derive(Debug)]
 pub enum ScanMessage {
     StartExecution {
         index: usize,
@@ -100,6 +101,7 @@ pub async fn scan_schema_queries(
 
     tokio::spawn(async move {
         while let Some(scan_msg) = scan_rx.recv().await {
+            log::debug!("Got scan msg: {:?}", &scan_msg);
             match scan_msg {
                 ScanMessage::StartExecution {
                     index,
@@ -136,7 +138,6 @@ pub async fn scan_schema_queries(
             }
         }
     });
-    todo!()
 }
 
 pub async fn scan_schema_query<'a>(
@@ -190,7 +191,11 @@ pub async fn scan_schema_query<'a>(
             params: cur_params.clone(),
             total: query_scanner.total(),
         };
-        scan_tx.send(start_msg);
+        let scan_tx_clone = scan_tx.clone();
+        tokio::spawn(async move {
+            log::debug!("start");
+            scan_tx_clone.send(start_msg).await;
+        });
         let execution_start = Instant::now();
 
         match query_scanner.next() {
@@ -203,7 +208,11 @@ pub async fn scan_schema_query<'a>(
                     result: rs,
                     elapsed: elapsed,
                 };
-                scan_tx.send(finish_msg);
+                let scan_tx_clone = scan_tx.clone();
+                tokio::spawn(async move {
+                    log::debug!("finish");
+                    scan_tx_clone.send(finish_msg).await;
+                });
             }
             None => {
                 log::debug!("Got nothing from query scanner, stop it");

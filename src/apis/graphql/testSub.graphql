@@ -1,3 +1,0 @@
-subscription sub {
-  integers(step: 2)
-}
