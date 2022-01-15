@@ -21,7 +21,10 @@ use crate::{
 use oracle::sql_type::ToSql as OracleToSql;
 use tokio_postgres::types::ToSql as PgToSql;
 
-use super::sql_common::{DBType, SQLError, SQLResultSet};
+use super::{
+    query_runner::ProgressInfo,
+    sql_common::{DBType, SQLError, SQLResultSet},
+};
 
 #[derive(Debug)]
 pub enum ScanMessage {
@@ -80,10 +83,18 @@ pub async fn scan_schema_queries(
     let _stop = Arc::new(AtomicBool::new(false));
     let _query_results: Vec<LinkedList<bool>> = vec![LinkedList::new(); queries.len()];
     let _final_results: Vec<Option<bool>> = vec![None; queries.len()];
+    let mut progress: Vec<RefCell<ProgressInfo>> = Vec::with_capacity(queries.len());
     for (query_index, query) in queries.drain(..).enumerate() {
         let schema_clone = schema.clone();
         let msg_tx_clone = msg_tx.clone();
         let scan_tx_clone = scan_tx.clone();
+
+        progress.push(RefCell::new(ProgressInfo::new(
+            0,
+            0,
+            0,
+            Duration::new(0, 0),
+        )));
 
         tokio::spawn(async move {
             scan_schema_query(
@@ -106,15 +117,9 @@ pub async fn scan_schema_queries(
                     params,
                     total,
                 } => {
-                    let msg = QueryRunnerMessage {
-                        schema: schema.clone(),
-                        index,
-                        parameters: params,
-                        finished: 0,
-                        pending: 1,
-                        total,
-                    };
-                    msg_tx.send(msg).await;
+                    let mut prgs = progress[index].borrow_mut();
+                    update_progress_info(&mut prgs, 0, 1, total, Duration::ZERO);
+                    send_progress_message(schema.clone(), index, params, &prgs, msg_tx.clone());
                 }
                 ScanMessage::FinishExecution {
                     index,
@@ -123,19 +128,50 @@ pub async fn scan_schema_queries(
                     result: _,
                     elapsed: _,
                 } => {
-                    let msg = QueryRunnerMessage {
-                        schema: schema.clone(),
-                        index,
-                        parameters: params,
-                        finished: 1,
-                        pending: 0,
-                        total,
-                    };
-                    msg_tx.send(msg).await;
+                    let mut prgs = progress[index].borrow_mut();
+                    update_progress_info(&mut prgs, 1, -1, total, Duration::ZERO);
+                    send_progress_message(schema.clone(), index, params, &prgs, msg_tx.clone());
                 }
             }
         }
     });
+}
+
+pub fn send_progress_message(
+    schema: String,
+    index: usize,
+    params: Option<Vec<Value>>,
+    prgs: &ProgressInfo,
+    msg_tx: Sender<QueryRunnerMessage>,
+) {
+    let msg = QueryRunnerMessage {
+        schema,
+        index,
+        parameters: params,
+        finished: prgs.finished,
+        pending: prgs.pending,
+        total: prgs.total,
+    };
+    tokio::spawn(async move {
+        msg_tx.send(msg).await;
+    });
+}
+
+pub fn update_progress_info(
+    progress: &mut ProgressInfo,
+    finished_delta: isize,
+    pendding_delta: isize,
+    total: usize,
+    elapsed_delta: Duration,
+) {
+    progress.finished += finished_delta as usize;
+    if pendding_delta < 0 {
+        progress.pending -= pendding_delta.abs() as usize;
+    } else {
+        progress.pending += pendding_delta as usize;
+    }
+    progress.total = total;
+    progress.elapsed += elapsed_delta;
 }
 
 pub async fn scan_schema_query<'a>(
@@ -204,7 +240,6 @@ pub async fn scan_schema_query<'a>(
                     elapsed,
                 };
                 scan_tx = send_scan_msg(scan_tx, finish_msg);
-
             }
             None => {
                 log::debug!("Got nothing from query scanner, stop it");

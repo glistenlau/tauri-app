@@ -65,10 +65,10 @@ impl<'a> ProgressMessage<'a> {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ProgressInfo {
-    finished: usize,
-    total: usize,
-    pending: usize,
-    elapsed: Duration,
+    pub finished: usize,
+    pub total: usize,
+    pub pending: usize,
+    pub elapsed: Duration,
 }
 
 impl ProgressInfo {
