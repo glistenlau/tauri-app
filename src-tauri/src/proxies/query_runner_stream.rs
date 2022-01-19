@@ -2,7 +2,10 @@ use anyhow::Result;
 use std::{
     cell::RefCell,
     collections::{HashMap, LinkedList},
-    sync::{atomic::AtomicBool, Arc},
+    sync::{
+        atomic::{AtomicBool, AtomicUsize},
+        Arc,
+    },
     time::{Duration, Instant},
 };
 
@@ -14,6 +17,7 @@ use crate::{
     core::{
         parameter_iterator::{DBParamIter, ParamSeeds, ParameterIterator},
         query_scanner::QueryScanner,
+        result_diff::diff,
     },
     handlers::query_runner::Query,
 };
@@ -29,11 +33,13 @@ use super::{
 #[derive(Debug)]
 pub enum ScanMessage {
     StartExecution {
+        msg_id: usize,
         index: usize,
         params: Option<Vec<Value>>,
         total: usize,
     },
     FinishExecution {
+        msg_id: usize,
         index: usize,
         params: Option<Vec<Value>>,
         total: usize,
@@ -44,6 +50,7 @@ pub enum ScanMessage {
 
 #[derive(SimpleObject)]
 pub struct QueryRunnerMessage {
+    msg_id: usize,
     schema: String,
     index: usize,
     parameters: Option<Vec<Value>>,
@@ -51,6 +58,8 @@ pub struct QueryRunnerMessage {
     pending: usize,
     total: usize,
 }
+
+static MSG_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 pub async fn scan_queries_stream(
     mut schema_queries: HashMap<String, Vec<Query>>,
@@ -109,28 +118,78 @@ pub async fn scan_schema_queries(
     }
 
     tokio::spawn(async move {
+        let mut query_results: Vec<LinkedList<SQLResultSet>> =
+            vec![LinkedList::new(); queries.len()];
+
         while let Some(scan_msg) = scan_rx.recv().await {
             log::debug!("Got scan msg: {:?}", &scan_msg);
             match scan_msg {
                 ScanMessage::StartExecution {
+                    msg_id,
                     index,
                     params,
                     total,
                 } => {
                     let mut prgs = progress[index].borrow_mut();
                     update_progress_info(&mut prgs, 0, 1, total, Duration::ZERO);
-                    send_progress_message(schema.clone(), index, params, &prgs, msg_tx.clone());
+                    send_progress_message(
+                        schema.clone(),
+                        msg_id,
+                        index,
+                        params,
+                        &prgs,
+                        msg_tx.clone(),
+                    );
                 }
                 ScanMessage::FinishExecution {
+                    msg_id,
                     index,
                     params,
                     total,
-                    result: _,
+                    result,
                     elapsed: _,
                 } => {
                     let mut prgs = progress[index].borrow_mut();
                     update_progress_info(&mut prgs, 1, -1, total, Duration::ZERO);
-                    send_progress_message(schema.clone(), index, params, &prgs, msg_tx.clone());
+                    send_progress_message(
+                        schema.clone(),
+                        msg_id,
+                        index,
+                        params,
+                        &prgs,
+                        msg_tx.clone(),
+                    );
+
+                    match result {
+                        Ok(rs) => {
+                            let rs_list = query_results.get_mut(index).unwrap();
+                            rs_list.push_back(rs);
+                        }
+                        Err(_e) => {
+                            log::debug!("sql error.")
+                        }
+                    }
+
+                    let ready_to_diff = query_results.iter().all(|ll| !ll.is_empty());
+                    if ready_to_diff {
+                        let first_results: Vec<Option<SQLResultSet>> =
+                            query_results.iter_mut().map(|qr| qr.pop_front()).collect();
+
+                        let first_results_rows: Vec<Option<&[Vec<Value>]>> = first_results
+                            .iter()
+                            .map(|fr| {
+                                let sql_result = fr.as_ref().unwrap();
+                                sql_result.get_rows().as_deref()
+                            })
+                            .collect();
+
+                        let diff_rst = diff(&first_results_rows);
+
+                        match diff_rst {
+                            Some(diff_map) => log::debug!("Found diff: {:?}", diff_map),
+                            None => log::debug!("Not found diff for schema: {}", &schema),
+                        }
+                    }
                 }
             }
         }
@@ -139,12 +198,14 @@ pub async fn scan_schema_queries(
 
 pub fn send_progress_message(
     schema: String,
+    msg_id: usize,
     index: usize,
     params: Option<Vec<Value>>,
     prgs: &ProgressInfo,
     msg_tx: Sender<QueryRunnerMessage>,
 ) {
     let msg = QueryRunnerMessage {
+        msg_id,
         schema,
         index,
         parameters: params,
@@ -221,6 +282,7 @@ pub async fn scan_schema_query<'a>(
 
         let cur_params = query_scanner.current_params();
         let start_msg = ScanMessage::StartExecution {
+            msg_id: MSG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst),
             index,
             params: cur_params.clone(),
             total: query_scanner.total(),
@@ -233,6 +295,7 @@ pub async fn scan_schema_query<'a>(
             Some(rs) => {
                 let elapsed = execution_start.elapsed();
                 let finish_msg = ScanMessage::FinishExecution {
+                    msg_id: MSG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst),
                     index,
                     params: cur_params,
                     total: query_scanner.total(),
