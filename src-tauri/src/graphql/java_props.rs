@@ -25,7 +25,7 @@ pub struct JavaPropsQuery;
 #[derive(Default)]
 pub struct JavaPropsMutation;
 
-static JAVA_PROPS_CR: &str = "JAVA_PROPS_CR";
+static JAVA_PROPS_CF: &str = "JAVA_PROPS_CF";
 static VALIDATION_RESULTS_KEY: &str = "VALIDATION_RESULTS";
 
 #[Object]
@@ -65,7 +65,7 @@ fn get_current_state() -> Result<JavaPropsResponse> {
     );
 
     let rst = RocksDataStore::multi_get(
-        Some(JAVA_PROPS_CR),
+        Some(JAVA_PROPS_CF),
         &[
             &prop_keys_save_key,
             &prop_vals_save_key,
@@ -179,7 +179,7 @@ fn save_prop_vals(
     let mut db = get_conn();
     let save_key = format!("{}#{}", class_name, prop_key);
     let save_val = serde_json::to_string(&prop_vals)?;
-    RocksDataStore::write_batch(JAVA_PROPS_CR, &[(&save_key, &save_val)], &mut db)
+    RocksDataStore::write_batch(JAVA_PROPS_CF, &[(&save_key, &save_val)], &mut db)
         .map(|_| true)
         .map_err(|e| e.into())
 }
@@ -193,7 +193,7 @@ fn select_prop_key(class_name: &str, prop_key: &str) -> Result<PropVal> {
     let prop_val_vr_save_key = format!("{}#{}#{}", class_name, prop_key, VALIDATION_RESULTS_KEY);
     let db = &get_conn();
     let get_res = RocksDataStore::multi_get(
-        Some(JAVA_PROPS_CR),
+        Some(JAVA_PROPS_CF),
         &[&prop_val_save_key, &prop_val_vr_save_key],
         db,
     )?;
@@ -221,7 +221,7 @@ fn select_class(class_name: &str) -> Result<Vec<PropKey>> {
 
     let prop_keys_save_key = class_name.to_string();
     let db = get_conn();
-    let get_res = RocksDataStore::multi_get(Some(JAVA_PROPS_CR), &[&prop_keys_save_key], &db)?;
+    let get_res = RocksDataStore::multi_get(Some(JAVA_PROPS_CF), &[&prop_keys_save_key], &db)?;
     let prop_val: Vec<PropKey> = match &get_res[0] {
         Some(r) => serde_json::from_str(r)?,
         None => Vec::new(),
@@ -258,12 +258,12 @@ fn save_java_props(file_props_map: &HashMap<String, HashMap<PropKey, PropVal>>) 
         key_vals_ref.push((&key_vals[i].0, &key_vals[i].1));
     }
 
-    match db.drop_cf(JAVA_PROPS_CR) {
+    match db.drop_cf(JAVA_PROPS_CF) {
         Ok(_) => info!("Dropped the CF for Java Props"),
         Err(e) => info!("Failed to drop the CF for Java Props {}", e),
     }
 
-    RocksDataStore::write_batch(JAVA_PROPS_CR, &key_vals_ref, &mut db).map_err(|e| e.into())
+    RocksDataStore::write_batch(JAVA_PROPS_CF, &key_vals_ref, &mut db).map_err(|e| e.into())
 }
 
 fn load_java_porops_state(

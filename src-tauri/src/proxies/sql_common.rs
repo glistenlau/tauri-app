@@ -65,7 +65,7 @@ pub enum DBType {
     Postgres,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, SimpleObject)]
 #[serde(rename_all = "camelCase")]
 pub struct SQLResultSet {
     row_count: usize,

@@ -27,8 +27,10 @@ use tokio_postgres::types::ToSql as PgToSql;
 
 use super::{
     query_runner::ProgressInfo,
-    sql_common::{DBType, SQLError, SQLResultSet},
+    sql_common::{DBType, SQLError, SQLResultSet, SQLResult},
 };
+
+static QUERY_RUNNER_CF: &str = "QUERY_RUNNER_CF";
 
 #[derive(Debug)]
 pub enum ScanMessage {
@@ -49,6 +51,13 @@ pub enum ScanMessage {
 }
 
 #[derive(SimpleObject)]
+struct ScanResults {
+    has_error: bool,
+    results: Option<SQLResultSet>,
+    error_msg: Option<String>,
+}
+
+#[derive(SimpleObject)]
 pub struct QueryRunnerMessage {
     msg_id: usize,
     schema: String,
@@ -57,6 +66,7 @@ pub struct QueryRunnerMessage {
     finished: usize,
     pending: usize,
     total: usize,
+    scan_results: Option<ScanResults>,
 }
 
 static MSG_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -66,6 +76,7 @@ pub async fn scan_queries_stream(
     diff_results: bool,
 ) -> impl futures::stream::Stream<Item = QueryRunnerMessage> {
     let (msg_tx, mut msg_rx) = tokio::sync::mpsc::channel::<QueryRunnerMessage>(16);
+    MSG_COUNTER.store(0, std::sync::atomic::Ordering::SeqCst);
 
     for (schema, queries) in schema_queries.drain() {
         let msg_tx_clone = msg_tx.clone();
@@ -89,6 +100,7 @@ pub async fn scan_schema_queries(
     msg_tx: Sender<QueryRunnerMessage>,
 ) {
     let (scan_tx, mut scan_rx) = tokio::sync::mpsc::channel::<ScanMessage>(16);
+    let query_len = queries.len();
     let _stop = Arc::new(AtomicBool::new(false));
     let _query_results: Vec<LinkedList<bool>> = vec![LinkedList::new(); queries.len()];
     let _final_results: Vec<Option<bool>> = vec![None; queries.len()];
@@ -119,7 +131,8 @@ pub async fn scan_schema_queries(
 
     tokio::spawn(async move {
         let mut query_results: Vec<LinkedList<SQLResultSet>> =
-            vec![LinkedList::new(); queries.len()];
+            vec![LinkedList::new(); query_len];
+
 
         while let Some(scan_msg) = scan_rx.recv().await {
             log::debug!("Got scan msg: {:?}", &scan_msg);
@@ -212,6 +225,7 @@ pub fn send_progress_message(
         finished: prgs.finished,
         pending: prgs.pending,
         total: prgs.total,
+        scan_results: None,
     };
     tokio::spawn(async move {
         msg_tx.send(msg).await;
