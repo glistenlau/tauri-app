@@ -8,7 +8,7 @@ use futures::{
 use lazy_static::lazy_static;
 
 use serde_json::Value;
-use tauri::async_runtime::Handle;
+use tauri::async_runtime;
 use tokio::{runtime::Runtime, spawn};
 use tokio_postgres::{error::DbError, types::ToSql, Client, Error, NoTls, Statement};
 
@@ -239,7 +239,7 @@ impl PostgresProxy {
 
 impl<'a> SQLClient for PostgresProxy {
     fn set_config(&'static self, db_config: Config) -> Result<SQLResult> {
-        let handle = Handle::current();
+        let handle = async_runtime::handle();
         thread::spawn(move || {
             handle.block_on(async {
                 let mut console_manager = self.get_console_manager().await?;
@@ -256,7 +256,7 @@ impl<'a> SQLClient for PostgresProxy {
     }
 
     fn set_autocommit(&'static self, autocommit: bool) -> Result<SQLResult> {
-        let handle = Handle::current();
+        let handle = async_runtime::handle();
         thread::spawn(move || {
             handle.block_on(async {
                 let mut manager = self.get_console_manager().await?;
@@ -285,7 +285,7 @@ impl<'a> SQLClient for PostgresProxy {
     }
 
     fn commit_console(&'static self) -> Result<SQLResult> {
-        let handle = Handle::current();
+        let handle = async_runtime::handle();
         thread::spawn(move || {
             handle.block_on(async {
                 let manager = self.get_console_manager().await?;
@@ -303,7 +303,7 @@ impl<'a> SQLClient for PostgresProxy {
     }
 
     fn rollback_console(&'static self) -> Result<SQLResult> {
-        let handle = Handle::current();
+        let handle = async_runtime::handle();
         thread::spawn(move || {
             handle.block_on(async {
                 let manager = self.get_console_manager().await?;
@@ -355,7 +355,7 @@ impl<'a> SQLClient for PostgresProxy {
         parameters: &[Value],
         _with_statistics: bool,
     ) -> Result<SQLResult> {
-        let handle = Handle::current();
+        let handle = async_runtime::handle();
         let stmt = statement.to_string();
         let parameter_vec: Vec<Value> = parameters.iter().map(|p| p.clone()).collect();
         crossbeam::thread::scope(|s| {
@@ -384,7 +384,7 @@ impl<'a> SQLClient for PostgresProxy {
     }
 
     fn validate_stmts(&'static self, stmts: &[&str]) -> Result<Vec<SQLResult>> {
-        let handle = Handle::current();
+        let handle = async_runtime::handle();
         let stmts_vec: Vec<String> = stmts.iter().map(|stmt| stmt.to_string()).collect();
         thread::spawn(move || {
             handle.block_on(async {

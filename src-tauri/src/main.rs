@@ -7,7 +7,7 @@ use std::thread;
 
 use mylib::graphql::run_graphql_server;
 use mylib::utilities::find_open_port;
-use tauri::Submenu;
+use tauri::{Submenu, AboutMetadata};
 use tauri::{Menu, MenuItem};
 
 use mylib::state::AppState;
@@ -19,7 +19,7 @@ fn get_menu() -> Menu {
         .add_submenu(Submenu::new(
             APP_NAME,
             Menu::new()
-                .add_native_item(MenuItem::About(APP_NAME.to_string()))
+                .add_native_item(MenuItem::About(APP_NAME.to_string(), AboutMetadata::new()))
                 .add_native_item(MenuItem::Separator)
                 .add_native_item(MenuItem::Services)
                 .add_native_item(MenuItem::Separator)

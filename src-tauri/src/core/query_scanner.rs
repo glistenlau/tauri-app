@@ -14,7 +14,7 @@ use futures::task::SpawnExt;
 use oracle::sql_type::ToSql as oracle_ToSql;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tauri::async_runtime::Handle;
+use tauri::async_runtime;
 use tokio_postgres::{types::ToSql as pg_ToSql, Statement as PgStmt};
 
 use crate::{
@@ -144,7 +144,7 @@ impl<'a> QueryScanner<'a> {
         }
 
         let prepared_stmt = param_iter_ref.prepared_stmt();
-        let handle = Handle::current();
+        let handle = async_runtime::handle();
         thread::scope(|s| {
             s.spawn(|_| {
                 handle.block_on(async {

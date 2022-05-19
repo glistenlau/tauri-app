@@ -372,36 +372,36 @@ mod tests {
         }
     }
 
-    fn obj_merge(
-        _new_key: &[u8],
-        existing_val: Option<&[u8]>,
-        operands: &mut MergeOperands,
-    ) -> Option<Vec<u8>> {
-        let mut result: Vec<u8> = Vec::with_capacity(operands.size_hint().0);
-        let mut existing_value: Value = existing_val
-            .map(|v| serde_json::from_slice(v).unwrap())
-            .unwrap_or(json!("{}"));
-        for op in operands {
-            for e in op {
-                result.push(*e)
-            }
-        }
-        let new_value: Value = serde_json::from_slice(&result).unwrap();
-        merge(&mut existing_value, &new_value);
-        Some(existing_value.to_string().into_bytes())
-    }
+    // fn obj_merge(
+    //     _new_key: &[u8],
+    //     existing_val: Option<&[u8]>,
+    //     operands: &mut MergeOperands,
+    // ) -> Option<Vec<u8>> {
+    //     let mut result: Vec<u8> = Vec::with_capacity(operands.len());
+    //     let mut existing_value: Value = existing_val
+    //         .map(|v| serde_json::from_slice(v).unwrap())
+    //         .unwrap_or(json!("{}"));
+    //     for op in operands {
+    //         for e in op {
+    //             result.push(*e)
+    //         }
+    //     }
+    //     let new_value: Value = serde_json::from_slice(&result).unwrap();
+    //     merge(&mut existing_value, &new_value);
+    //     Some(existing_value.to_string().into_bytes())
+    // }
 
-    #[test]
-    fn test_merge() {
-        let mut opts = Options::default();
-        opts.set_merge_operator("object_merger", obj_merge, obj_merge);
-        opts.create_if_missing(true);
-        let mut path = RocksDataStore::get_path();
-        path.push("_test");
-        let db = DB::open(&opts, path).unwrap();
-        db.put(b"test", b"{\"name\": \"John Doe\"}");
-        db.merge(b"test", b"{\"gender\": \"male\"}");
-        let r = db.get(b"test").unwrap();
-        println!("{}", String::from_utf8(r.unwrap()).unwrap());
-    }
+    // #[test]
+    // fn test_merge() {
+    //     let mut opts = Options::default();
+    //     opts.set_merge_operator("object_merger", obj_merge, obj_merge);
+    //     opts.create_if_missing(true);
+    //     let mut path = RocksDataStore::get_path();
+    //     path.push("_test");
+    //     let db = DB::open(&opts, path).unwrap();
+    //     db.put(b"test", b"{\"name\": \"John Doe\"}");
+    //     db.merge(b"test", b"{\"gender\": \"male\"}");
+    //     let r = db.get(b"test").unwrap();
+    //     println!("{}", String::from_utf8(r.unwrap()).unwrap());
+    // }
 }

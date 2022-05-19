@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use anyhow::Result;
 use lazy_static::lazy_static;
 use oracle::{sql_type::ToSql, Connection};
-use oracle::{ColumnInfo, Statement};
+use oracle::{ColumnInfo, Statement, StmtParam};
 
 use serde_json::Value;
 use uuid::Uuid;
@@ -148,7 +148,7 @@ impl OracleClient {
         conn: &Connection,
     ) -> Result<SQLResultSet, SQLError> {
         log::debug!("execute oracle statement: {}", stmt_str);
-        let mut prepared_stmt = conn.prepare(stmt_str, &[])?;
+        let mut prepared_stmt = conn.prepare(stmt_str, &[StmtParam::FetchArraySize(100000)])?;
 
         Self::execute_prepared(&mut prepared_stmt, params)
     }
